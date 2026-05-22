@@ -69,7 +69,7 @@ class OmniFFRuntime:
         route = self.router.route(prompt or "", input_modality, output_modality)
 
         if route.route_class in ("TEXT_SIMPLE", "TEXT_NORMAL", "TEXT_COMPLEX"):
-            return self._run_text_to_text(prompt or input, route.route_class, controls)
+            return self._run_text_to_text(prompt or input, route.route_class, thinking, controls)
 
         if route.route_class == "IMAGE_CAPTION":
             return self._run_image_to_text(input, prompt, controls)
@@ -91,12 +91,13 @@ class OmniFFRuntime:
 
         return RunResult(output_text=f"Unsupported route: {route.route_class}", route=route.route_class)
 
-    def _run_text_to_text(self, prompt: str, route: str, controls: dict) -> RunResult:
+    def _run_text_to_text(self, prompt: str, route: str, thinking: str, controls: dict) -> RunResult:
         from omniff.models.llm import LLMModel
 
         model_id = controls.get("model_id", "Qwen/Qwen3-4B")
         llm = self._ensure_model("llm", LLMModel, model_id=model_id, device="auto")
-        result = llm.infer({"prompt": prompt})
+        enable_thinking = thinking not in ("off", "fast")
+        result = llm.infer({"prompt": prompt, "thinking": enable_thinking})
         return RunResult(output_text=result["text"], route=route)
 
     def _run_image_to_text(self, image_path: str, prompt: str | None, controls: dict) -> RunResult:

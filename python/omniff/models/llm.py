@@ -51,11 +51,13 @@ class LLMModel(OmniModel):
             raise RuntimeError("Model not loaded")
 
         prompt = inputs.get("prompt", "")
+        thinking = inputs.get("thinking", True)
         messages = inputs.get("messages") or [{"role": "user", "content": prompt}]
 
-        text = self._tokenizer.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True,
-        )
+        chat_kwargs = dict(tokenize=False, add_generation_prompt=True)
+        if not thinking:
+            chat_kwargs["enable_thinking"] = False
+        text = self._tokenizer.apply_chat_template(messages, **chat_kwargs)
         model_inputs = self._tokenizer([text], return_tensors="pt").to(self._model.device)
 
         generated = self._model.generate(

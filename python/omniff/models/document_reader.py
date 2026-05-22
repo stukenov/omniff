@@ -94,5 +94,5 @@ class DocumentReaderModel(OmniModel):
         # Truncate to ~4000 chars to fit in context
         context = raw_text[:4000]
         llm_prompt = f"Document content:\n{context}\n\nTask: {prompt}"
-        result = self._llm.infer({"prompt": llm_prompt})
+        result = self._llm.infer({"prompt": llm_prompt, "thinking": False})
         return {"text": result["text"], "source": "llm", "raw_length": len(raw_text)}
