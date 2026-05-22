@@ -39,6 +39,24 @@ def test_route_text_complex():
     assert decision.route_class in ("TEXT_COMPLEX", "TEXT_NORMAL")
 
 
+def test_route_video_caption():
+    router = KeywordRouter()
+    decision = router.route("describe this video", input_modality="video")
+    assert decision.route_class == "VIDEO_CAPTION"
+
+
+def test_route_document_read():
+    router = KeywordRouter()
+    decision = router.route("summarize this document", input_modality="document")
+    assert decision.route_class == "DOCUMENT_READ"
+
+
+def test_route_text_to_image():
+    router = KeywordRouter()
+    decision = router.route("a beautiful sunset", output_modality="image")
+    assert decision.route_class == "TEXT_TO_IMAGE"
+
+
 def test_route_decision_fields():
     router = KeywordRouter()
     decision = router.route("hello")

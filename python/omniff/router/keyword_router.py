@@ -26,6 +26,12 @@ class KeywordRouter:
         output_modality = output_modality or "text"
         prompt_lower = prompt.lower()
 
+        if input_modality == "video":
+            return RouteDecision("VIDEO_CAPTION", 0.85, "normal")
+
+        if input_modality == "document":
+            return RouteDecision("DOCUMENT_READ", 0.85, "normal")
+
         if input_modality == "audio":
             if prompt.strip():
                 return RouteDecision("AUDIO_QA", 0.8, "normal")

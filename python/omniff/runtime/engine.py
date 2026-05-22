@@ -80,6 +80,15 @@ class OmniFFRuntime:
         if route.route_class == "IMAGE_EDIT":
             return self._run_image_to_image(input, prompt or "", controls, output)
 
+        if route.route_class == "TEXT_TO_IMAGE":
+            return self._run_text_to_image(prompt or input, controls, output)
+
+        if route.route_class == "VIDEO_CAPTION":
+            return self._run_video_to_text(input, prompt, controls)
+
+        if route.route_class == "DOCUMENT_READ":
+            return self._run_document_to_text(input, prompt, controls)
+
         return RunResult(output_text=f"Unsupported route: {route.route_class}", route=route.route_class)
 
     def _run_text_to_text(self, prompt: str, route: str, controls: dict) -> RunResult:
@@ -134,3 +143,45 @@ class OmniFFRuntime:
             "output_path": output_path,
         })
         return RunResult(output_path=result["image_path"], route="IMAGE_EDIT")
+
+    def _run_text_to_image(self, prompt: str, controls: dict, output: str | None) -> RunResult:
+        from omniff.models.text_to_image import TextToImageModel
+
+        model_id = controls.get("model_id", "stabilityai/sdxl-turbo")
+        gen = self._ensure_model("text_to_image", TextToImageModel, model_id=model_id, device="auto")
+        output_path = output or "output.png"
+        result = gen.infer({
+            "prompt": prompt,
+            "negative_prompt": controls.get("negative_prompt", ""),
+            "seed": controls.get("seed"),
+            "output_path": output_path,
+        })
+        return RunResult(output_path=result["image_path"], route="TEXT_TO_IMAGE")
+
+    def _run_video_to_text(self, video_path: str, prompt: str | None, controls: dict) -> RunResult:
+        from omniff.models.video_captioner import VideoCaptionerModel
+
+        model_id = controls.get("model_id", "Qwen/Qwen2.5-VL-3B-Instruct")
+        captioner = self._ensure_model("video_captioner", VideoCaptionerModel, model_id=model_id, device="auto")
+        result = captioner.infer({
+            "video_path": video_path,
+            "prompt": prompt or "Describe this video in detail.",
+        })
+        return RunResult(
+            output_text=result["text"], route="VIDEO_CAPTION",
+            metadata={"num_frames": result.get("num_frames", 0)},
+        )
+
+    def _run_document_to_text(self, doc_path: str, prompt: str | None, controls: dict) -> RunResult:
+        from omniff.models.document_reader import DocumentReaderModel
+
+        llm_id = controls.get("model_id", "Qwen/Qwen3-4B")
+        reader = self._ensure_model("document_reader", DocumentReaderModel, llm_model_id=llm_id, device="auto")
+        result = reader.infer({
+            "document_path": doc_path,
+            "prompt": prompt,
+        })
+        return RunResult(
+            output_text=result["text"], route="DOCUMENT_READ",
+            metadata={"source": result.get("source", "extraction")},
+        )
