@@ -1,0 +1,87 @@
+from __future__ import annotations
+
+from typing import Any
+
+from omniff.graph.types import OmniGraph, OmniNode, Edge
+
+
+class GraphPlanner:
+    """Builds execution graphs from route decisions and input parameters."""
+
+    PIPELINE_TEMPLATES: dict[str, list[dict[str, Any]]] = {
+        "TEXT_SIMPLE": [
+            {"id": "demux", "type": "demuxer", "config": {"modality": "text"}},
+            {"id": "llm", "type": "llm_infer", "config": {}},
+            {"id": "validate", "type": "text_validate", "config": {"min_length": 1}},
+            {"id": "mux", "type": "muxer", "config": {"modality": "text"}},
+        ],
+        "IMAGE_CAPTION": [
+            {"id": "demux", "type": "demuxer", "config": {"modality": "image"}},
+            {"id": "vlm", "type": "vlm_infer", "config": {}},
+            {"id": "validate", "type": "text_validate", "config": {"min_length": 1}},
+            {"id": "mux", "type": "muxer", "config": {"modality": "text"}},
+        ],
+        "AUDIO_TRANSCRIBE_ONLY": [
+            {"id": "demux", "type": "demuxer", "config": {"modality": "audio"}},
+            {"id": "asr", "type": "asr_infer", "config": {}},
+            {"id": "validate", "type": "text_validate", "config": {"min_length": 1}},
+            {"id": "mux", "type": "muxer", "config": {"modality": "text"}},
+        ],
+        "IMAGE_EDIT": [
+            {"id": "demux", "type": "demuxer", "config": {"modality": "image"}},
+            {"id": "edit", "type": "image_edit_infer", "config": {}},
+            {"id": "validate", "type": "image_validate", "config": {}},
+            {"id": "mux", "type": "muxer", "config": {"modality": "image"}},
+        ],
+        "TEXT_TO_IMAGE": [
+            {"id": "demux", "type": "demuxer", "config": {"modality": "text"}},
+            {"id": "gen", "type": "text_to_image_infer", "config": {}},
+            {"id": "validate", "type": "image_validate", "config": {}},
+            {"id": "mux", "type": "muxer", "config": {"modality": "image"}},
+        ],
+        "VIDEO_CAPTION": [
+            {"id": "demux", "type": "demuxer", "config": {"modality": "video"}},
+            {"id": "captioner", "type": "video_caption_infer", "config": {}},
+            {"id": "validate", "type": "text_validate", "config": {"min_length": 1}},
+            {"id": "mux", "type": "muxer", "config": {"modality": "text"}},
+        ],
+        "DOCUMENT_READ": [
+            {"id": "demux", "type": "demuxer", "config": {"modality": "document"}},
+            {"id": "reader", "type": "document_read_infer", "config": {}},
+            {"id": "validate", "type": "text_validate", "config": {"min_length": 1}},
+            {"id": "mux", "type": "muxer", "config": {"modality": "text"}},
+        ],
+    }
+
+    def plan(
+        self,
+        route_class: str,
+        controls: dict[str, Any] | None = None,
+    ) -> OmniGraph:
+        controls = controls or {}
+        template = self.PIPELINE_TEMPLATES.get(route_class)
+        if not template:
+            for key in ("TEXT_NORMAL", "TEXT_COMPLEX"):
+                if key == route_class:
+                    template = self.PIPELINE_TEMPLATES["TEXT_SIMPLE"]
+                    break
+            if not template:
+                template = self.PIPELINE_TEMPLATES["TEXT_SIMPLE"]
+
+        graph = OmniGraph(id=f"plan_{route_class.lower()}")
+
+        for node_def in template:
+            config = {**node_def["config"], **controls}
+            graph.add_node(OmniNode(
+                id=node_def["id"],
+                node_type=node_def["type"],
+                config=config,
+            ))
+
+        for i in range(len(template) - 1):
+            graph.add_edge(template[i]["id"], template[i + 1]["id"])
+
+        return graph
+
+    def available_routes(self) -> list[str]:
+        return list(self.PIPELINE_TEMPLATES.keys())
