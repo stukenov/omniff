@@ -58,7 +58,10 @@ class OmniFFRuntime:
         input_modality = _detect_input_modality(input)
 
         if input_modality == "text" and not Path(input).exists():
-            prompt = prompt or input
+            if prompt:
+                prompt = f"{input}\n\n{prompt}"
+            else:
+                prompt = input
             input_modality = "text"
 
         output_modality = output_modality or "text"
