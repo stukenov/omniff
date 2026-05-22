@@ -1,0 +1,53 @@
+name: image_to_image
+description: Image editing with VLM analysis, control maps, and diffusion
+input_modality: image
+output_modality: image
+
+graph:
+  id: image_to_image
+  nodes:
+    - id: analyze_image
+      node_type:
+        model:
+          backend: transformers
+          path: models/vlm
+      config: {}
+    - id: extract_depth
+      node_type:
+        filter: extract_depth
+      config: {}
+    - id: extract_mask
+      node_type:
+        model:
+          backend: custom
+          path: models/sam
+      config: {}
+    - id: plan_edit
+      node_type:
+        model:
+          backend: transformers
+          path: models/llm_small
+      config:
+        thinking: true
+    - id: generate_image
+      node_type:
+        model:
+          backend: diffusers
+          path: models/image_generator
+      config: {}
+    - id: validate
+      node_type:
+        validator: prompt_adherence
+      config:
+        threshold: 0.82
+  edges:
+    - from: analyze_image
+      to: plan_edit
+    - from: extract_depth
+      to: generate_image
+    - from: extract_mask
+      to: generate_image
+    - from: plan_edit
+      to: generate_image
+    - from: generate_image
+      to: validate

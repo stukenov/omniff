@@ -1,0 +1,30 @@
+# Rust
+/target/
+Cargo.lock
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Models (large files)
+models/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Environment
+.env
+.venv/
+venv/
+
+# Logs
+*.log

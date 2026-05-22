@@ -1,0 +1,85 @@
+name: video_to_video
+description: Video style transfer with temporal consistency and face preservation
+input_modality: video
+output_modality: video
+
+graph:
+  id: video_to_video
+  nodes:
+    - id: split_video
+      node_type:
+        tool: ffmpeg
+      config:
+        operation: demux
+    - id: shot_detection
+      node_type:
+        filter: split_shots
+      config: {}
+    - id: analyze_keyframes
+      node_type:
+        model:
+          backend: transformers
+          path: models/vlm
+      config: {}
+    - id: transcribe_audio
+      node_type:
+        model:
+          backend: transformers
+          path: models/asr
+      config: {}
+    - id: make_control_maps
+      node_type:
+        filter: extract_depth
+      config:
+        maps: [depth, canny, pose]
+    - id: plan_shots
+      node_type:
+        model:
+          backend: transformers
+          path: models/llm_small
+      config:
+        thinking: true
+    - id: generate_video
+      node_type:
+        model:
+          backend: diffusers
+          path: models/video_generator
+      config: {}
+    - id: temporal_filter
+      node_type:
+        filter: temporal_consistency
+      config:
+        strength: high
+    - id: restore_audio
+      node_type:
+        tool: ffmpeg
+      config:
+        operation: mux_audio
+    - id: validate_video
+      node_type:
+        validator: temporal_consistency
+      config:
+        threshold: 0.78
+  edges:
+    - from: split_video
+      to: shot_detection
+    - from: split_video
+      to: transcribe_audio
+    - from: shot_detection
+      to: analyze_keyframes
+    - from: analyze_keyframes
+      to: plan_shots
+    - from: shot_detection
+      to: make_control_maps
+    - from: plan_shots
+      to: generate_video
+    - from: make_control_maps
+      to: generate_video
+    - from: generate_video
+      to: temporal_filter
+    - from: temporal_filter
+      to: restore_audio
+    - from: transcribe_audio
+      to: restore_audio
+    - from: restore_audio
+      to: validate_video

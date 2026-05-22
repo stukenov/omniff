@@ -1,0 +1,21 @@
+[package]
+name = "omniff-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "FFmpeg-like CLI for OmniFF multimodal AI runtime"
+
+[[bin]]
+name = "omniff"
+path = "src/main.rs"
+
+[dependencies]
+omniff-core = { workspace = true }
+omniff-graph = { workspace = true }
+omniff-runtime = { workspace = true }
+clap = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+anyhow = { workspace = true }

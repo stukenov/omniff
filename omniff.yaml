@@ -1,0 +1,51 @@
+name: omniff-runtime
+version: "0.1"
+
+router:
+  type: encoder_classifier
+  path: models/router
+
+experts:
+  text_small:
+    name: text_small
+    model_type: causal_lm
+    path: models/llm_small
+    loading: hot
+
+  text_large:
+    name: text_large
+    model_type: causal_lm
+    path: models/llm_large
+    loading: warm
+
+  asr:
+    name: asr
+    model_type: speech_to_text
+    path: models/asr
+    loading: hot
+
+  vision:
+    name: vision
+    model_type: vision_language
+    path: models/vlm
+    loading: warm
+
+  image_edit:
+    name: image_edit
+    model_type: diffusion_image_edit
+    path: models/image_generator
+    loading: warm
+
+  video_edit:
+    name: video_edit
+    model_type: diffusion_video_edit
+    path: models/video_generator
+    loading: cold
+
+  tts:
+    name: tts
+    model_type: text_to_speech
+    path: models/tts
+    loading: cold
+
+graph_templates_dir: graph_templates

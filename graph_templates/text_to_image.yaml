@@ -1,0 +1,31 @@
+name: text_to_image
+description: Image generation from text prompt with validation
+input_modality: text
+output_modality: image
+
+graph:
+  id: text_to_image
+  nodes:
+    - id: prompt_planner
+      node_type:
+        model:
+          backend: transformers
+          path: models/llm_small
+      config:
+        task: enrich_image_prompt
+    - id: generate_image
+      node_type:
+        model:
+          backend: diffusers
+          path: models/image_generator
+      config: {}
+    - id: validate
+      node_type:
+        validator: prompt_adherence
+      config:
+        threshold: 0.80
+  edges:
+    - from: prompt_planner
+      to: generate_image
+    - from: generate_image
+      to: validate

@@ -1,0 +1,45 @@
+name: audio_to_text
+description: Audio transcription with language correction and optional summary
+input_modality: audio
+output_modality: text
+
+graph:
+  id: audio_to_text
+  nodes:
+    - id: vad_chunking
+      node_type:
+        filter: split_shots
+      config:
+        mode: vad
+    - id: asr
+      node_type:
+        model:
+          backend: transformers
+          path: models/asr
+      config: {}
+    - id: transcript_cleanup
+      node_type:
+        filter: normalize
+      config:
+        mode: text
+    - id: language_correction
+      node_type:
+        model:
+          backend: transformers
+          path: models/llm_small
+      config:
+        task: grammar_correction
+    - id: text_validator
+      node_type:
+        validator: language
+      config:
+        threshold: 0.8
+  edges:
+    - from: vad_chunking
+      to: asr
+    - from: asr
+      to: transcript_cleanup
+    - from: transcript_cleanup
+      to: language_correction
+    - from: language_correction
+      to: text_validator

@@ -1,0 +1,36 @@
+name: text_to_text
+description: Simple text-to-text through router and LLM expert
+input_modality: text
+output_modality: text
+
+graph:
+  id: text_to_text
+  nodes:
+    - id: language_detect
+      node_type:
+        filter: detect_language
+      config: {}
+    - id: router
+      node_type:
+        model:
+          backend: encoder_classifier
+          path: models/router
+      config: {}
+    - id: llm_expert
+      node_type:
+        model:
+          backend: transformers
+          path: models/llm_small
+      config: {}
+    - id: text_validator
+      node_type:
+        validator: language
+      config:
+        threshold: 0.8
+  edges:
+    - from: language_detect
+      to: router
+    - from: router
+      to: llm_expert
+    - from: llm_expert
+      to: text_validator

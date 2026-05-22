@@ -1,0 +1,18 @@
+[package]
+name = "omniff-runtime"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "OmniFF runtime: scheduler, model management, graph execution orchestrator"
+
+[dependencies]
+omniff-core = { workspace = true }
+omniff-graph = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_yaml = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+uuid = { workspace = true }
