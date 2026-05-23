@@ -187,6 +187,84 @@ def _cmd_models(args: argparse.Namespace) -> None:
             sys.exit(1)
 
 
+def _cmd_graph(args: argparse.Namespace) -> None:
+    from omniff.graph.planner import GraphPlanner
+    from omniff.graph.visualizer import render_ascii, render_dot
+
+    planner = GraphPlanner()
+
+    if args.action == "routes":
+        for r in planner.available_routes():
+            print(f"  {r}")
+        return
+
+    if args.file:
+        from omniff.graph.chain import load_chain
+        graph = load_chain(args.file)
+    elif args.route:
+        graph = planner.plan(args.route)
+    else:
+        graph = planner.plan("TEXT_SIMPLE")
+
+    if args.action == "dot":
+        print(render_dot(graph))
+    else:
+        print(render_ascii(graph))
+
+
+def _cmd_plugin(args: argparse.Namespace) -> None:
+    if args.action == "list":
+        from omniff.plugins import PluginRegistry
+        registry = PluginRegistry()
+        plugins = registry.list()
+        if plugins:
+            for p in plugins:
+                print(f"  {p}")
+        else:
+            print("No plugins registered.")
+
+    elif args.action == "init":
+        name = args.name
+        if not name:
+            print("Error: --name required")
+            sys.exit(1)
+        template = f'''from omniff.models.base import OmniModel
+from omniff.plugins import ModelPlugin
+
+
+class {name.title()}Model(OmniModel):
+    def __init__(self, model_id: str = "", device: str = "auto"):
+        self.model_id = model_id
+        self.device = device
+        self._model = None
+
+    @property
+    def is_loaded(self) -> bool:
+        return self._model is not None
+
+    def load(self) -> None:
+        pass  # Load your model here
+
+    def unload(self) -> None:
+        self._model = None
+
+    def infer(self, inputs):
+        if not self.is_loaded:
+            raise RuntimeError("Model not loaded")
+        return {{"text": "output"}}
+
+
+plugin = ModelPlugin(
+    name="{name}",
+    model_cls={name.title()}Model,
+    route_class="TEXT_SIMPLE",
+)
+'''
+        plugin_file = Path(f"omniff_plugin_{name}.py")
+        plugin_file.write_text(template)
+        print(f"Plugin scaffold created: {plugin_file}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="omniff",
@@ -203,12 +281,25 @@ def main() -> None:
     models_parser.add_argument("action", choices=["list", "pull", "remove"])
     models_parser.add_argument("--model-id", help="Model ID (e.g., Qwen/Qwen3-4B)")
 
+    graph_parser = sub.add_parser("graph", help="Graph visualization")
+    graph_parser.add_argument("action", choices=["show", "dot", "routes"])
+    graph_parser.add_argument("--route", help="Route class to visualize")
+    graph_parser.add_argument("--file", help="Chain YAML file to visualize")
+
+    plugin_parser = sub.add_parser("plugin", help="Plugin management")
+    plugin_parser.add_argument("action", choices=["init", "list"])
+    plugin_parser.add_argument("--name", help="Plugin name")
+
     args, remaining = parser.parse_known_args()
 
     if args.command == "doctor":
         _cmd_doctor(args)
     elif args.command == "models":
         _cmd_models(args)
+    elif args.command == "graph":
+        _cmd_graph(args)
+    elif args.command == "plugin":
+        _cmd_plugin(args)
     elif args.command == "run":
         _cmd_run(args)
     else:

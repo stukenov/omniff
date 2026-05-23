@@ -152,25 +152,25 @@
 
 ### SDK & Clients
 - [ ] **TypeScript SDK** — `@saken/omniff` npm package, typed client for HTTP API
-- [ ] **Python async client** — `omniff.AsyncClient` with httpx for remote OmniFF servers
+- [x] **Python async client** — `omniff.AsyncClient` + `SyncClient` with httpx
 - [ ] **gRPC API** — alternative to REST for low-latency internal services
 
 ### Framework integrations
-- [ ] **LangChain tool** — `OmniFFTool` for agents: any modality as a tool call
-- [ ] **LlamaIndex reader** — `OmniFFReader` for document/image/audio ingestion
-- [ ] **Jupyter magic** — `%%omniff` cell magic, inline image/audio rendering
-- [ ] **Gradio components** — custom Gradio blocks wrapping OmniFF pipelines
+- [x] **LangChain tool** — `OmniFFTool` for agents: any modality as a tool call
+- [x] **LlamaIndex reader** — `OmniFFReader` for document/image/audio ingestion
+- [x] **Jupyter magic** — `%%omniff` cell magic, inline image/audio rendering
+- [x] **Gradio components** — demo.py with 4 tabs wrapping all pipelines (shipped v1.0)
 
 ### Developer tools
-- [ ] **Graph visualizer** — `omniff graph show template.yaml` renders DAG as ASCII/SVG
-- [ ] **Plugin scaffold** — `omniff plugin init my-model` generates plugin boilerplate
-- [ ] **Documentation site** — MkDocs Material with tutorials, API reference, graph template cookbook
-- [ ] **OpenAPI spec** — auto-generated from FastAPI, published at `/docs`
+- [x] **Graph visualizer** — `omniff graph show/dot` renders DAG as ASCII/DOT
+- [x] **Plugin scaffold** — `omniff plugin init --name my-model` generates plugin boilerplate
+- [ ] **Documentation site** — MkDocs Material with tutorials, API reference
+- [x] **OpenAPI spec** — auto-generated from FastAPI, available at `/docs`
 
 ### Tests
-- [ ] TypeScript SDK e2e test (start server, call from Node)
-- [ ] LangChain integration test (agent uses OmniFF tool)
-- [ ] Graph visualizer snapshot tests
+- [x] Client unit tests
+- [x] LangChain tool tests
+- [x] Graph visualizer tests
 
 ---
 
