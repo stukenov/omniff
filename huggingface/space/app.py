@@ -6,7 +6,6 @@ image→image, video→text, document→text, code generation
 """
 
 import re
-import tempfile
 
 import gradio as gr
 import spaces
@@ -198,7 +197,7 @@ def process_audio(audio_path: str, language: str) -> str:
 # 4. Text → Image
 # ---------------------------------------------------------------------------
 @spaces.GPU(duration=60)
-def generate_image(prompt: str, seed: int) -> str | None:
+def generate_image(prompt: str, seed: int):
     if not prompt.strip():
         return None
 
@@ -210,17 +209,14 @@ def generate_image(prompt: str, seed: int) -> str | None:
         generator.manual_seed(int(seed))
 
     image = pipe(prompt=prompt, num_inference_steps=4, guidance_scale=0.0, generator=generator).images[0]
-
-    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
-        image.save(f.name)
-        return f.name
+    return image
 
 
 # ---------------------------------------------------------------------------
 # 5. Image → Image
 # ---------------------------------------------------------------------------
 @spaces.GPU(duration=60)
-def edit_image(image_path: str, prompt: str, strength: float) -> str | None:
+def edit_image(image_path: str, prompt: str, strength: float):
     if not image_path:
         return None
 
@@ -237,10 +233,7 @@ def edit_image(image_path: str, prompt: str, strength: float) -> str | None:
         strength=max(0.1, min(1.0, strength)),
         guidance_scale=0.0,
     ).images[0]
-
-    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
-        image.save(f.name)
-        return f.name
+    return image
 
 
 # ---------------------------------------------------------------------------
@@ -283,10 +276,11 @@ def process_video(video_path: str, prompt: str) -> str:
 # 7. Document → Text
 # ---------------------------------------------------------------------------
 @spaces.GPU(duration=120)
-def process_document(file_path: str, prompt: str) -> str:
-    if not file_path:
+def process_document(file_obj, prompt: str) -> str:
+    if not file_obj:
         return "Please upload a document."
 
+    file_path = file_obj if isinstance(file_obj, str) else getattr(file_obj, "name", str(file_obj))
     ext = file_path.rsplit(".", 1)[-1].lower() if "." in file_path else ""
     text_content = ""
 
@@ -495,4 +489,4 @@ with gr.Blocks(title="OmniFF — FFmpeg for AI", theme=gr.themes.Soft()) as demo
         "Built by [Saken Tukenov](https://github.com/stukenov)"
     )
 
-demo.launch()
+demo.launch(show_error=True)
