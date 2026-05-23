@@ -164,6 +164,12 @@ class OmniFFRuntime:
             "VIDEO_DUB": lambda: self._run_video_dub(
                 input, prompt, controls, output, trace
             ),
+            "TRANSLATE": lambda: self._run_translate(
+                prompt or input, controls, trace
+            ),
+            "VOICE_CLONE": lambda: self._run_voice_clone(
+                input, prompt or input, controls, output, trace
+            ),
         }
 
         handler = dispatch.get(route.route_class)
@@ -717,6 +723,77 @@ class OmniFFRuntime:
                 "translated": translated,
                 "target_language": target_lang,
                 "duration_s": tts_result.get("duration_s", 0),
+            },
+        )
+
+    def _run_translate(
+        self, text: str, controls: dict, trace: RequestTrace
+    ) -> RunResult:
+        """Dedicated NLLB-200 translation (200 languages)."""
+        from omniff.models.translator import TranslatorModel
+
+        source_lang = controls.get("source_language", "en")
+        target_lang = controls.get("target_language", "en")
+
+        model_id = controls.get("translator_model_id", "facebook/nllb-200-distilled-1.3B")
+        translator = self._ensure_model(
+            "translator", TranslatorModel, trace=trace, model_id=model_id, device="auto"
+        )
+        self._mutex.acquire("translator")
+        try:
+            with trace.span("translate", model=model_id):
+                result = translator.infer({
+                    "text": text,
+                    "source_language": source_lang,
+                    "target_language": target_lang,
+                })
+        finally:
+            self._mutex.release("translator")
+
+        return RunResult(
+            output_text=result["text"],
+            route="TRANSLATE",
+            metadata={
+                "source_language": result["source_language"],
+                "target_language": result["target_language"],
+                "model": model_id,
+            },
+        )
+
+    def _run_voice_clone(
+        self,
+        reference_audio: str,
+        text: str,
+        controls: dict,
+        output: str | None,
+        trace: RequestTrace,
+    ) -> RunResult:
+        """Voice cloning: reference audio + text → speech in cloned voice."""
+        from omniff.models.voice_cloner import VoiceClonerModel
+
+        model_id = controls.get("voice_clone_model_id", "FunAudioLLM/CosyVoice2-0.5B")
+        cloner = self._ensure_model(
+            "voice_cloner", VoiceClonerModel, trace=trace, model_id=model_id, device="auto"
+        )
+        output_path = output or "cloned_voice.wav"
+        self._mutex.acquire("voice_cloner")
+        try:
+            with trace.span("voice_clone", model=model_id):
+                result = cloner.infer({
+                    "text": text,
+                    "reference_audio": reference_audio,
+                    "output_path": output_path,
+                })
+        finally:
+            self._mutex.release("voice_cloner")
+
+        return RunResult(
+            output_path=result["audio_path"],
+            route="VOICE_CLONE",
+            metadata={
+                "backend": result.get("backend", "unknown"),
+                "duration_s": result.get("duration_s", 0),
+                "sample_rate": result.get("sample_rate", 0),
             },
         )
 

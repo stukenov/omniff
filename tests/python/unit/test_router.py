@@ -117,6 +117,30 @@ def test_route_video_dub_ru():
     assert decision.route_class == "VIDEO_DUB"
 
 
+def test_route_text_translate():
+    router = KeywordRouter()
+    decision = router.route("translate this to russian: hello world")
+    assert decision.route_class == "TRANSLATE"
+
+
+def test_route_text_translate_ru():
+    router = KeywordRouter()
+    decision = router.route("переведи на английский: привет мир")
+    assert decision.route_class == "TRANSLATE"
+
+
+def test_route_voice_clone():
+    router = KeywordRouter()
+    decision = router.route("clone voice and say hello", input_modality="audio")
+    assert decision.route_class == "VOICE_CLONE"
+
+
+def test_route_voice_clone_ru():
+    router = KeywordRouter()
+    decision = router.route("клонирование голоса", input_modality="audio")
+    assert decision.route_class == "VOICE_CLONE"
+
+
 def test_route_decision_fields():
     router = KeywordRouter()
     decision = router.route("hello")

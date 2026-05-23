@@ -409,11 +409,13 @@ def _classify_file(file_path: str) -> str:
 
 
 def _detect_intent(text: str) -> str:
-    """Detect if text-only input wants image generation or code."""
+    """Detect if text-only input wants image generation, code, or translation."""
     if _IMAGE_GEN_PATTERNS.search(text) or _IMAGE_GEN_PATTERNS_REV.search(text):
         return "text_to_image"
     if _CODE_PATTERNS.search(text):
         return "code"
+    if _TRANSLATE_PATTERNS.search(text):
+        return "translate"
     return "text"
 
 
@@ -530,6 +532,17 @@ def universal_chat(message: dict, history: list) -> dict:
                 ],
             }
         return {"role": "assistant", "content": "Could not generate the image. Please try a different prompt."}
+
+    if intent == "translate":
+        target_lang = "English"
+        for lang in ["english", "russian", "chinese", "kazakh", "french", "german", "spanish",
+                      "русский", "английский", "казахский", "французский", "немецкий"]:
+            if lang in text.lower():
+                target_lang = lang.capitalize()
+                break
+        tr_prompt = f"Translate the following text to {target_lang}. Return ONLY the translation.\n\n{text}"
+        translated = process_text(tr_prompt, "off")
+        return {"role": "assistant", "content": f"**Translation ({target_lang}):**\n{translated}"}
 
     if intent == "code":
         result = generate_code(text, "")

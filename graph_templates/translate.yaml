@@ -1,0 +1,21 @@
+name: translate
+description: "Text → NLLB-200 translation → translated text (200 languages)"
+version: "1.0"
+
+nodes:
+  - id: translate
+    type: model
+    model_id: facebook/nllb-200-distilled-1.3B
+    inputs:
+      text: "$input"
+      source_language: "$controls.source_language"
+      target_language: "$controls.target_language"
+
+  - id: output
+    type: muxer
+    inputs:
+      text: "$translate.text"
+
+edges:
+  - from: translate
+    to: output

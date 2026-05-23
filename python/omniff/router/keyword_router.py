@@ -37,6 +37,20 @@ DUB_KEYWORDS = [
 ]
 
 
+VOICE_CLONE_KEYWORDS = [
+    "clone voice",
+    "voice clone",
+    "voice cloning",
+    "клонирование голоса",
+    "клонируй голос",
+    "copy voice",
+    "mimic voice",
+    "имитируй голос",
+    "speak like",
+    "говори как",
+]
+
+
 COMPLEX_KEYWORDS = [
     "проанализируй",
     "analyze",
@@ -96,6 +110,9 @@ class KeywordRouter:
         if input_modality == "document":
             return RouteDecision("DOCUMENT_READ", 0.85, "normal")
 
+        if input_modality == "audio" and any(kw in prompt_lower for kw in VOICE_CLONE_KEYWORDS):
+            return RouteDecision("VOICE_CLONE", 0.95, "normal")
+
         if input_modality == "audio" and any(kw in prompt_lower for kw in DUB_KEYWORDS):
             return RouteDecision("AUDIO_DUB", 0.9, "normal")
 
@@ -121,6 +138,9 @@ class KeywordRouter:
 
         if output_modality == "document":
             return RouteDecision("DOCUMENT_TO_DOCUMENT", 0.8, "normal")
+
+        if input_modality == "text" and any(kw in prompt_lower for kw in TRANSLATE_KEYWORDS):
+            return RouteDecision("TRANSLATE", 0.85, "off")
 
         if any(kw in prompt_lower for kw in CODE_KEYWORDS):
             return RouteDecision("CODE", 0.8, "normal")

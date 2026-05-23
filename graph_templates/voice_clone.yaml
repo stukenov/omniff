@@ -1,0 +1,21 @@
+name: voice_clone
+description: "Reference audio + text → speech in cloned voice (CosyVoice / Bark fallback)"
+version: "1.0"
+
+nodes:
+  - id: clone
+    type: model
+    model_id: FunAudioLLM/CosyVoice2-0.5B
+    inputs:
+      text: "$prompt"
+      reference_audio: "$input"
+      output_path: "$output"
+
+  - id: output
+    type: muxer
+    inputs:
+      audio_path: "$clone.audio_path"
+
+edges:
+  - from: clone
+    to: output

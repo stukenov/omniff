@@ -110,6 +110,8 @@ python -m omniff.api
 | Audio → Translation | audio + target lang | text | Whisper + Qwen3 | ✅ |
 | Audio → Dubbed Audio | audio + target lang | audio | Whisper + Qwen3 + Bark | ✅ |
 | Video → Dubbed Video | video + target lang | video | ffmpeg + Whisper + Qwen3 + Bark + ffmpeg | ✅ |
+| Text → Translation | text + target lang | text | NLLB-200-1.3B (200 languages) | ✅ |
+| Voice Cloning | audio + text | audio | CosyVoice2 / Bark fallback | ✅ |
 
 ## Architecture
 

@@ -100,6 +100,18 @@ class GraphPlanner:
             {"id": "mux_av", "type": "ffmpeg_mux", "config": {}},
             {"id": "mux", "type": "muxer", "config": {"modality": "video"}},
         ],
+        "TRANSLATE": [
+            {"id": "demux", "type": "demuxer", "config": {"modality": "text"}},
+            {"id": "translate", "type": "nllb_translate", "config": {}},
+            {"id": "validate", "type": "text_validate", "config": {"min_length": 1}},
+            {"id": "mux", "type": "muxer", "config": {"modality": "text"}},
+        ],
+        "VOICE_CLONE": [
+            {"id": "demux", "type": "demuxer", "config": {"modality": "audio"}},
+            {"id": "clone", "type": "voice_clone_infer", "config": {}},
+            {"id": "validate", "type": "audio_validate", "config": {}},
+            {"id": "mux", "type": "muxer", "config": {"modality": "audio"}},
+        ],
     }
 
     def plan(
