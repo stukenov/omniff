@@ -52,7 +52,7 @@ class TTSModel(OmniModel):
                 input_ids[k] = v.to(self._model.device)
 
         speech_output = self._model.generate(**input_ids)
-        audio_array = speech_output[0].cpu().numpy().squeeze()
+        audio_array = speech_output[0].cpu().float().numpy().squeeze()
 
         sample_rate = self._model.generation_config.sample_rate
 

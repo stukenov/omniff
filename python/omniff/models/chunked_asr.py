@@ -75,7 +75,7 @@ class ChunkedASRModel(OmniModel):
 
             input_features = self._processor(
                 chunk, sampling_rate=sr, return_tensors="pt"
-            ).input_features.to(self._model.device)
+            ).input_features.to(device=self._model.device, dtype=self._model.dtype)
 
             predicted_ids = self._model.generate(input_features)
             text = self._processor.batch_decode(predicted_ids, skip_special_tokens=True)[0]
