@@ -8,7 +8,7 @@ version = "1.0.0"
 description = "FFmpeg-like multimodal AI runtime — universal inference, generation, and transformation"
 requires-python = ">=3.10"
 license = "Apache-2.0"
-authors = [{name = "Saken Tukenov", email = "saken@tukenov"}]
+authors = [{name = "Saken Tukenov", email = "saken@tukenov.com"}]
 readme = {text = "FFmpeg-like multimodal AI runtime — universal inference, generation, and transformation for text, image, audio, video, and documents.", content-type = "text/plain"}
 keywords = ["ai", "multimodal", "runtime", "inference", "ffmpeg", "llm", "vlm", "asr", "tts"]
 classifiers = [
