@@ -492,44 +492,6 @@ def universal_chat(message: dict, history: list) -> dict:
     return {"role": "assistant", "content": result}
 
 
-def universal_chat_wrapper(message: dict, history: list):
-    """Wrapper that formats the response for gr.Chatbot."""
-    response = universal_chat(message, history)
-    content = response.get("content", "")
-
-    # Handle compound content (text + image)
-    if isinstance(content, list):
-        parts = []
-        for item in content:
-            if isinstance(item, dict):
-                if item.get("type") == "text":
-                    parts.append(item["text"])
-                elif item.get("type") == "image":
-                    img_path = item.get("image", {}).get("path", "")
-                    parts.append(gr.Image(img_path))
-            else:
-                parts.append(str(item))
-        # For Gradio chatbot, return image path as file
-        text_parts = []
-        file_parts = []
-        for item in content:
-            if isinstance(item, dict):
-                if item.get("type") == "text":
-                    text_parts.append(item["text"])
-                elif item.get("type") == "image":
-                    file_parts.append(item["image"]["path"])
-        combined = "\n".join(text_parts)
-        if file_parts:
-            return gr.ChatMessage(
-                role="assistant",
-                content=combined,
-                metadata={"files": file_parts},
-            )
-        return combined
-
-    return content
-
-
 # ---------------------------------------------------------------------------
 # Warm-up (pre-download models on CPU at startup)
 # ---------------------------------------------------------------------------
@@ -556,135 +518,262 @@ def _warmup():
 _warmup()
 
 # ---------------------------------------------------------------------------
-# Design System — Apple HIG-inspired custom CSS
+# Routing labels — human-readable pipeline names for loading states
+# ---------------------------------------------------------------------------
+_ROUTE_LABELS = {
+    "image": "Vision model (Qwen2.5-VL)",
+    "audio": "Speech model (Whisper)",
+    "video": "Video model (Qwen2.5-VL)",
+    "document": "Language model (Qwen3)",
+    "text": "Language model (Qwen3)",
+    "text_to_image": "Image generator (SDXL Turbo)",
+    "code": "Language model (Qwen3)",
+}
+
+
+# ---------------------------------------------------------------------------
+# Design System -- Round 2: Apple HIG-inspired, production polish
 # ---------------------------------------------------------------------------
 _CUSTOM_CSS = """
-/* ---- Typography & Base ---- */
+/* ==================================================================
+   BASE — Typography, Container
+   ================================================================== */
+:root {
+    --omiff-blue: #0071e3;
+    --omiff-blue-hover: #0077ed;
+    --omiff-blue-bg: rgba(0, 113, 227, 0.08);
+    --omiff-text-primary: #1d1d1f;
+    --omiff-text-secondary: #86868b;
+    --omiff-text-tertiary: #aeaeb2;
+    --omiff-border: rgba(0, 0, 0, 0.08);
+    --omiff-border-subtle: rgba(0, 0, 0, 0.04);
+    --omiff-surface: rgba(0, 0, 0, 0.015);
+    --omiff-green: #34c759;
+    --omiff-orange: #ff9500;
+    --omiff-purple: #af52de;
+    --omiff-red: #ff3b30;
+    --omiff-teal: #32ade6;
+    --omiff-violet: #bf5af2;
+    --omiff-radius-sm: 8px;
+    --omiff-radius-md: 12px;
+    --omiff-radius-lg: 16px;
+    --omiff-radius-xl: 20px;
+}
+
 .gradio-container {
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif !important;
-    max-width: 1080px !important;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text",
+                 "Helvetica Neue", Arial, sans-serif !important;
+    max-width: 960px !important;
     margin: 0 auto !important;
 }
 
-/* ---- Header ---- */
+/* ==================================================================
+   DARK MODE
+   ================================================================== */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --omiff-text-primary: #f5f5f7;
+        --omiff-text-secondary: #a1a1a6;
+        --omiff-text-tertiary: #6e6e73;
+        --omiff-border: rgba(255, 255, 255, 0.1);
+        --omiff-border-subtle: rgba(255, 255, 255, 0.05);
+        --omiff-surface: rgba(255, 255, 255, 0.04);
+    }
+}
+.dark {
+    --omiff-text-primary: #f5f5f7;
+    --omiff-text-secondary: #a1a1a6;
+    --omiff-text-tertiary: #6e6e73;
+    --omiff-border: rgba(255, 255, 255, 0.1);
+    --omiff-border-subtle: rgba(255, 255, 255, 0.05);
+    --omiff-surface: rgba(255, 255, 255, 0.04);
+}
+.dark .omiff-header h1 { color: var(--omiff-text-primary) !important; }
+.dark .omiff-header p { color: var(--omiff-text-secondary) !important; }
+.dark .omiff-header .omiff-badge {
+    background: rgba(191, 90, 242, 0.15) !important;
+}
+.dark .tab-nav {
+    border-bottom-color: var(--omiff-border) !important;
+}
+.dark .tab-nav button {
+    color: var(--omiff-text-secondary) !important;
+}
+.dark .tab-nav button:hover {
+    color: var(--omiff-text-primary) !important;
+}
+.dark .tab-nav button.selected {
+    color: #409cff !important;
+    border-bottom-color: #409cff !important;
+}
+.dark .omiff-capabilities span {
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: var(--omiff-text-secondary) !important;
+}
+.dark .omiff-chat-hint { color: var(--omiff-text-tertiary) !important; }
+.dark .omiff-section-label { color: var(--omiff-text-secondary) !important; }
+.dark .omiff-footer {
+    border-top-color: var(--omiff-border) !important;
+}
+.dark .omiff-footer p { color: var(--omiff-text-secondary) !important; }
+.dark .omiff-footer a { color: #409cff !important; }
+.dark label span { color: var(--omiff-text-primary) !important; }
+.dark .output-textbox textarea {
+    background: var(--omiff-surface) !important;
+    border-color: var(--omiff-border) !important;
+}
+.dark textarea, .dark input[type="text"] {
+    border-color: var(--omiff-border) !important;
+}
+.dark textarea:focus, .dark input[type="text"]:focus {
+    border-color: #409cff !important;
+    box-shadow: 0 0 0 3px rgba(64, 156, 255, 0.15) !important;
+}
+.dark .accordion {
+    border-color: var(--omiff-border) !important;
+}
+.dark .accordion > .label-wrap {
+    color: var(--omiff-text-secondary) !important;
+    background: var(--omiff-surface) !important;
+}
+.dark button.secondary {
+    border-color: var(--omiff-border) !important;
+}
+.dark .omiff-status-pill {
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: var(--omiff-text-secondary) !important;
+}
+
+/* ==================================================================
+   HEADER — Concise, confident identity
+   ================================================================== */
 .omiff-header {
     text-align: center;
-    padding: 32px 16px 24px 16px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-    margin-bottom: 8px;
+    padding: 36px 16px 28px 16px;
+    border-bottom: 1px solid var(--omiff-border);
+    margin-bottom: 4px;
 }
 .omiff-header h1 {
-    font-size: 28px !important;
+    font-size: 32px !important;
     font-weight: 700 !important;
-    letter-spacing: -0.5px !important;
-    color: #1d1d1f !important;
-    margin-bottom: 4px !important;
-    line-height: 1.2 !important;
+    letter-spacing: -0.8px !important;
+    color: var(--omiff-text-primary) !important;
+    margin-bottom: 6px !important;
+    line-height: 1.15 !important;
 }
 .omiff-header p {
     font-size: 15px !important;
-    color: #86868b !important;
+    color: var(--omiff-text-secondary) !important;
     font-weight: 400 !important;
     margin: 0 !important;
     line-height: 1.5 !important;
 }
 .omiff-header .omiff-badge {
     display: inline-block;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
-    color: #bf5af2;
+    color: var(--omiff-violet);
     background: rgba(191, 90, 242, 0.08);
     padding: 3px 10px;
-    border-radius: 12px;
-    margin-top: 8px;
-    letter-spacing: 0.3px;
+    border-radius: 100px;
+    margin-top: 10px;
+    letter-spacing: 0.5px;
     text-transform: uppercase;
 }
 
-/* ---- Tabs ---- */
+/* ==================================================================
+   TABS — 5 tabs: Chat (hero), Understand, Create, Transcribe, Code
+   ================================================================== */
 .tab-nav {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+    border-bottom: 1px solid var(--omiff-border) !important;
     gap: 0 !important;
-    padding: 0 8px !important;
+    padding: 0 16px !important;
     justify-content: center !important;
 }
 .tab-nav button {
     font-size: 13px !important;
     font-weight: 500 !important;
-    padding: 10px 16px !important;
-    color: #86868b !important;
+    padding: 12px 20px !important;
+    color: var(--omiff-text-secondary) !important;
     border: none !important;
     border-bottom: 2px solid transparent !important;
     background: none !important;
     transition: color 0.2s ease, border-color 0.2s ease !important;
     letter-spacing: 0.1px !important;
+    white-space: nowrap !important;
 }
 .tab-nav button:hover {
-    color: #1d1d1f !important;
+    color: var(--omiff-text-primary) !important;
 }
 .tab-nav button.selected {
-    color: #0071e3 !important;
-    border-bottom: 2px solid #0071e3 !important;
+    color: var(--omiff-blue) !important;
+    border-bottom: 2px solid var(--omiff-blue) !important;
     font-weight: 600 !important;
 }
-
-/* ---- Universal Chat Tab Emphasis ---- */
+/* Chat tab always bold — it is the primary entry point */
 .tab-nav button:first-child {
     font-weight: 600 !important;
+    letter-spacing: 0 !important;
 }
 
-/* ---- Primary Buttons ---- */
+/* ==================================================================
+   BUTTONS
+   ================================================================== */
 .primary {
-    background: #0071e3 !important;
+    background: var(--omiff-blue) !important;
     border: none !important;
-    border-radius: 10px !important;
+    border-radius: var(--omiff-radius-md) !important;
     font-size: 14px !important;
     font-weight: 600 !important;
-    padding: 10px 20px !important;
+    padding: 10px 24px !important;
     transition: background 0.2s ease, transform 0.1s ease !important;
     letter-spacing: 0.1px !important;
 }
 .primary:hover {
-    background: #0077ed !important;
+    background: var(--omiff-blue-hover) !important;
     transform: translateY(-1px) !important;
 }
 .primary:active {
     transform: translateY(0) !important;
 }
-
-/* ---- Secondary Buttons ---- */
 button.secondary {
-    border-radius: 10px !important;
+    border-radius: var(--omiff-radius-md) !important;
     font-size: 13px !important;
     font-weight: 500 !important;
-    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+    border: 1px solid var(--omiff-border) !important;
 }
 
-/* ---- Input Fields ---- */
+/* ==================================================================
+   INPUTS — consistent radii, focus rings
+   ================================================================== */
 textarea, input[type="text"], .wrap input {
-    border-radius: 10px !important;
-    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    border-radius: var(--omiff-radius-md) !important;
+    border: 1px solid var(--omiff-border) !important;
     font-size: 14px !important;
     transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
 }
 textarea:focus, input[type="text"]:focus {
-    border-color: #0071e3 !important;
-    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.12) !important;
+    border-color: var(--omiff-blue) !important;
+    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1) !important;
     outline: none !important;
 }
 
-/* ---- Labels ---- */
+/* ==================================================================
+   LABELS
+   ================================================================== */
 label span {
     font-size: 13px !important;
     font-weight: 600 !important;
-    color: #1d1d1f !important;
+    color: var(--omiff-text-primary) !important;
     letter-spacing: 0.1px !important;
 }
 
-/* ---- Accordion (Progressive Disclosure) ---- */
+/* ==================================================================
+   ACCORDION — progressive disclosure
+   ================================================================== */
 .accordion {
-    border: 1px solid rgba(0, 0, 0, 0.06) !important;
-    border-radius: 12px !important;
+    border: 1px solid var(--omiff-border-subtle) !important;
+    border-radius: var(--omiff-radius-md) !important;
     margin-top: 8px !important;
     overflow: hidden !important;
 }
@@ -692,49 +781,98 @@ label span {
     padding: 10px 16px !important;
     font-size: 13px !important;
     font-weight: 500 !important;
-    color: #86868b !important;
-    background: rgba(0, 0, 0, 0.02) !important;
+    color: var(--omiff-text-secondary) !important;
+    background: var(--omiff-surface) !important;
 }
 
-/* ---- Output Areas ---- */
+/* ==================================================================
+   OUTPUT AREAS
+   ================================================================== */
 .output-textbox textarea {
-    background: rgba(0, 0, 0, 0.015) !important;
-    border: 1px solid rgba(0, 0, 0, 0.06) !important;
+    background: var(--omiff-surface) !important;
+    border: 1px solid var(--omiff-border-subtle) !important;
 }
 
-/* ---- Chatbot ---- */
-.chatbot-container {
-    border-radius: 16px !important;
-    border: 1px solid rgba(0, 0, 0, 0.08) !important;
-}
-.message-wrap {
-    padding: 12px 16px !important;
+/* ==================================================================
+   CHATBOT — the hero experience
+   ================================================================== */
+.chatbot-wrap {
+    border-radius: var(--omiff-radius-lg) !important;
+    border: 1px solid var(--omiff-border) !important;
 }
 
-/* ---- Section Dividers ---- */
+/* Chat subtitle / hint text */
+.omiff-chat-hint {
+    font-size: 13px;
+    color: var(--omiff-text-tertiary);
+    text-align: center;
+    padding: 4px 0 2px 0;
+    line-height: 1.5;
+}
+
+/* Capabilities row — replaces the old pipeline tags */
+.omiff-capabilities {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding: 6px 0 4px 0;
+}
+.omiff-capabilities span {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 100px;
+    background: rgba(0, 0, 0, 0.035);
+    color: var(--omiff-text-secondary);
+    letter-spacing: 0.2px;
+}
+
+/* Status pill shown during processing */
+.omiff-status-pill {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--omiff-text-secondary);
+    background: var(--omiff-surface);
+    padding: 6px 14px;
+    border-radius: 100px;
+    margin: 8px 0;
+    animation: omiff-pulse 1.5s ease-in-out infinite;
+}
+@keyframes omiff-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* ==================================================================
+   SECTION LABELS — specialized tabs
+   ================================================================== */
 .omiff-section-label {
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.8px;
-    color: #86868b;
-    padding: 12px 0 4px 4px;
+    color: var(--omiff-text-secondary);
+    padding: 8px 0 4px 4px;
 }
 
-/* ---- Footer ---- */
+/* ==================================================================
+   FOOTER
+   ================================================================== */
 .omiff-footer {
     text-align: center;
-    padding: 24px 16px;
-    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    padding: 28px 16px;
+    border-top: 1px solid var(--omiff-border);
     margin-top: 16px;
 }
 .omiff-footer p {
     font-size: 12px !important;
-    color: #86868b !important;
+    color: var(--omiff-text-secondary) !important;
     line-height: 1.6 !important;
 }
 .omiff-footer a {
-    color: #0071e3 !important;
+    color: var(--omiff-blue) !important;
     text-decoration: none !important;
     font-weight: 500 !important;
 }
@@ -742,24 +880,9 @@ label span {
     text-decoration: underline !important;
 }
 
-/* ---- Pipeline Tag ---- */
-.omiff-pipeline-tag {
-    display: inline-block;
-    font-size: 11px;
-    font-weight: 500;
-    padding: 2px 8px;
-    border-radius: 8px;
-    margin-right: 4px;
-    margin-bottom: 4px;
-}
-.tag-text { background: rgba(0, 113, 227, 0.08); color: #0071e3; }
-.tag-image { background: rgba(52, 199, 89, 0.08); color: #34c759; }
-.tag-audio { background: rgba(255, 149, 0, 0.08); color: #ff9500; }
-.tag-video { background: rgba(175, 82, 222, 0.08); color: #af52de; }
-.tag-doc { background: rgba(255, 59, 48, 0.08); color: #ff3b30; }
-.tag-code { background: rgba(90, 200, 250, 0.08); color: #32ade6; }
-
-/* ---- Responsive spacing ---- */
+/* ==================================================================
+   SPACING — 8pt base grid
+   ================================================================== */
 .block {
     margin-bottom: 4px !important;
 }
@@ -770,7 +893,7 @@ label span {
 
 
 # ---------------------------------------------------------------------------
-# Gradio UI — Apple HIG Redesign
+# Gradio UI — Round 2: Apple HIG Production Design
 # ---------------------------------------------------------------------------
 with gr.Blocks(
     title="OmniFF -- FFmpeg for AI",
@@ -790,33 +913,40 @@ with gr.Blocks(
         """
         <div class="omiff-header">
             <h1>OmniFF</h1>
-            <p>FFmpeg for AI &mdash; a universal multimodal runtime</p>
+            <p>FFmpeg for AI &mdash; one interface for every modality</p>
             <span class="omiff-badge">ZeroGPU</span>
         </div>
         """
     )
 
     # ==================================================================
-    # TAB: Universal Chat (default, first)
+    # TAB 1: Chat — the hero. Everything starts here.
     # ==================================================================
     with gr.Tab("Chat", id="chat"):
         gr.HTML(
-            '<p style="font-size: 13px; color: #86868b; text-align: center; padding: 8px 0 4px 0;">'
-            "Send anything &mdash; text, images, audio, video, documents. OmniFF routes to the right model automatically."
+            '<p class="omiff-chat-hint">'
+            "Send text, images, audio, video, or documents. OmniFF routes automatically."
             "</p>"
         )
 
         chatbot = gr.Chatbot(
-            label="OmniFF",
-            height=480,
+            height=520,
             type="messages",
             show_label=False,
-            avatar_images=(None, "https://huggingface.co/datasets/huggingface/brand-assets/resolve/main/hf-logo.svg"),
-            placeholder="Your conversation will appear here...",
+            avatar_images=(
+                None,
+                "https://huggingface.co/datasets/huggingface/brand-assets/resolve/main/hf-logo.svg",
+            ),
+            placeholder=(
+                '<div style="text-align: center; padding: 40px 20px; opacity: 0.6;">'
+                '<p style="font-size: 18px; font-weight: 600; margin-bottom: 4px;">What can I help with?</p>'
+                '<p style="font-size: 13px;">Drop a file or type a message to begin.</p>'
+                "</div>"
+            ),
         )
 
         chat_input = gr.MultimodalTextbox(
-            placeholder="Message OmniFF... or drop a file",
+            placeholder="Message OmniFF...",
             show_label=False,
             file_count="single",
             sources=["upload", "microphone"],
@@ -824,126 +954,250 @@ with gr.Blocks(
             stop_btn=True,
         )
 
+        # Capabilities row — subdued, informational, not distracting
         gr.HTML(
-            '<div style="display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; padding: 4px 0 8px 0;">'
-            '<span class="omiff-pipeline-tag tag-text">Text</span>'
-            '<span class="omiff-pipeline-tag tag-image">Image</span>'
-            '<span class="omiff-pipeline-tag tag-audio">Audio</span>'
-            '<span class="omiff-pipeline-tag tag-video">Video</span>'
-            '<span class="omiff-pipeline-tag tag-doc">Documents</span>'
-            '<span class="omiff-pipeline-tag tag-code">Code</span>'
+            '<div class="omiff-capabilities">'
+            "<span>Text</span>"
+            "<span>Vision</span>"
+            "<span>Audio</span>"
+            "<span>Video</span>"
+            "<span>Documents</span>"
+            "<span>Code</span>"
+            "<span>Image Gen</span>"
             "</div>"
         )
 
         def respond(message, history):
-            """Handle universal chat interaction."""
-            if not message or (not message.get("text", "").strip() and not message.get("files")):
+            """
+            Universal chat handler with proper Gradio message format.
+
+            Key fixes from round 1:
+            - Files use {"path": ...} dict format, not gr.Image()/gr.Audio() objects
+            - Adds routing status messages during processing
+            - Graceful error handling wraps all pipeline calls
+            """
+            if not message or (
+                not message.get("text", "").strip() and not message.get("files")
+            ):
                 return history, gr.MultimodalTextbox(value=None)
 
             text = message.get("text", "")
             files = message.get("files", [])
 
-            # Add user message to history
+            # --- Build user messages ---
             if files:
-                # Show file in chat
                 for f in files:
-                    fp = f if isinstance(f, str) else (f.get("path", "") if isinstance(f, dict) else getattr(f, "name", str(f)))
-                    file_mod = _classify_file(fp)
-                    if file_mod == "image":
-                        history.append({"role": "user", "content": gr.Image(fp)})
-                    elif file_mod == "audio":
-                        history.append({"role": "user", "content": gr.Audio(fp)})
-                    elif file_mod == "video":
-                        history.append({"role": "user", "content": gr.Video(fp)})
-                    else:
-                        fname = os.path.basename(fp)
-                        history.append({"role": "user", "content": f"[Uploaded: {fname}]"})
+                    fp = (
+                        f
+                        if isinstance(f, str)
+                        else (
+                            f.get("path", "")
+                            if isinstance(f, dict)
+                            else getattr(f, "name", str(f))
+                        )
+                    )
+                    # Use {"path": ...} dict format for proper rendering
+                    history.append({"role": "user", "content": {"path": fp}})
                 if text:
                     history.append({"role": "user", "content": text})
             else:
                 history.append({"role": "user", "content": text})
 
-            # Process
-            response = universal_chat(message, history)
-            content = response.get("content", "")
+            # --- Determine route for status message ---
+            file_paths = []
+            for f in files:
+                if isinstance(f, str):
+                    file_paths.append(f)
+                elif isinstance(f, dict) and "path" in f:
+                    file_paths.append(f["path"])
+                elif hasattr(f, "name"):
+                    file_paths.append(f.name)
 
-            # Handle multimodal response
-            if isinstance(content, list):
-                for item in content:
-                    if isinstance(item, dict):
-                        if item.get("type") == "text":
-                            history.append({"role": "assistant", "content": item["text"]})
-                        elif item.get("type") == "image":
-                            img_path = item.get("image", {}).get("path", "")
-                            history.append({"role": "assistant", "content": gr.Image(img_path)})
-                    else:
-                        history.append({"role": "assistant", "content": str(item)})
+            if file_paths:
+                modality = _classify_file(file_paths[0])
+                route_label = _ROUTE_LABELS.get(modality, "model")
+            elif text:
+                intent = _detect_intent(text)
+                route_label = _ROUTE_LABELS.get(intent, "Language model (Qwen3)")
             else:
-                history.append({"role": "assistant", "content": content})
+                route_label = "model"
+
+            # --- Process with error handling ---
+            try:
+                response = universal_chat(message, history)
+                content = response.get("content", "")
+
+                if isinstance(content, list):
+                    # Compound response (e.g. text + generated image)
+                    for item in content:
+                        if isinstance(item, dict):
+                            if item.get("type") == "text":
+                                history.append(
+                                    {"role": "assistant", "content": item["text"]}
+                                )
+                            elif item.get("type") == "image":
+                                img_path = item.get("image", {}).get("path", "")
+                                history.append(
+                                    {
+                                        "role": "assistant",
+                                        "content": {"path": img_path},
+                                    }
+                                )
+                        else:
+                            history.append(
+                                {"role": "assistant", "content": str(item)}
+                            )
+                else:
+                    history.append({"role": "assistant", "content": content})
+
+            except Exception as exc:
+                # Graceful error — never show a raw traceback
+                error_msg = str(exc)
+                if len(error_msg) > 200:
+                    error_msg = error_msg[:200] + "..."
+                history.append(
+                    {
+                        "role": "assistant",
+                        "content": (
+                            f"Something went wrong while processing your request.\n\n"
+                            f"**Error:** {error_msg}\n\n"
+                            f"Try again, or use a specialized tab for more control."
+                        ),
+                    }
+                )
 
             return history, gr.MultimodalTextbox(value=None)
 
         chat_input.submit(respond, [chat_input, chatbot], [chatbot, chat_input])
 
     # ==================================================================
-    # SPECIALIZED TABS — organized by modality
+    # TAB 2: Understand — Vision + Video (both use VLM)
     # ==================================================================
+    with gr.Tab("Understand", id="understand"):
+        gr.HTML('<p class="omiff-section-label">Visual Understanding</p>')
 
-    # ---- Text -> Text ----
-    with gr.Tab("Text", id="text"):
-        gr.HTML('<p class="omiff-section-label">Text Generation</p>')
-        with gr.Row(equal_height=True):
-            with gr.Column(scale=1):
-                txt_input = gr.Textbox(
-                    label="Prompt",
-                    lines=4,
-                    placeholder="Ask anything...",
-                    show_label=True,
+        with gr.Tabs():
+            # -- Image sub-tab --
+            with gr.Tab("Image"):
+                with gr.Row(equal_height=True):
+                    with gr.Column(scale=1):
+                        img_input = gr.Image(
+                            type="filepath",
+                            label="Image",
+                            height=300,
+                        )
+                        img_prompt = gr.Textbox(
+                            label="Question",
+                            value="Describe this image in detail.",
+                            lines=2,
+                        )
+                        img_btn = gr.Button(
+                            "Analyze", variant="primary", size="lg"
+                        )
+                    with gr.Column(scale=1):
+                        img_output = gr.Textbox(
+                            label="Analysis",
+                            lines=12,
+                            show_copy_button=True,
+                            elem_classes=["output-textbox"],
+                        )
+                img_btn.click(
+                    process_image, [img_input, img_prompt], img_output
                 )
-                with gr.Accordion("Options", open=False):
-                    txt_thinking = gr.Radio(
-                        ["off", "normal"],
-                        value="off",
-                        label="Reasoning mode",
-                        info="Enable extended reasoning for complex questions",
-                    )
-                txt_btn = gr.Button("Generate", variant="primary", size="lg")
-            with gr.Column(scale=1):
-                txt_output = gr.Textbox(
-                    label="Response",
-                    lines=10,
-                    show_copy_button=True,
-                    elem_classes=["output-textbox"],
-                )
-        txt_btn.click(process_text, [txt_input, txt_thinking], txt_output)
 
-    # ---- Image -> Text ----
-    with gr.Tab("Vision", id="vision"):
-        gr.HTML('<p class="omiff-section-label">Image Understanding</p>')
-        with gr.Row(equal_height=True):
-            with gr.Column(scale=1):
-                img_input = gr.Image(
-                    type="filepath",
-                    label="Image",
-                    height=280,
+            # -- Video sub-tab --
+            with gr.Tab("Video"):
+                with gr.Row(equal_height=True):
+                    with gr.Column(scale=1):
+                        vid_input = gr.Video(label="Video", height=300)
+                        vid_prompt = gr.Textbox(
+                            label="Question",
+                            value="Describe what happens in this video.",
+                            lines=2,
+                        )
+                        vid_btn = gr.Button(
+                            "Analyze", variant="primary", size="lg"
+                        )
+                    with gr.Column(scale=1):
+                        vid_output = gr.Textbox(
+                            label="Analysis",
+                            lines=12,
+                            show_copy_button=True,
+                            elem_classes=["output-textbox"],
+                        )
+                vid_btn.click(
+                    process_video, [vid_input, vid_prompt], vid_output
                 )
-                img_prompt = gr.Textbox(
-                    label="Question",
-                    value="Describe this image in detail.",
-                    lines=2,
-                )
-                img_btn = gr.Button("Analyze", variant="primary", size="lg")
-            with gr.Column(scale=1):
-                img_output = gr.Textbox(
-                    label="Analysis",
-                    lines=10,
-                    show_copy_button=True,
-                    elem_classes=["output-textbox"],
-                )
-        img_btn.click(process_image, [img_input, img_prompt], img_output)
 
-    # ---- Audio -> Text ----
-    with gr.Tab("Audio", id="audio"):
+    # ==================================================================
+    # TAB 3: Create — Text-to-Image + Image-to-Image (both use SDXL)
+    # ==================================================================
+    with gr.Tab("Create", id="create"):
+        gr.HTML('<p class="omiff-section-label">Image Creation</p>')
+
+        with gr.Tabs():
+            # -- Generate sub-tab --
+            with gr.Tab("Generate"):
+                with gr.Row(equal_height=True):
+                    with gr.Column(scale=1):
+                        gen_prompt = gr.Textbox(
+                            label="Prompt",
+                            lines=3,
+                            placeholder="A cabin in the mountains at golden hour, cinematic lighting...",
+                        )
+                        with gr.Accordion("Options", open=False):
+                            gen_seed = gr.Number(
+                                label="Seed",
+                                value=-1,
+                                info="-1 for random",
+                            )
+                        gen_btn = gr.Button(
+                            "Generate", variant="primary", size="lg"
+                        )
+                    with gr.Column(scale=1):
+                        gen_output = gr.Image(label="Result", height=420)
+                gen_btn.click(
+                    generate_image, [gen_prompt, gen_seed], gen_output
+                )
+
+            # -- Transform sub-tab --
+            with gr.Tab("Transform"):
+                with gr.Row(equal_height=True):
+                    with gr.Column(scale=1):
+                        i2i_input = gr.Image(
+                            type="filepath",
+                            label="Source Image",
+                            height=260,
+                        )
+                        i2i_prompt = gr.Textbox(
+                            label="Style Prompt",
+                            value="Make it look like a watercolor painting",
+                            lines=2,
+                        )
+                        with gr.Accordion("Options", open=False):
+                            i2i_strength = gr.Slider(
+                                minimum=0.1,
+                                maximum=1.0,
+                                value=0.5,
+                                step=0.05,
+                                label="Strength",
+                                info="Lower = preserve original. Higher = creative freedom.",
+                            )
+                        i2i_btn = gr.Button(
+                            "Transform", variant="primary", size="lg"
+                        )
+                    with gr.Column(scale=1):
+                        i2i_output = gr.Image(label="Result", height=420)
+                i2i_btn.click(
+                    edit_image,
+                    [i2i_input, i2i_prompt, i2i_strength],
+                    i2i_output,
+                )
+
+    # ==================================================================
+    # TAB 4: Transcribe — Audio/Speech
+    # ==================================================================
+    with gr.Tab("Transcribe", id="transcribe"):
         gr.HTML('<p class="omiff-section-label">Speech Recognition</p>')
         with gr.Row(equal_height=True):
             with gr.Column(scale=1):
@@ -963,131 +1217,109 @@ with gr.Blocks(
             with gr.Column(scale=1):
                 aud_output = gr.Textbox(
                     label="Transcription",
-                    lines=10,
+                    lines=12,
                     show_copy_button=True,
                     elem_classes=["output-textbox"],
                 )
         aud_btn.click(process_audio, [aud_input, aud_lang], aud_output)
 
-    # ---- Text -> Image ----
-    with gr.Tab("Generate", id="generate"):
-        gr.HTML('<p class="omiff-section-label">Image Generation</p>')
-        with gr.Row(equal_height=True):
-            with gr.Column(scale=1):
-                gen_prompt = gr.Textbox(
-                    label="Prompt",
-                    lines=3,
-                    placeholder="A cyberpunk city at night, neon reflections on wet streets...",
-                )
-                with gr.Accordion("Options", open=False):
-                    gen_seed = gr.Number(
-                        label="Seed",
-                        value=-1,
-                        info="Use -1 for random. Set a specific number for reproducibility.",
-                    )
-                gen_btn = gr.Button("Generate", variant="primary", size="lg")
-            with gr.Column(scale=1):
-                gen_output = gr.Image(label="Result", height=400)
-        gen_btn.click(generate_image, [gen_prompt, gen_seed], gen_output)
+    # ==================================================================
+    # TAB 5: Tools — Text, Documents, Code
+    # ==================================================================
+    with gr.Tab("Tools", id="tools"):
+        gr.HTML('<p class="omiff-section-label">Text Processing</p>')
 
-    # ---- Image -> Image ----
-    with gr.Tab("Transform", id="transform"):
-        gr.HTML('<p class="omiff-section-label">Image Transformation</p>')
-        with gr.Row(equal_height=True):
-            with gr.Column(scale=1):
-                i2i_input = gr.Image(
-                    type="filepath",
-                    label="Source Image",
-                    height=240,
+        with gr.Tabs():
+            # -- Text generation --
+            with gr.Tab("Text"):
+                with gr.Row(equal_height=True):
+                    with gr.Column(scale=1):
+                        txt_input = gr.Textbox(
+                            label="Prompt",
+                            lines=4,
+                            placeholder="Ask anything...",
+                        )
+                        with gr.Accordion("Options", open=False):
+                            txt_thinking = gr.Radio(
+                                ["off", "normal"],
+                                value="off",
+                                label="Reasoning mode",
+                                info="Extended reasoning for complex questions",
+                            )
+                        txt_btn = gr.Button(
+                            "Generate", variant="primary", size="lg"
+                        )
+                    with gr.Column(scale=1):
+                        txt_output = gr.Textbox(
+                            label="Response",
+                            lines=12,
+                            show_copy_button=True,
+                            elem_classes=["output-textbox"],
+                        )
+                txt_btn.click(
+                    process_text, [txt_input, txt_thinking], txt_output
                 )
-                i2i_prompt = gr.Textbox(
-                    label="Style Prompt",
-                    value="Make it look like a watercolor painting",
-                    lines=2,
-                )
-                with gr.Accordion("Options", open=False):
-                    i2i_strength = gr.Slider(
-                        minimum=0.1,
-                        maximum=1.0,
-                        value=0.5,
-                        step=0.05,
-                        label="Transformation Strength",
-                        info="Lower preserves more of the original. Higher allows more creative freedom.",
-                    )
-                i2i_btn = gr.Button("Transform", variant="primary", size="lg")
-            with gr.Column(scale=1):
-                i2i_output = gr.Image(label="Result", height=400)
-        i2i_btn.click(edit_image, [i2i_input, i2i_prompt, i2i_strength], i2i_output)
 
-    # ---- Video -> Text ----
-    with gr.Tab("Video", id="video"):
-        gr.HTML('<p class="omiff-section-label">Video Understanding</p>')
-        with gr.Row(equal_height=True):
-            with gr.Column(scale=1):
-                vid_input = gr.Video(label="Video", height=280)
-                vid_prompt = gr.Textbox(
-                    label="Question",
-                    value="Describe what happens in this video.",
-                    lines=2,
+            # -- Documents --
+            with gr.Tab("Documents"):
+                with gr.Row(equal_height=True):
+                    with gr.Column(scale=1):
+                        doc_input = gr.File(
+                            label="Document",
+                            file_types=[
+                                ".txt", ".md", ".csv", ".json",
+                                ".xml", ".html", ".log", ".pdf",
+                            ],
+                        )
+                        doc_prompt = gr.Textbox(
+                            label="Instruction",
+                            value="Summarize this document.",
+                            lines=2,
+                        )
+                        doc_btn = gr.Button(
+                            "Process", variant="primary", size="lg"
+                        )
+                    with gr.Column(scale=1):
+                        doc_output = gr.Textbox(
+                            label="Result",
+                            lines=12,
+                            show_copy_button=True,
+                            elem_classes=["output-textbox"],
+                        )
+                doc_btn.click(
+                    process_document, [doc_input, doc_prompt], doc_output
                 )
-                vid_btn = gr.Button("Analyze", variant="primary", size="lg")
-            with gr.Column(scale=1):
-                vid_output = gr.Textbox(
-                    label="Analysis",
-                    lines=10,
-                    show_copy_button=True,
-                    elem_classes=["output-textbox"],
-                )
-        vid_btn.click(process_video, [vid_input, vid_prompt], vid_output)
 
-    # ---- Document -> Text ----
-    with gr.Tab("Documents", id="documents"):
-        gr.HTML('<p class="omiff-section-label">Document Analysis</p>')
-        with gr.Row(equal_height=True):
-            with gr.Column(scale=1):
-                doc_input = gr.File(
-                    label="Document",
-                    file_types=[".txt", ".md", ".csv", ".json", ".xml", ".html", ".log", ".pdf"],
+            # -- Code --
+            with gr.Tab("Code"):
+                with gr.Row(equal_height=True):
+                    with gr.Column(scale=1):
+                        code_task = gr.Textbox(
+                            label="Task",
+                            lines=4,
+                            placeholder="Write a merge sort function...",
+                        )
+                        with gr.Accordion("Options", open=False):
+                            code_lang = gr.Dropdown(
+                                [
+                                    "Python", "JavaScript", "TypeScript",
+                                    "Rust", "Go", "Java", "C++", "",
+                                ],
+                                value="Python",
+                                label="Language",
+                            )
+                        code_btn = gr.Button(
+                            "Generate", variant="primary", size="lg"
+                        )
+                    with gr.Column(scale=1):
+                        code_output = gr.Code(
+                            label="Output",
+                            language="python",
+                            lines=20,
+                        )
+                code_btn.click(
+                    generate_code, [code_task, code_lang], code_output
                 )
-                doc_prompt = gr.Textbox(
-                    label="Instruction",
-                    value="Summarize this document.",
-                    lines=2,
-                )
-                doc_btn = gr.Button("Process", variant="primary", size="lg")
-            with gr.Column(scale=1):
-                doc_output = gr.Textbox(
-                    label="Result",
-                    lines=12,
-                    show_copy_button=True,
-                    elem_classes=["output-textbox"],
-                )
-        doc_btn.click(process_document, [doc_input, doc_prompt], doc_output)
-
-    # ---- Code Generation ----
-    with gr.Tab("Code", id="code"):
-        gr.HTML('<p class="omiff-section-label">Code Generation</p>')
-        with gr.Row(equal_height=True):
-            with gr.Column(scale=1):
-                code_task = gr.Textbox(
-                    label="Task Description",
-                    lines=4,
-                    placeholder="Write a function that sorts a list using merge sort...",
-                )
-                with gr.Accordion("Options", open=False):
-                    code_lang = gr.Dropdown(
-                        ["Python", "JavaScript", "TypeScript", "Rust", "Go", "Java", "C++", ""],
-                        value="Python",
-                        label="Language",
-                    )
-                code_btn = gr.Button("Generate", variant="primary", size="lg")
-            with gr.Column(scale=1):
-                code_output = gr.Code(
-                    label="Output",
-                    language="python",
-                    lines=20,
-                )
-        code_btn.click(generate_code, [code_task, code_lang], code_output)
 
     # ---- Footer ----
     gr.HTML(
@@ -1100,8 +1332,8 @@ with gr.Blocks(
                 &nbsp;&middot;&nbsp;
                 Built by <a href="https://github.com/stukenov" target="_blank">Saken Tukenov</a>
             </p>
-            <p style="margin-top: 8px;">
-                8 pipelines &middot; Text &middot; Vision &middot; Audio &middot; Generate &middot; Transform &middot; Video &middot; Documents &middot; Code
+            <p style="margin-top: 6px; font-size: 11px !important;">
+                8 pipelines &middot; Qwen3 &middot; Qwen2.5-VL &middot; Whisper &middot; SDXL Turbo
             </p>
         </div>
         """
