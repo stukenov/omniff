@@ -23,7 +23,7 @@ suggested_hardware: zero-a10g
 
 Universal multimodal runtime for inference, generation, and transformation.
 
-**8 Pipelines:** Text→Text, Image→Text, Audio→Text, Text→Image, Image→Image, Video→Text, Document→Text, Code Generation
+**11 Pipelines:** Text→Text, Image→Text, Audio→Text, Text→Image, Image→Image, Video→Text, Document→Text, Code Generation, Audio Translation, Audio Dubbing, Video Dubbing
 
 Built by [Saken Tukenov](https://github.com/stukenov)
 

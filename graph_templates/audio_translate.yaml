@@ -1,0 +1,29 @@
+name: audio_translate
+description: "Audio → ASR → LLM Translation → translated text"
+version: "1.0"
+
+nodes:
+  - id: asr
+    type: model
+    model_id: openai/whisper-large-v3
+    inputs:
+      audio_path: "$input"
+      language: "$controls.language"
+
+  - id: translate
+    type: model
+    model_id: Qwen/Qwen3-4B
+    inputs:
+      prompt: "Translate the following text to $controls.target_language. Return ONLY the translation.\n\n$asr.text"
+      thinking: false
+
+  - id: output
+    type: muxer
+    inputs:
+      text: "$translate.text"
+
+edges:
+  - from: asr
+    to: translate
+  - from: translate
+    to: output

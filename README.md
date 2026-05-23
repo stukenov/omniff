@@ -107,6 +107,9 @@ python -m omniff.api
 | Text → Image | prompt | image | SDXL-turbo | ✅ |
 | Video → Text | video + prompt | text | Qwen2.5-VL-3B | ✅ |
 | Document → Text | PDF/DOCX/TXT | text | Extraction + Qwen3 | ✅ |
+| Audio → Translation | audio + target lang | text | Whisper + Qwen3 | ✅ |
+| Audio → Dubbed Audio | audio + target lang | audio | Whisper + Qwen3 + Bark | ✅ |
+| Video → Dubbed Video | video + target lang | video | ffmpeg + Whisper + Qwen3 + Bark + ffmpeg | ✅ |
 
 ## Architecture
 

@@ -81,6 +81,42 @@ def test_route_document_to_document():
     assert decision.route_class == "DOCUMENT_TO_DOCUMENT"
 
 
+def test_route_audio_translate():
+    router = KeywordRouter()
+    decision = router.route("translate this to english", input_modality="audio")
+    assert decision.route_class == "AUDIO_TRANSLATE"
+
+
+def test_route_audio_translate_ru():
+    router = KeywordRouter()
+    decision = router.route("переведи на английский", input_modality="audio")
+    assert decision.route_class == "AUDIO_TRANSLATE"
+
+
+def test_route_audio_dub():
+    router = KeywordRouter()
+    decision = router.route("dub this audio", input_modality="audio")
+    assert decision.route_class == "AUDIO_DUB"
+
+
+def test_route_audio_dub_ru():
+    router = KeywordRouter()
+    decision = router.route("сделай дубляж", input_modality="audio")
+    assert decision.route_class == "AUDIO_DUB"
+
+
+def test_route_video_dub():
+    router = KeywordRouter()
+    decision = router.route("dub this video to russian", input_modality="video")
+    assert decision.route_class == "VIDEO_DUB"
+
+
+def test_route_video_dub_ru():
+    router = KeywordRouter()
+    decision = router.route("озвучь видео", input_modality="video")
+    assert decision.route_class == "VIDEO_DUB"
+
+
 def test_route_decision_fields():
     router = KeywordRouter()
     decision = router.route("hello")

@@ -1,0 +1,61 @@
+name: video_dub
+description: "Video → extract audio → ASR → Translation → TTS → mux back"
+version: "1.0"
+
+nodes:
+  - id: demux
+    type: filter
+    operation: ffmpeg_extract_audio
+    inputs:
+      video_path: "$input"
+      format: wav
+      sample_rate: 16000
+      channels: 1
+
+  - id: asr
+    type: model
+    model_id: openai/whisper-large-v3
+    inputs:
+      audio_path: "$demux.audio_path"
+      language: "$controls.language"
+
+  - id: translate
+    type: model
+    model_id: Qwen/Qwen3-4B
+    inputs:
+      prompt: "Translate the following text to $controls.target_language. Return ONLY the translation.\n\n$asr.text"
+      thinking: false
+
+  - id: tts
+    type: model
+    model_id: suno/bark-small
+    inputs:
+      text: "$translate.text"
+      output_path: "$tmp.dubbed_audio.wav"
+      voice_preset: "$controls.voice_preset"
+
+  - id: mux
+    type: filter
+    operation: ffmpeg_mux_audio
+    inputs:
+      video_path: "$input"
+      audio_path: "$tts.audio_path"
+      output_path: "$output"
+
+  - id: output
+    type: muxer
+    inputs:
+      video_path: "$mux.output_path"
+      text: "$translate.text"
+
+edges:
+  - from: demux
+    to: asr
+  - from: asr
+    to: translate
+  - from: translate
+    to: tts
+  - from: tts
+    to: mux
+  - from: mux
+    to: output

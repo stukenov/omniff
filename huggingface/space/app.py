@@ -375,6 +375,14 @@ _CODE_PATTERNS = re.compile(
     r"\b(write|code|implement|create|build|generate)\b.*\b(function|class|script|program|code|api|endpoint|module|component|algorithm)\b",
     re.IGNORECASE,
 )
+_TRANSLATE_PATTERNS = re.compile(
+    r"\b(translate|переведи|перевод|translation|переведите|to english|to russian|to chinese|на английский|на русский|на казахский)\b",
+    re.IGNORECASE,
+)
+_DUB_PATTERNS = re.compile(
+    r"\b(dub|dubbing|дубляж|озвуч|переозвуч|voice\s*over|voiceover)\b",
+    re.IGNORECASE,
+)
 
 
 def _classify_file(file_path: str) -> str:
@@ -443,15 +451,55 @@ def universal_chat(message: dict, history: list) -> dict:
             return {"role": "assistant", "content": result}
 
         elif modality == "audio":
+            if text and _DUB_PATTERNS.search(text):
+                # Audio dubbing: ASR → Translate → TTS
+                transcript = process_audio(first_file, "")
+                target_lang = "English"
+                for lang in ["english", "russian", "chinese", "kazakh", "русский", "английский", "казахский"]:
+                    if lang in text.lower():
+                        target_lang = lang.capitalize()
+                        break
+                tr_prompt = f"Translate the following text to {target_lang}. Return ONLY the translation.\n\n{transcript}"
+                translated = process_text(tr_prompt, "off")
+                return {
+                    "role": "assistant",
+                    "content": f"**Original transcript:**\n{transcript}\n\n**Dubbed ({target_lang}):**\n{translated}\n\n_(Full audio dubbing with TTS requires local GPU runtime)_",
+                }
+            elif text and _TRANSLATE_PATTERNS.search(text):
+                # Audio translation: ASR → Translate
+                transcript = process_audio(first_file, "")
+                target_lang = "English"
+                for lang in ["english", "russian", "chinese", "kazakh", "русский", "английский", "казахский"]:
+                    if lang in text.lower():
+                        target_lang = lang.capitalize()
+                        break
+                tr_prompt = f"Translate the following text to {target_lang}. Return ONLY the translation.\n\n{transcript}"
+                translated = process_text(tr_prompt, "off")
+                return {
+                    "role": "assistant",
+                    "content": f"**Original transcript:**\n{transcript}\n\n**Translation ({target_lang}):**\n{translated}",
+                }
             result = process_audio(first_file, "")
             if text:
-                # User asked a question about audio — transcribe then answer
                 full_prompt = f"The user uploaded an audio file. Here is the transcription:\n\n{result}\n\nUser's question: {text}"
                 answer = process_text(full_prompt, "off")
                 return {"role": "assistant", "content": f"**Transcription:**\n{result}\n\n**Answer:**\n{answer}"}
             return {"role": "assistant", "content": f"**Transcription:**\n{result}"}
 
         elif modality == "video":
+            if text and _DUB_PATTERNS.search(text):
+                result = process_video(first_file, "Transcribe all speech in this video word by word.")
+                target_lang = "English"
+                for lang in ["english", "russian", "chinese", "kazakh", "русский", "английский", "казахский"]:
+                    if lang in text.lower():
+                        target_lang = lang.capitalize()
+                        break
+                tr_prompt = f"Translate the following text to {target_lang}. Return ONLY the translation.\n\n{result}"
+                translated = process_text(tr_prompt, "off")
+                return {
+                    "role": "assistant",
+                    "content": f"**Video transcript:**\n{result}\n\n**Dubbed ({target_lang}):**\n{translated}\n\n_(Full video dubbing with audio muxing requires local GPU runtime)_",
+                }
             result = process_video(first_file, text or "Describe what happens in this video.")
             return {"role": "assistant", "content": result}
 

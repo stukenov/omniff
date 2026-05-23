@@ -155,6 +155,15 @@ class OmniFFRuntime:
             "DOCUMENT_TO_DOCUMENT": lambda: self._run_document_to_document(
                 input, prompt, controls, output, trace
             ),
+            "AUDIO_TRANSLATE": lambda: self._run_audio_translate(
+                input, prompt, controls, trace
+            ),
+            "AUDIO_DUB": lambda: self._run_audio_dub(
+                input, prompt, controls, output, trace
+            ),
+            "VIDEO_DUB": lambda: self._run_video_dub(
+                input, prompt, controls, output, trace
+            ),
         }
 
         handler = dispatch.get(route.route_class)
@@ -488,6 +497,227 @@ class OmniFFRuntime:
             output_path=pdf_result["pdf_path"],
             route="DOCUMENT_TO_DOCUMENT",
             metadata={"source": result.get("source", "extraction")},
+        )
+
+
+    # ------------------------------------------------------------------
+    # Complex multi-pipelines
+    # ------------------------------------------------------------------
+
+    def _run_audio_translate(
+        self, audio_path: str, prompt: str | None, controls: dict, trace: RequestTrace
+    ) -> RunResult:
+        """Audio → ASR → LLM Translation → translated text."""
+        from omniff.models.asr import ASRModel
+        from omniff.models.llm import LLMModel
+
+        target_lang = controls.get("target_language", "English")
+        source_lang = controls.get("language")
+
+        asr_id = controls.get("asr_model_id", "openai/whisper-large-v3")
+        asr = self._ensure_model("asr", ASRModel, trace=trace, model_id=asr_id, device="auto")
+        self._mutex.acquire("asr")
+        try:
+            with trace.span("asr", model=asr_id):
+                asr_result = asr.infer({"audio_path": audio_path, "language": source_lang})
+        finally:
+            self._mutex.release("asr")
+        transcript = asr_result["text"]
+
+        llm_id = controls.get("model_id", "Qwen/Qwen3-4B")
+        llm = self._ensure_model("llm", LLMModel, trace=trace, model_id=llm_id, device="auto")
+        translate_prompt = (
+            f"Translate the following text to {target_lang}. "
+            f"Return ONLY the translation, nothing else.\n\n{transcript}"
+        )
+        self._mutex.acquire("llm")
+        try:
+            with trace.span("translate", model=llm_id):
+                tr_result = llm.infer({"prompt": translate_prompt, "thinking": False})
+        finally:
+            self._mutex.release("llm")
+
+        return RunResult(
+            output_text=tr_result["text"],
+            route="AUDIO_TRANSLATE",
+            metadata={
+                "transcript": transcript,
+                "target_language": target_lang,
+            },
+        )
+
+    def _run_audio_dub(
+        self,
+        audio_path: str,
+        prompt: str | None,
+        controls: dict,
+        output: str | None,
+        trace: RequestTrace,
+    ) -> RunResult:
+        """Audio → ASR → Translation → TTS → dubbed audio file."""
+        from omniff.models.asr import ASRModel
+        from omniff.models.llm import LLMModel
+        from omniff.models.tts import TTSModel
+
+        target_lang = controls.get("target_language", "English")
+        source_lang = controls.get("language")
+
+        # Step 1: ASR
+        asr_id = controls.get("asr_model_id", "openai/whisper-large-v3")
+        asr = self._ensure_model("asr", ASRModel, trace=trace, model_id=asr_id, device="auto")
+        self._mutex.acquire("asr")
+        try:
+            with trace.span("asr", model=asr_id):
+                asr_result = asr.infer({"audio_path": audio_path, "language": source_lang})
+        finally:
+            self._mutex.release("asr")
+        transcript = asr_result["text"]
+
+        # Step 2: Translation
+        llm_id = controls.get("model_id", "Qwen/Qwen3-4B")
+        llm = self._ensure_model("llm", LLMModel, trace=trace, model_id=llm_id, device="auto")
+        translate_prompt = (
+            f"Translate the following text to {target_lang}. "
+            f"Return ONLY the translation, nothing else.\n\n{transcript}"
+        )
+        self._mutex.acquire("llm")
+        try:
+            with trace.span("translate", model=llm_id):
+                tr_result = llm.infer({"prompt": translate_prompt, "thinking": False})
+        finally:
+            self._mutex.release("llm")
+        translated = tr_result["text"]
+
+        # Step 3: TTS
+        tts_id = controls.get("tts_model_id", "suno/bark-small")
+        tts = self._ensure_model("tts", TTSModel, trace=trace, model_id=tts_id, device="auto")
+        output_path = output or "dubbed_audio.wav"
+        voice_preset = controls.get("voice_preset", "v2/en_speaker_6")
+        self._mutex.acquire("tts")
+        try:
+            with trace.span("tts", model=tts_id):
+                tts_result = tts.infer(
+                    {"text": translated, "output_path": output_path, "voice_preset": voice_preset}
+                )
+        finally:
+            self._mutex.release("tts")
+
+        return RunResult(
+            output_path=tts_result["audio_path"],
+            output_text=translated,
+            route="AUDIO_DUB",
+            metadata={
+                "transcript": transcript,
+                "translated": translated,
+                "target_language": target_lang,
+                "duration_s": tts_result.get("duration_s", 0),
+            },
+        )
+
+    def _run_video_dub(
+        self,
+        video_path: str,
+        prompt: str | None,
+        controls: dict,
+        output: str | None,
+        trace: RequestTrace,
+    ) -> RunResult:
+        """Video → extract audio → ASR → Translation → TTS → mux back to video."""
+        import subprocess
+        import tempfile
+
+        from omniff.models.asr import ASRModel
+        from omniff.models.llm import LLMModel
+        from omniff.models.tts import TTSModel
+
+        target_lang = controls.get("target_language", "English")
+        source_lang = controls.get("language")
+
+        # Step 1: Extract audio from video
+        with trace.span("extract_audio"):
+            audio_tmp = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+            audio_tmp.close()
+            subprocess.run(
+                [
+                    "ffmpeg", "-y", "-i", video_path,
+                    "-vn", "-acodec", "pcm_s16le", "-ar", "16000", "-ac", "1",
+                    audio_tmp.name,
+                ],
+                capture_output=True,
+                check=True,
+            )
+
+        # Step 2: ASR
+        asr_id = controls.get("asr_model_id", "openai/whisper-large-v3")
+        asr = self._ensure_model("asr", ASRModel, trace=trace, model_id=asr_id, device="auto")
+        self._mutex.acquire("asr")
+        try:
+            with trace.span("asr", model=asr_id):
+                asr_result = asr.infer({"audio_path": audio_tmp.name, "language": source_lang})
+        finally:
+            self._mutex.release("asr")
+        transcript = asr_result["text"]
+
+        # Step 3: Translation
+        llm_id = controls.get("model_id", "Qwen/Qwen3-4B")
+        llm = self._ensure_model("llm", LLMModel, trace=trace, model_id=llm_id, device="auto")
+        translate_prompt = (
+            f"Translate the following text to {target_lang}. "
+            f"Return ONLY the translation, nothing else.\n\n{transcript}"
+        )
+        self._mutex.acquire("llm")
+        try:
+            with trace.span("translate", model=llm_id):
+                tr_result = llm.infer({"prompt": translate_prompt, "thinking": False})
+        finally:
+            self._mutex.release("llm")
+        translated = tr_result["text"]
+
+        # Step 4: TTS
+        tts_id = controls.get("tts_model_id", "suno/bark-small")
+        tts = self._ensure_model("tts", TTSModel, trace=trace, model_id=tts_id, device="auto")
+        dubbed_audio = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+        dubbed_audio.close()
+        voice_preset = controls.get("voice_preset", "v2/en_speaker_6")
+        self._mutex.acquire("tts")
+        try:
+            with trace.span("tts", model=tts_id):
+                tts_result = tts.infer(
+                    {"text": translated, "output_path": dubbed_audio.name, "voice_preset": voice_preset}
+                )
+        finally:
+            self._mutex.release("tts")
+
+        # Step 5: Mux dubbed audio back into video
+        output_path = output or "dubbed_video.mp4"
+        with trace.span("mux_video"):
+            subprocess.run(
+                [
+                    "ffmpeg", "-y",
+                    "-i", video_path,
+                    "-i", dubbed_audio.name,
+                    "-c:v", "copy", "-map", "0:v:0", "-map", "1:a:0",
+                    "-shortest", output_path,
+                ],
+                capture_output=True,
+                check=True,
+            )
+
+        # Cleanup temp files
+        import os
+        os.unlink(audio_tmp.name)
+        os.unlink(dubbed_audio.name)
+
+        return RunResult(
+            output_path=output_path,
+            output_text=translated,
+            route="VIDEO_DUB",
+            metadata={
+                "transcript": transcript,
+                "translated": translated,
+                "target_language": target_lang,
+                "duration_s": tts_result.get("duration_s", 0),
+            },
         )
 
 

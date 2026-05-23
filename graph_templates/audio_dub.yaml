@@ -1,0 +1,40 @@
+name: audio_dub
+description: "Audio → ASR → Translation → TTS → dubbed audio"
+version: "1.0"
+
+nodes:
+  - id: asr
+    type: model
+    model_id: openai/whisper-large-v3
+    inputs:
+      audio_path: "$input"
+      language: "$controls.language"
+
+  - id: translate
+    type: model
+    model_id: Qwen/Qwen3-4B
+    inputs:
+      prompt: "Translate the following text to $controls.target_language. Return ONLY the translation.\n\n$asr.text"
+      thinking: false
+
+  - id: tts
+    type: model
+    model_id: suno/bark-small
+    inputs:
+      text: "$translate.text"
+      output_path: "$output"
+      voice_preset: "$controls.voice_preset"
+
+  - id: output
+    type: muxer
+    inputs:
+      audio_path: "$tts.audio_path"
+      text: "$translate.text"
+
+edges:
+  - from: asr
+    to: translate
+  - from: translate
+    to: tts
+  - from: tts
+    to: output

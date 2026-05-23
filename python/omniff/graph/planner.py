@@ -77,6 +77,29 @@ class GraphPlanner:
             {"id": "tts", "type": "tts_infer", "config": {}},
             {"id": "mux", "type": "muxer", "config": {"modality": "audio"}},
         ],
+        "AUDIO_TRANSLATE": [
+            {"id": "demux", "type": "demuxer", "config": {"modality": "audio"}},
+            {"id": "asr", "type": "asr_infer", "config": {}},
+            {"id": "translate", "type": "llm_infer", "config": {"task": "translate"}},
+            {"id": "validate", "type": "text_validate", "config": {"min_length": 1}},
+            {"id": "mux", "type": "muxer", "config": {"modality": "text"}},
+        ],
+        "AUDIO_DUB": [
+            {"id": "demux", "type": "demuxer", "config": {"modality": "audio"}},
+            {"id": "asr", "type": "asr_infer", "config": {}},
+            {"id": "translate", "type": "llm_infer", "config": {"task": "translate"}},
+            {"id": "tts", "type": "tts_infer", "config": {}},
+            {"id": "validate", "type": "audio_validate", "config": {}},
+            {"id": "mux", "type": "muxer", "config": {"modality": "audio"}},
+        ],
+        "VIDEO_DUB": [
+            {"id": "extract", "type": "ffmpeg_extract", "config": {"format": "wav"}},
+            {"id": "asr", "type": "asr_infer", "config": {}},
+            {"id": "translate", "type": "llm_infer", "config": {"task": "translate"}},
+            {"id": "tts", "type": "tts_infer", "config": {}},
+            {"id": "mux_av", "type": "ffmpeg_mux", "config": {}},
+            {"id": "mux", "type": "muxer", "config": {"modality": "video"}},
+        ],
     }
 
     def plan(

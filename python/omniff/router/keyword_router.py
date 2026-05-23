@@ -10,6 +10,33 @@ class RouteDecision:
     thinking: str = "normal"
 
 
+TRANSLATE_KEYWORDS = [
+    "translate",
+    "переведи",
+    "перевод",
+    "translation",
+    "переведите",
+    "в английский",
+    "в русский",
+    "to english",
+    "to russian",
+    "to chinese",
+    "на английский",
+    "на русский",
+    "на казахский",
+]
+
+DUB_KEYWORDS = [
+    "dub",
+    "dubbing",
+    "дубляж",
+    "озвуч",
+    "переозвуч",
+    "voice over",
+    "voiceover",
+]
+
+
 COMPLEX_KEYWORDS = [
     "проанализируй",
     "analyze",
@@ -60,11 +87,20 @@ class KeywordRouter:
         output_modality = output_modality or "text"
         prompt_lower = prompt.lower()
 
+        if input_modality == "video" and any(kw in prompt_lower for kw in DUB_KEYWORDS):
+            return RouteDecision("VIDEO_DUB", 0.9, "normal")
+
         if input_modality == "video":
             return RouteDecision("VIDEO_CAPTION", 0.85, "normal")
 
         if input_modality == "document":
             return RouteDecision("DOCUMENT_READ", 0.85, "normal")
+
+        if input_modality == "audio" and any(kw in prompt_lower for kw in DUB_KEYWORDS):
+            return RouteDecision("AUDIO_DUB", 0.9, "normal")
+
+        if input_modality == "audio" and any(kw in prompt_lower for kw in TRANSLATE_KEYWORDS):
+            return RouteDecision("AUDIO_TRANSLATE", 0.9, "normal")
 
         if input_modality == "audio":
             if prompt.strip():
