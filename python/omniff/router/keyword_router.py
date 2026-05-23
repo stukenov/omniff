@@ -51,6 +51,21 @@ VOICE_CLONE_KEYWORDS = [
 ]
 
 
+AGENT_KEYWORDS = [
+    "agent",
+    "step by step",
+    "research",
+    "investigate",
+    "plan and execute",
+    "multi-step",
+    "агент",
+    "пошагово",
+    "исследуй",
+    "разберись",
+    "проанализируй и сделай",
+]
+
+
 COMPLEX_KEYWORDS = [
     "проанализируй",
     "analyze",
@@ -141,6 +156,9 @@ class KeywordRouter:
 
         if input_modality == "text" and any(kw in prompt_lower for kw in TRANSLATE_KEYWORDS):
             return RouteDecision("TRANSLATE", 0.85, "off")
+
+        if any(kw in prompt_lower for kw in AGENT_KEYWORDS):
+            return RouteDecision("AGENT", 0.85, "normal")
 
         if any(kw in prompt_lower for kw in CODE_KEYWORDS):
             return RouteDecision("CODE", 0.8, "normal")

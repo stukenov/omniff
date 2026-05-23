@@ -22,6 +22,8 @@ def _add_run_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--config", default="omniff.yaml", help="Config file path")
     parser.add_argument("--negative-prompt", help="Negative prompt for generation")
     parser.add_argument("--stream", action="store_true", help="Stream output token by token")
+    parser.add_argument("--agent", action="store_true", help="Run in agent mode (multi-step reasoning)")
+    parser.add_argument("--max-steps", type=int, default=10, help="Max agent steps")
 
 
 def _cmd_run(args: argparse.Namespace) -> None:
@@ -50,6 +52,17 @@ def _cmd_run(args: argparse.Namespace) -> None:
         controls["seed"] = args.seed
     if args.negative_prompt:
         controls["negative_prompt"] = args.negative_prompt
+
+    if getattr(args, "agent", False):
+        from omniff.agent.executor import AgentExecutor
+
+        executor = AgentExecutor(runtime=runtime, max_steps=args.max_steps)
+        agent_result = executor.run(task=args.input, context=args.prompt or "")
+        print(agent_result.answer)
+        if controls.get("verbose"):
+            print("\n--- Agent Trace ---")
+            print(agent_result.trace)
+        return
 
     if getattr(args, "stream", False):
         for token in runtime.run_stream(

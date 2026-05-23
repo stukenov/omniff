@@ -112,6 +112,12 @@ class GraphPlanner:
             {"id": "validate", "type": "audio_validate", "config": {}},
             {"id": "mux", "type": "muxer", "config": {"modality": "audio"}},
         ],
+        "AGENT": [
+            {"id": "demux", "type": "demuxer", "config": {"modality": "text"}},
+            {"id": "agent", "type": "agent_react", "config": {"max_steps": 10}},
+            {"id": "validate", "type": "text_validate", "config": {"min_length": 1}},
+            {"id": "mux", "type": "muxer", "config": {"modality": "text"}},
+        ],
     }
 
     def plan(

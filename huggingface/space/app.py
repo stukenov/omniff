@@ -383,6 +383,10 @@ _DUB_PATTERNS = re.compile(
     r"\b(dub|dubbing|дубляж|озвуч|переозвуч|voice\s*over|voiceover)\b",
     re.IGNORECASE,
 )
+_AGENT_PATTERNS = re.compile(
+    r"\b(agent|step by step|investigate|research and|plan and execute|multi-step|агент|пошагово|исследуй|разберись)\b",
+    re.IGNORECASE,
+)
 
 
 def _classify_file(file_path: str) -> str:
@@ -409,13 +413,15 @@ def _classify_file(file_path: str) -> str:
 
 
 def _detect_intent(text: str) -> str:
-    """Detect if text-only input wants image generation, code, or translation."""
+    """Detect if text-only input wants image generation, code, translation, or agent."""
     if _IMAGE_GEN_PATTERNS.search(text) or _IMAGE_GEN_PATTERNS_REV.search(text):
         return "text_to_image"
     if _CODE_PATTERNS.search(text):
         return "code"
     if _TRANSLATE_PATTERNS.search(text):
         return "translate"
+    if _AGENT_PATTERNS.search(text):
+        return "agent"
     return "text"
 
 
@@ -547,6 +553,17 @@ def universal_chat(message: dict, history: list) -> dict:
     if intent == "code":
         result = generate_code(text, "")
         return {"role": "assistant", "content": f"```\n{result}\n```"}
+
+    if intent == "agent":
+        steps = []
+        steps.append(f"**Task:** {text}\n")
+        thinking_prompt = f"Break this task into steps and solve it:\n\n{text}"
+        plan = process_text(thinking_prompt, "off")
+        steps.append(f"**Plan:**\n{plan}\n")
+        execution_prompt = f"Execute this plan and provide the final answer:\n\nTask: {text}\nPlan: {plan}"
+        answer = process_text(execution_prompt, "off")
+        steps.append(f"**Result:**\n{answer}")
+        return {"role": "assistant", "content": "\n".join(steps)}
 
     # Default: text-to-text
     result = process_text(text, "off")

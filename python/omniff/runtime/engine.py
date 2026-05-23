@@ -170,6 +170,9 @@ class OmniFFRuntime:
             "VOICE_CLONE": lambda: self._run_voice_clone(
                 input, prompt or input, controls, output, trace
             ),
+            "AGENT": lambda: self._run_agent(
+                prompt or input, controls, trace
+            ),
         }
 
         handler = dispatch.get(route.route_class)
@@ -794,6 +797,37 @@ class OmniFFRuntime:
                 "backend": result.get("backend", "unknown"),
                 "duration_s": result.get("duration_s", 0),
                 "sample_rate": result.get("sample_rate", 0),
+            },
+        )
+
+    def _run_agent(
+        self, task: str, controls: dict, trace: RequestTrace
+    ) -> RunResult:
+        """Agent workflow: ReAct loop with tool use."""
+        from omniff.agent.executor import AgentExecutor
+
+        max_steps = controls.get("max_steps", 10)
+        context = controls.get("context", "")
+
+        with trace.span("agent", model="agent"):
+            executor = AgentExecutor(runtime=self, max_steps=max_steps)
+            result = executor.run(task=task, context=context)
+
+        return RunResult(
+            output_text=result.answer,
+            route="AGENT",
+            metadata={
+                "total_steps": result.total_steps,
+                "trace": result.trace,
+                "steps": [
+                    {
+                        "thought": s.thought,
+                        "action": s.action,
+                        "action_input": s.action_input,
+                        "observation": s.observation[:200] if s.observation else None,
+                    }
+                    for s in result.steps
+                ],
             },
         )
 
