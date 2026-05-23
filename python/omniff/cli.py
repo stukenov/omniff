@@ -17,6 +17,7 @@ def _add_run_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--seed", type=int, help="Random seed")
     parser.add_argument("--config", default="omniff.yaml", help="Config file path")
     parser.add_argument("--negative-prompt", help="Negative prompt for generation")
+    parser.add_argument("--stream", action="store_true", help="Stream output token by token")
 
 
 def _cmd_run(args: argparse.Namespace) -> None:
@@ -45,6 +46,18 @@ def _cmd_run(args: argparse.Namespace) -> None:
         controls["seed"] = args.seed
     if args.negative_prompt:
         controls["negative_prompt"] = args.negative_prompt
+
+    if getattr(args, "stream", False):
+        for token in runtime.run_stream(
+            input=args.input,
+            prompt=args.prompt,
+            thinking=args.thinking,
+            controls=controls,
+        ):
+            sys.stdout.write(token)
+            sys.stdout.flush()
+        sys.stdout.write("\n")
+        return
 
     result = runtime.run(
         input=args.input,

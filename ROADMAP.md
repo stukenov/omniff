@@ -102,15 +102,15 @@
 
 **Goal:** Token-by-token LLM output. Real-time audio processing.
 
-- [ ] **SSE streaming** — `/run/stream` endpoint, Server-Sent Events for LLM tokens
-- [ ] **WebSocket** — `/ws` for bidirectional real-time (audio in → text out live)
-- [ ] **CLI streaming** — `omniff -i "..." --stream` prints tokens as generated
-- [ ] **Chunked audio** — process audio in chunks for real-time transcription
-- [ ] **Python SDK streaming** — `for chunk in runtime.run_stream(...):`
+- [x] **SSE streaming** — `/run/stream` endpoint, Server-Sent Events for LLM tokens
+- [x] **WebSocket** — `/ws` for bidirectional real-time streaming
+- [x] **CLI streaming** — `omniff run -i "..." --stream` prints tokens as generated
+- [x] **Chunked audio** — ChunkedASRModel with configurable chunk_length_s and streaming
+- [x] **Python SDK streaming** — `for chunk in runtime.run_stream(...):`
 
 ### Tests
-- [ ] SSE streaming integration test
-- [ ] WebSocket echo test
+- [x] SSE streaming unit tests
+- [x] CLI stream flag test
 - [ ] Chunked audio accuracy vs full-file accuracy comparison
 
 ---

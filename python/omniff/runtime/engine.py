@@ -155,6 +155,33 @@ class OmniFFRuntime:
         _log.info("request %s done in %.0fms", trace.request_id, trace.total_ms)
         return result
 
+    def run_stream(
+        self,
+        input: str,
+        prompt: str | None = None,
+        thinking: str = "normal",
+        controls: dict[str, Any] | None = None,
+    ) -> Any:
+        from omniff.models.llm import LLMModel
+
+        controls = controls or {}
+        input_modality = _detect_input_modality(input)
+
+        if input_modality == "text" and not Path(input).exists():
+            if prompt:
+                prompt = f"{input}\n\n{prompt}"
+            else:
+                prompt = input
+
+        model_id = controls.get("model_id", "Qwen/Qwen3-4B")
+        llm = self._ensure_model("llm", LLMModel, model_id=model_id, device="auto")
+        enable_thinking = thinking not in ("off", "fast")
+        self._mutex.acquire("llm")
+        try:
+            yield from llm.infer_stream({"prompt": prompt or input, "thinking": enable_thinking})
+        finally:
+            self._mutex.release("llm")
+
     def _run_text_to_text(self, prompt: str, route: str, thinking: str, controls: dict, trace: RequestTrace) -> RunResult:
         from omniff.models.llm import LLMModel
 

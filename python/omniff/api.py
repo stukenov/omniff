@@ -62,6 +62,27 @@ def create_app():
             "metadata": result.metadata,
         }
 
+    @app.post("/run/stream")
+    async def run_stream(
+        input_text: str = Form(...),
+        prompt: str | None = Form(None),
+        thinking: str = Form("normal"),
+    ):
+        from fastapi.responses import StreamingResponse
+
+        runtime = get_runtime()
+
+        def generate():
+            for token in runtime.run_stream(
+                input=input_text,
+                prompt=prompt,
+                thinking=thinking,
+            ):
+                yield f"data: {token}\n\n"
+            yield "data: [DONE]\n\n"
+
+        return StreamingResponse(generate(), media_type="text/event-stream")
+
     @app.post("/run/file")
     async def run_file(
         file: UploadFile = File(...),
@@ -95,6 +116,28 @@ def create_app():
             return response
         finally:
             os.unlink(tmp_path)
+
+    @app.websocket("/ws")
+    async def websocket_endpoint(websocket):
+        from starlette.websockets import WebSocket
+        await websocket.accept()
+        try:
+            while True:
+                data = await websocket.receive_json()
+                input_text = data.get("input", "")
+                prompt = data.get("prompt")
+                thinking = data.get("thinking", "normal")
+
+                runtime = get_runtime()
+                for token in runtime.run_stream(
+                    input=input_text,
+                    prompt=prompt,
+                    thinking=thinking,
+                ):
+                    await websocket.send_json({"type": "token", "data": token})
+                await websocket.send_json({"type": "done"})
+        except Exception:
+            pass
 
     @app.get("/health")
     async def health() -> dict[str, str]:

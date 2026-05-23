@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any
+from typing import Any, Generator
 
 from omniff.models.base import OmniModel
 
@@ -70,3 +70,46 @@ class LLMModel(OmniModel):
         response = _THINK_UNCLOSED_RE.sub("", response).strip()
 
         return {"text": response}
+
+    def infer_stream(self, inputs: dict[str, Any]) -> Generator[str, None, None]:
+        if not self.is_loaded:
+            raise RuntimeError("Model not loaded")
+
+        from transformers import TextIteratorStreamer
+        import threading
+
+        prompt = inputs.get("prompt", "")
+        thinking = inputs.get("thinking", True)
+        messages = inputs.get("messages") or [{"role": "user", "content": prompt}]
+
+        chat_kwargs = dict(tokenize=False, add_generation_prompt=True)
+        if not thinking:
+            chat_kwargs["enable_thinking"] = False
+        text = self._tokenizer.apply_chat_template(messages, **chat_kwargs)
+        model_inputs = self._tokenizer([text], return_tensors="pt").to(self._model.device)
+
+        streamer = TextIteratorStreamer(
+            self._tokenizer, skip_prompt=True, skip_special_tokens=True
+        )
+
+        gen_kwargs = {
+            **model_inputs,
+            "max_new_tokens": self.max_new_tokens,
+            "streamer": streamer,
+        }
+
+        thread = threading.Thread(target=self._model.generate, kwargs=gen_kwargs)
+        thread.start()
+
+        in_think = False
+        for token in streamer:
+            if "<think>" in token:
+                in_think = True
+                continue
+            if "</think>" in token:
+                in_think = False
+                continue
+            if not in_think and token:
+                yield token
+
+        thread.join()
