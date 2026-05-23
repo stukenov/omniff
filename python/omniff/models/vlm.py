@@ -23,7 +23,7 @@ class VLMModel(OmniModel):
         return self._model is not None
 
     def load(self) -> None:
-        from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
+        from transformers import AutoProcessor, Qwen2_5_VLForConditionalGeneration
 
         self._processor = AutoProcessor.from_pretrained(self.model_id)
         self._model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
@@ -56,15 +56,20 @@ class VLMModel(OmniModel):
             }
         ]
 
-        text = self._processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        text = self._processor.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True
+        )
         image_inputs, video_inputs = process_vision_info(messages)
         model_inputs = self._processor(
-            text=[text], images=image_inputs, videos=video_inputs,
-            padding=True, return_tensors="pt",
+            text=[text],
+            images=image_inputs,
+            videos=video_inputs,
+            padding=True,
+            return_tensors="pt",
         ).to(self._model.device)
 
         generated = self._model.generate(**model_inputs, max_new_tokens=self.max_new_tokens)
-        trimmed = generated[0][model_inputs["input_ids"].shape[-1]:]
+        trimmed = generated[0][model_inputs["input_ids"].shape[-1] :]
         response = self._processor.decode(trimmed, skip_special_tokens=True)
 
         return {"text": response}

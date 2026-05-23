@@ -21,7 +21,11 @@ class PromptControl:
 
     @classmethod
     def from_level(cls, level: str) -> PromptControl:
-        thinking = ThinkingLevel(level) if level in [e.value for e in ThinkingLevel] else ThinkingLevel.NORMAL
+        thinking = (
+            ThinkingLevel(level)
+            if level in [e.value for e in ThinkingLevel]
+            else ThinkingLevel.NORMAL
+        )
 
         presets = {
             ThinkingLevel.OFF: {"max_tokens": 256, "temperature": 0.3},
@@ -32,7 +36,7 @@ class PromptControl:
         }
 
         p = presets[thinking]
-        return cls(thinking=thinking, max_tokens=p["max_tokens"], temperature=p["temperature"])
+        return cls(thinking=thinking, max_tokens=int(p["max_tokens"]), temperature=p["temperature"])
 
     @property
     def enable_model_thinking(self) -> bool:

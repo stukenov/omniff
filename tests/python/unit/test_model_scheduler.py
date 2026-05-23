@@ -1,7 +1,8 @@
 import time
+
 import pytest
 
-from omniff.scheduler.model_scheduler import ModelScheduler, LoadPolicy
+from omniff.scheduler.model_scheduler import LoadPolicy, ModelScheduler
 
 
 class FakeModel:

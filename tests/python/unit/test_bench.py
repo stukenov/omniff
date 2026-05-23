@@ -1,7 +1,8 @@
 import time
-from omniff.bench.suite import BenchmarkSuite
+
 from omniff.bench.profiler import LatencyProfiler
-from omniff.bench.recommend import recommend_models, format_recommendation, MODELS
+from omniff.bench.recommend import MODELS, format_recommendation, recommend_models
+from omniff.bench.suite import BenchmarkSuite
 
 
 def test_benchmark_suite():

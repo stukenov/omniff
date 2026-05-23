@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Generator
+from collections.abc import Generator
+from typing import Any
 
 from omniff.models.base import OmniModel
 
@@ -29,8 +30,8 @@ class LLMModel(OmniModel):
         return self._model is not None
 
     def load(self) -> None:
-        from transformers import AutoModelForCausalLM, AutoTokenizer
         import torch
+        from transformers import AutoModelForCausalLM, AutoTokenizer
 
         dtype = getattr(torch, self.torch_dtype) if self.torch_dtype != "auto" else "auto"
         self._tokenizer = AutoTokenizer.from_pretrained(self.model_id)
@@ -64,7 +65,7 @@ class LLMModel(OmniModel):
             **model_inputs,
             max_new_tokens=self.max_new_tokens,
         )
-        new_tokens = generated[0][model_inputs["input_ids"].shape[-1]:]
+        new_tokens = generated[0][model_inputs["input_ids"].shape[-1] :]
         response = self._tokenizer.decode(new_tokens, skip_special_tokens=True)
         response = _THINK_RE.sub("", response)
         response = _THINK_UNCLOSED_RE.sub("", response).strip()
@@ -75,8 +76,9 @@ class LLMModel(OmniModel):
         if not self.is_loaded:
             raise RuntimeError("Model not loaded")
 
-        from transformers import TextIteratorStreamer
         import threading
+
+        from transformers import TextIteratorStreamer
 
         prompt = inputs.get("prompt", "")
         thinking = inputs.get("thinking", True)
@@ -88,9 +90,7 @@ class LLMModel(OmniModel):
         text = self._tokenizer.apply_chat_template(messages, **chat_kwargs)
         model_inputs = self._tokenizer([text], return_tensors="pt").to(self._model.device)
 
-        streamer = TextIteratorStreamer(
-            self._tokenizer, skip_prompt=True, skip_special_tokens=True
-        )
+        streamer = TextIteratorStreamer(self._tokenizer, skip_prompt=True, skip_special_tokens=True)
 
         gen_kwargs = {
             **model_inputs,

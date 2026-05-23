@@ -9,10 +9,10 @@ Or deploy to HF Spaces:
   2. Copy this file as app.py + omniff package
   3. git push
 """
+
 from __future__ import annotations
 
 import tempfile
-from pathlib import Path
 
 
 def create_demo():
@@ -85,7 +85,8 @@ def create_demo():
                     txt_prompt = gr.Textbox(label="System prompt (optional)", lines=1)
                     txt_thinking = gr.Radio(
                         ["off", "fast", "normal", "deep"],
-                        value="normal", label="Thinking level",
+                        value="normal",
+                        label="Thinking level",
                     )
                     txt_btn = gr.Button("Run", variant="primary")
                 with gr.Column():
@@ -96,7 +97,9 @@ def create_demo():
             with gr.Row():
                 with gr.Column():
                     img_input = gr.Image(type="filepath", label="Upload image")
-                    img_prompt = gr.Textbox(label="Question about image", value="Describe this image in detail.")
+                    img_prompt = gr.Textbox(
+                        label="Question about image", value="Describe this image in detail."
+                    )
                     img_btn = gr.Button("Analyze", variant="primary")
                 with gr.Column():
                     img_output = gr.Textbox(label="Description", lines=8)
@@ -108,7 +111,8 @@ def create_demo():
                     aud_input = gr.Audio(type="filepath", label="Upload audio")
                     aud_lang = gr.Dropdown(
                         ["", "en", "ru", "kk", "zh", "de", "fr", "es", "ja"],
-                        value="", label="Language (auto if empty)",
+                        value="",
+                        label="Language (auto if empty)",
                     )
                     aud_btn = gr.Button("Transcribe", variant="primary")
                 with gr.Column():
@@ -118,7 +122,9 @@ def create_demo():
         with gr.Tab("🎨 Text → Image"):
             with gr.Row():
                 with gr.Column():
-                    gen_prompt = gr.Textbox(label="Prompt", lines=2, placeholder="A cyberpunk city at night...")
+                    gen_prompt = gr.Textbox(
+                        label="Prompt", lines=2, placeholder="A cyberpunk city at night..."
+                    )
                     gen_seed = gr.Number(label="Seed (-1 for random)", value=-1)
                     gen_btn = gr.Button("Generate", variant="primary")
                 with gr.Column():

@@ -22,12 +22,14 @@ def test_render_dot():
 
 def test_render_ascii_empty():
     from omniff.graph.types import OmniGraph
+
     graph = OmniGraph(id="empty")
     assert render_ascii(graph) == "(empty graph)"
 
 
 def test_render_dot_with_chain(tmp_path):
     from omniff.graph.chain import load_chain
+
     chain_file = tmp_path / "test.yaml"
     chain_file.write_text("""
 id: test

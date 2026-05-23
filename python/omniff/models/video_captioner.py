@@ -28,7 +28,7 @@ class VideoCaptionerModel(OmniModel):
 
     def load(self) -> None:
         import torch
-        from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
+        from transformers import AutoProcessor, Qwen2_5_VLForConditionalGeneration
 
         self._processor = AutoProcessor.from_pretrained(self.model_id)
         self._model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
@@ -45,8 +45,8 @@ class VideoCaptionerModel(OmniModel):
 
     def _extract_frames(self, video_path: str) -> list:
         import cv2
-        from PIL import Image
         import numpy as np
+        from PIL import Image
 
         cap = cv2.VideoCapture(video_path)
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -89,8 +89,11 @@ class VideoCaptionerModel(OmniModel):
             }
         ]
 
-        text = self._processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        text = self._processor.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True
+        )
         from qwen_vl_utils import process_vision_info
+
         image_inputs, video_inputs = process_vision_info(messages)
 
         model_inputs = self._processor(
@@ -104,6 +107,6 @@ class VideoCaptionerModel(OmniModel):
         with torch.no_grad():
             generated = self._model.generate(**model_inputs, max_new_tokens=self.max_new_tokens)
 
-        trimmed = generated[0][model_inputs["input_ids"].shape[1]:]
+        trimmed = generated[0][model_inputs["input_ids"].shape[1] :]
         response = self._processor.decode(trimmed, skip_special_tokens=True)
         return {"text": response.strip(), "num_frames": len(frames)}

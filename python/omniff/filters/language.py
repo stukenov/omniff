@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import re
 
-
 CYRILLIC_KAZAKH_CHARS = set("әғқңөұүһіӘҒҚҢӨҰҮҺІ")
 CYRILLIC_RANGE = re.compile(r"[Ѐ-ӿ]")
 LATIN_RANGE = re.compile(r"[a-zA-Z]")

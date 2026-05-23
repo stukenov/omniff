@@ -52,6 +52,7 @@ class TextToImageModel(OmniModel):
         generator = None
         if seed is not None:
             import torch
+
             generator = torch.Generator(device=self._pipe.device).manual_seed(seed)
 
         image = self._pipe(

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
-
 from omniff.router.keyword_router import RouteDecision
 
 ROUTE_LABELS = [

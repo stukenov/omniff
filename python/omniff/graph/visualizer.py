@@ -22,9 +22,7 @@ def render_dot(graph: OmniGraph) -> str:
     lines = ["digraph omniff {", "  rankdir=LR;"]
     for node in graph.nodes:
         shape = "box"
-        if "demux" in node.node_type:
-            shape = "parallelogram"
-        elif "mux" in node.node_type:
+        if "demux" in node.node_type or "mux" in node.node_type:
             shape = "parallelogram"
         elif "validate" in node.node_type:
             shape = "diamond"

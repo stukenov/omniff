@@ -21,18 +21,21 @@ class DeviceMap:
     def scan_gpus(self) -> list[GPUInfo]:
         try:
             import torch
+
             if not torch.cuda.is_available():
                 return []
             gpus = []
             for i in range(torch.cuda.device_count()):
                 props = torch.cuda.get_device_properties(i)
                 free, total = torch.cuda.mem_get_info(i)
-                gpus.append(GPUInfo(
-                    index=i,
-                    name=props.name,
-                    total_gb=total / 1024**3,
-                    free_gb=free / 1024**3,
-                ))
+                gpus.append(
+                    GPUInfo(
+                        index=i,
+                        name=props.name,
+                        total_gb=total / 1024**3,
+                        free_gb=free / 1024**3,
+                    )
+                )
             self._gpus = gpus
             return gpus
         except ImportError:
@@ -77,7 +80,7 @@ class DeviceMap:
             return "cpu"
         if len(self._gpus) == 1:
             if self._gpus[0].free_gb >= model_size_gb:
-                return f"cuda:0"
+                return "cuda:0"
             return "cpu"
 
         total_free = sum(g.free_gb for g in self._gpus)

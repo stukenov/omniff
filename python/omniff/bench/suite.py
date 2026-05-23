@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any
 
 
 @dataclass
@@ -50,7 +51,7 @@ class BenchmarkSuite:
             latency_ms=round(avg_latency, 2),
             metadata={
                 "iterations": iterations,
-                "latencies_ms": [round(l, 2) for l in latencies],
+                "latencies_ms": [round(lat, 2) for lat in latencies],
                 "min_ms": round(min(latencies), 2),
                 "max_ms": round(max(latencies), 2),
             },
@@ -62,8 +63,7 @@ class BenchmarkSuite:
         lines = [f"Benchmark: {self.name}", "=" * 50]
         for r in self.results:
             lines.append(
-                f"  {r.pipeline}: {r.metric_name}={r.metric_value:.3f} "
-                f"latency={r.latency_ms:.1f}ms"
+                f"  {r.pipeline}: {r.metric_name}={r.metric_value:.3f} latency={r.latency_ms:.1f}ms"
             )
         return "\n".join(lines)
 

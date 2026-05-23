@@ -43,6 +43,5 @@ class LatencyProfiler:
 
     def to_dict(self) -> list[dict[str, Any]]:
         return [
-            {"name": e.name, "duration_ms": e.duration_ms, "depth": e.depth}
-            for e in self.entries
+            {"name": e.name, "duration_ms": e.duration_ms, "depth": e.depth} for e in self.entries
         ]

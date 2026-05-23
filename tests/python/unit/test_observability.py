@@ -1,4 +1,5 @@
 import time
+
 from omniff.observability import RequestTrace, get_logger, setup_logging
 
 
@@ -9,7 +10,7 @@ def test_request_trace_creates_id():
 
 def test_span_measures_time():
     trace = RequestTrace()
-    with trace.span("test_op") as s:
+    with trace.span("test_op"):
         time.sleep(0.01)
     assert len(trace.spans) == 1
     assert trace.spans[0].name == "test_op"
@@ -35,7 +36,7 @@ def test_total_ms():
 
 def test_span_metadata():
     trace = RequestTrace()
-    with trace.span("load", model="test-model") as s:
+    with trace.span("load", model="test-model"):
         pass
     assert trace.spans[0].metadata["model"] == "test-model"
 

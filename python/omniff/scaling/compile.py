@@ -10,6 +10,7 @@ _log = get_logger("compile")
 def compile_model(model: Any, backend: str = "inductor") -> Any:
     try:
         import torch
+
         if not hasattr(torch, "compile"):
             _log.warning("torch.compile not available (requires PyTorch 2.0+)")
             return model

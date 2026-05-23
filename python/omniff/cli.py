@@ -8,9 +8,13 @@ from pathlib import Path
 def _add_run_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("-i", "--input", required=True, help="Input file or text")
     parser.add_argument("-p", "--prompt", help="Prompt / instruction")
-    parser.add_argument("-f", "--of", dest="output_format", help="Output format: text, image, video, audio")
+    parser.add_argument(
+        "-f", "--of", dest="output_format", help="Output format: text, image, video, audio"
+    )
     parser.add_argument("-o", "--output", help="Output file path")
-    parser.add_argument("--thinking", default="normal", help="Thinking level: off, fast, normal, deep")
+    parser.add_argument(
+        "--thinking", default="normal", help="Thinking level: off, fast, normal, deep"
+    )
     parser.add_argument("--strength", type=float, help="Style/edit strength 0.0-1.0")
     parser.add_argument("--lang", help="Language hint")
     parser.add_argument("--model", default="auto", help="Model override")
@@ -77,7 +81,6 @@ def _cmd_run(args: argparse.Namespace) -> None:
 
 
 def _cmd_doctor(args: argparse.Namespace) -> None:
-    import shutil
     import platform
 
     print("OmniFF Doctor")
@@ -88,13 +91,14 @@ def _cmd_doctor(args: argparse.Namespace) -> None:
 
     try:
         import torch
+
         print(f"\nPyTorch: {torch.__version__}")
         if torch.cuda.is_available():
             for i in range(torch.cuda.device_count()):
                 name = torch.cuda.get_device_name(i)
                 mem = torch.cuda.get_device_properties(i).total_mem
-                free = mem - torch.cuda.memory_reserved(i)
-                print(f"  GPU {i}: {name} ({mem / 1024**3:.1f} GB total)")
+                free_gb = (mem - torch.cuda.memory_reserved(i)) / 1024**3
+                print(f"  GPU {i}: {name} ({mem / 1024**3:.1f} GB total, {free_gb:.1f} GB free)")
         else:
             print("  GPU: not available (CPU only)")
     except ImportError:
@@ -121,7 +125,9 @@ def _cmd_doctor(args: argparse.Namespace) -> None:
 
     cache_dir = Path.home() / ".cache" / "huggingface" / "hub"
     if cache_dir.exists():
-        models = [d.name for d in cache_dir.iterdir() if d.is_dir() and d.name.startswith("models--")]
+        models = [
+            d.name for d in cache_dir.iterdir() if d.is_dir() and d.name.startswith("models--")
+        ]
         if models:
             print(f"\nCached models ({len(models)}):")
             for m in sorted(models):
@@ -144,8 +150,7 @@ def _cmd_models(args: argparse.Namespace) -> None:
             print("No cached models found.")
             return
         models = sorted(
-            d.name for d in cache_dir.iterdir()
-            if d.is_dir() and d.name.startswith("models--")
+            d.name for d in cache_dir.iterdir() if d.is_dir() and d.name.startswith("models--")
         )
         if not models:
             print("No cached models found.")
@@ -163,6 +168,7 @@ def _cmd_models(args: argparse.Namespace) -> None:
             sys.exit(1)
         try:
             from huggingface_hub import snapshot_download
+
             print(f"Downloading {args.model_id}...")
             path = snapshot_download(args.model_id)
             print(f"Downloaded to: {path}")
@@ -175,6 +181,7 @@ def _cmd_models(args: argparse.Namespace) -> None:
             print("Error: --model-id required for remove")
             sys.exit(1)
         import shutil
+
         cache_dir = Path.home() / ".cache" / "huggingface" / "hub"
         dir_name = "models--" + args.model_id.replace("/", "--")
         model_dir = cache_dir / dir_name
@@ -200,6 +207,7 @@ def _cmd_graph(args: argparse.Namespace) -> None:
 
     if args.file:
         from omniff.graph.chain import load_chain
+
         graph = load_chain(args.file)
     elif args.route:
         graph = planner.plan(args.route)
@@ -215,6 +223,7 @@ def _cmd_graph(args: argparse.Namespace) -> None:
 def _cmd_plugin(args: argparse.Namespace) -> None:
     if args.action == "list":
         from omniff.plugins import PluginRegistry
+
         registry = PluginRegistry()
         plugins = registry.list()
         if plugins:
@@ -267,19 +276,24 @@ plugin = ModelPlugin(
 
 def _cmd_bench(args: argparse.Namespace) -> None:
     if args.action == "recommend":
-        from omniff.bench.recommend import recommend_models, format_recommendation
+        from omniff.bench.recommend import format_recommendation, recommend_models
+
         pipelines = args.pipelines.split(",") if args.pipelines else None
         models = recommend_models(args.vram, pipelines)
         print(format_recommendation(models, args.vram))
     elif args.action == "profile":
         from omniff.bench.profiler import LatencyProfiler
+
         profiler = LatencyProfiler()
         profiler.start("total")
         profiler.start("import")
         from omniff.runtime.config import OmniFFConfig, RouterConfig
+
         profiler.stop()
         profiler.start("config")
-        OmniFFConfig(name="test", version="1.0", router=RouterConfig(router_type="keyword", path=""))
+        OmniFFConfig(
+            name="test", version="1.0", router=RouterConfig(router_type="keyword", path="")
+        )
         profiler.stop()
         profiler.stop()
         print(profiler.render())

@@ -31,10 +31,12 @@ def test_extract_text(reader, test_txt_doc):
 
 
 def test_summarize_document(reader, test_txt_doc):
-    result = reader.infer({
-        "document_path": test_txt_doc,
-        "prompt": "What is the capital mentioned here? One word answer.",
-    })
+    result = reader.infer(
+        {
+            "document_path": test_txt_doc,
+            "prompt": "What is the capital mentioned here? One word answer.",
+        }
+    )
     assert "text" in result
     assert len(result["text"]) > 0, "LLM returned empty response"
     assert result["source"] == "llm"

@@ -4,6 +4,7 @@ import pytest
 def test_create_app():
     try:
         from omniff.api import create_app
+
         app = create_app()
         assert app.title == "OmniFF API"
     except (ImportError, RuntimeError):
@@ -13,7 +14,9 @@ def test_create_app():
 def test_health_endpoint():
     try:
         from fastapi.testclient import TestClient
+
         from omniff.api import create_app
+
         client = TestClient(create_app())
         resp = client.get("/health")
         assert resp.status_code == 200
@@ -25,7 +28,9 @@ def test_health_endpoint():
 def test_routes_endpoint():
     try:
         from fastapi.testclient import TestClient
+
         from omniff.api import create_app
+
         client = TestClient(create_app())
         resp = client.get("/routes")
         assert resp.status_code == 200

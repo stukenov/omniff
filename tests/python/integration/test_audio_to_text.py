@@ -1,5 +1,5 @@
-import pytest
 import numpy as np
+import pytest
 
 from omniff.models.asr import ASRModel
 
@@ -15,6 +15,7 @@ def asr():
 @pytest.fixture
 def test_audio(tmp_path):
     import soundfile as sf
+
     sr = 16000
     duration = 2.0
     t = np.linspace(0, duration, int(sr * duration), endpoint=False)

@@ -17,10 +17,17 @@ def test_simple_response(llm):
 
 
 def test_kazakh_response(llm):
-    result = llm.infer({"prompt": "Қазақстанның астанасы қай қала? Тек қала атын жаз.", "thinking": False})
+    result = llm.infer(
+        {
+            "prompt": "Қазақстанның астанасы қай қала? Тек қала атын жаз.",
+            "thinking": False,
+        }
+    )
     assert len(result["text"]) > 0, "Model returned empty response"
 
 
 def test_long_prompt(llm):
-    result = llm.infer({"prompt": "List 3 colors. One word each, comma separated.", "thinking": False})
+    result = llm.infer(
+        {"prompt": "List 3 colors. One word each, comma separated.", "thinking": False}
+    )
     assert len(result["text"]) > 3

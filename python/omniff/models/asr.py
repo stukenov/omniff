@@ -32,7 +32,8 @@ class ASRModel(OmniModel):
 
         self._processor = WhisperProcessor.from_pretrained(self.model_id)
         self._model = WhisperForConditionalGeneration.from_pretrained(
-            self.model_id, torch_dtype=torch.float16,
+            self.model_id,
+            torch_dtype=torch.float16,
         ).to(device)
         self._device = device
 
@@ -56,23 +57,29 @@ class ASRModel(OmniModel):
             audio_data = audio_data.mean(axis=1)
         if sr != 16000:
             from scipy.signal import resample
+
             audio_data = resample(audio_data, int(len(audio_data) * 16000 / sr)).astype(np.float32)
             sr = 16000
 
         input_features = self._processor(
-            audio_data, sampling_rate=sr, return_tensors="pt",
+            audio_data,
+            sampling_rate=sr,
+            return_tensors="pt",
         ).input_features.to(self._device, dtype=torch.float16)
 
         generate_kwargs = {}
         lang = inputs.get("language") or self.language
         if lang:
             forced_decoder_ids = self._processor.get_decoder_prompt_ids(
-                language=lang, task="transcribe",
+                language=lang,
+                task="transcribe",
             )
             generate_kwargs["forced_decoder_ids"] = forced_decoder_ids
 
         predicted_ids = self._model.generate(
-            input_features, return_timestamps=True, **generate_kwargs,
+            input_features,
+            return_timestamps=True,
+            **generate_kwargs,
         )
         text = self._processor.batch_decode(predicted_ids, skip_special_tokens=True)[0]
 

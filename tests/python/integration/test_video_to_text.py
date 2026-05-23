@@ -1,5 +1,5 @@
-import pytest
 import numpy as np
+import pytest
 
 from omniff.models.video_captioner import VideoCaptionerModel
 
@@ -40,9 +40,11 @@ def test_video_caption(captioner, test_video):
 
 
 def test_video_caption_with_prompt(captioner, test_video):
-    result = captioner.infer({
-        "video_path": test_video,
-        "prompt": "What colors appear in this video?",
-    })
+    result = captioner.infer(
+        {
+            "video_path": test_video,
+            "prompt": "What colors appear in this video?",
+        }
+    )
     assert "text" in result
     assert len(result["text"]) > 3

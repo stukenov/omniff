@@ -1,4 +1,4 @@
-from omniff.thinking import ThinkingLevel, PromptControl
+from omniff.thinking import PromptControl, ThinkingLevel
 
 
 def test_thinking_levels():

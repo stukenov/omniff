@@ -1,8 +1,9 @@
 import pytest
-from omniff.scaling.device_map import DeviceMap, GPUInfo
-from omniff.scaling.queue import RequestQueue, Priority, QueueItem
+
 from omniff.scaling.batch import BatchInference
+from omniff.scaling.device_map import DeviceMap, GPUInfo
 from omniff.scaling.quantization import detect_quantization, estimate_quantized_size_gb
+from omniff.scaling.queue import Priority, RequestQueue
 
 
 def test_device_map_empty():
@@ -36,7 +37,7 @@ def test_device_map_auto_assign_insufficient():
 
 def test_queue_enqueue_dequeue():
     q = RequestQueue()
-    item = q.enqueue({"input": "hello"})
+    q.enqueue({"input": "hello"})
     assert q.size() == 1
     out = q.dequeue()
     assert out.payload["input"] == "hello"

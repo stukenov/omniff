@@ -22,7 +22,11 @@ class TextValidator:
         if text is None:
             return ValidationResult(False, 0.0, "text", "no text in output")
         if len(text) < self.min_length:
-            return ValidationResult(False, 0.1, "text", f"too short: {len(text)} < {self.min_length}")
+            return ValidationResult(
+                False, 0.1, "text", f"too short: {len(text)} < {self.min_length}"
+            )
         if self.max_length and len(text) > self.max_length:
-            return ValidationResult(False, 0.2, "text", f"too long: {len(text)} > {self.max_length}")
+            return ValidationResult(
+                False, 0.2, "text", f"too long: {len(text)} > {self.max_length}"
+            )
         return ValidationResult(True, 1.0, "text")

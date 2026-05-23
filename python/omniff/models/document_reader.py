@@ -26,6 +26,7 @@ class DocumentReaderModel(OmniModel):
 
     def load(self) -> None:
         from omniff.models.llm import LLMModel
+
         self._llm = LLMModel(
             model_id=self.llm_model_id,
             device=self.device,
@@ -56,6 +57,7 @@ class DocumentReaderModel(OmniModel):
     def _extract_pdf(self, pdf_path: str) -> str:
         try:
             import fitz  # PyMuPDF
+
             doc = fitz.open(pdf_path)
             pages = []
             for page in doc:
@@ -67,6 +69,7 @@ class DocumentReaderModel(OmniModel):
 
         try:
             from pdfminer.high_level import extract_text
+
             return extract_text(pdf_path)
         except ImportError:
             return f"[PDF extraction requires PyMuPDF or pdfminer: {pdf_path}]"
@@ -74,6 +77,7 @@ class DocumentReaderModel(OmniModel):
     def _extract_docx(self, docx_path: str) -> str:
         try:
             import docx
+
             doc = docx.Document(docx_path)
             return "\n".join(p.text for p in doc.paragraphs)
         except ImportError:

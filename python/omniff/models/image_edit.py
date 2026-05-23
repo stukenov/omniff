@@ -60,6 +60,7 @@ class ImageEditModel(OmniModel):
         generator = None
         if seed is not None:
             import torch
+
             generator = torch.Generator(device=self._pipe.device).manual_seed(seed)
 
         result_image = self._pipe(

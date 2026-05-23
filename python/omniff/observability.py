@@ -3,9 +3,10 @@ from __future__ import annotations
 import logging
 import time
 import uuid
+from collections.abc import Generator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Any, Generator
+from typing import Any
 
 
 @dataclass
@@ -75,8 +76,10 @@ def setup_logging(level: str = "INFO", json_output: bool = False) -> None:
 
             handler.setFormatter(JSONFormatter())
         else:
-            handler.setFormatter(logging.Formatter(
-                "%(asctime)s %(levelname)s [%(name)s] %(message)s",
-                datefmt="%H:%M:%S",
-            ))
+            handler.setFormatter(
+                logging.Formatter(
+                    "%(asctime)s %(levelname)s [%(name)s] %(message)s",
+                    datefmt="%H:%M:%S",
+                )
+            )
         logger.addHandler(handler)

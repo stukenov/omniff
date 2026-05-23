@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import functools
-import signal
 import threading
 import time
-from typing import Any, Callable, TypeVar
+from collections.abc import Callable
+from typing import Any, TypeVar
 
 T = TypeVar("T")
 
@@ -31,21 +31,25 @@ def retry_on_oom(max_retries: int = 2, backoff_base: float = 2.0):
                         raise
                     last_exc = e
                     if attempt < max_retries:
-                        wait = backoff_base ** attempt
+                        wait = backoff_base**attempt
                         try:
                             import torch
+
                             torch.cuda.empty_cache()
                         except ImportError:
                             pass
                         time.sleep(wait)
             raise last_exc
+
         return wrapper
+
     return decorator
 
 
 def check_vram(required_gb: float) -> bool:
     try:
         import torch
+
         if not torch.cuda.is_available():
             return False
         free = 0
@@ -60,6 +64,7 @@ def check_vram(required_gb: float) -> bool:
 def get_free_vram_gb() -> float:
     try:
         import torch
+
         if not torch.cuda.is_available():
             return 0.0
         free = 0

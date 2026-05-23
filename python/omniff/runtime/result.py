@@ -17,6 +17,7 @@ class RunResult:
             Path(path).write_text(self.output_text, encoding="utf-8")
         elif self.output_path is not None:
             import shutil
+
             shutil.copy2(self.output_path, path)
         else:
             raise ValueError("No output to save")

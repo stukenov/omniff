@@ -1,4 +1,4 @@
-from omniff.validators.pipeline import ValidationPipeline, PipelineResult
+from omniff.validators.pipeline import ValidationPipeline
 from omniff.validators.text_validator import TextValidator, ValidationResult
 
 

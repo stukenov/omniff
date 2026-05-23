@@ -1,5 +1,8 @@
 import threading
-from omniff.reliability import ModelMutex, retry_on_oom, VRAM_ESTIMATES
+
+import pytest
+
+from omniff.reliability import VRAM_ESTIMATES, ModelMutex, retry_on_oom
 
 
 def test_model_mutex_acquire_release():
@@ -39,11 +42,8 @@ def test_retry_on_oom_non_oom_raises():
     def fail():
         raise ValueError("not oom")
 
-    try:
+    with pytest.raises(ValueError, match="not oom"):
         fail()
-        assert False
-    except ValueError:
-        pass
 
 
 def test_retry_on_oom_retries_oom():

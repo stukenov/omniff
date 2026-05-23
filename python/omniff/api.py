@@ -8,7 +8,6 @@ from typing import Any
 from omniff.runtime.config import OmniFFConfig, RouterConfig
 from omniff.runtime.engine import OmniFFRuntime
 
-
 _runtime: OmniFFRuntime | None = None
 
 
@@ -30,10 +29,10 @@ def get_runtime() -> OmniFFRuntime:
 
 def create_app():
     try:
-        from fastapi import FastAPI, UploadFile, File, Form
-        from fastapi.responses import FileResponse, JSONResponse
+        from fastapi import FastAPI, File, Form, UploadFile
+        from fastapi.responses import FileResponse, JSONResponse  # noqa: F401
     except ImportError:
-        raise ImportError("FastAPI required: pip install fastapi uvicorn")
+        raise ImportError("FastAPI required: pip install fastapi uvicorn") from None
 
     app = FastAPI(
         title="OmniFF API",
@@ -119,7 +118,6 @@ def create_app():
 
     @app.websocket("/ws")
     async def websocket_endpoint(websocket):
-        from starlette.websockets import WebSocket
         await websocket.accept()
         try:
             while True:
@@ -146,6 +144,7 @@ def create_app():
     @app.get("/routes")
     async def routes() -> dict[str, list[str]]:
         from omniff.graph.planner import GraphPlanner
+
         planner = GraphPlanner()
         return {"routes": planner.available_routes()}
 
@@ -160,17 +159,20 @@ def create_app():
         gpu_info = []
         try:
             import torch
+
             if torch.cuda.is_available():
                 for i in range(torch.cuda.device_count()):
                     props = torch.cuda.get_device_properties(i)
                     free, total = torch.cuda.mem_get_info(i)
-                    gpu_info.append({
-                        "id": i,
-                        "name": props.name,
-                        "total_gb": round(total / 1024**3, 1),
-                        "free_gb": round(free / 1024**3, 1),
-                        "used_gb": round((total - free) / 1024**3, 1),
-                    })
+                    gpu_info.append(
+                        {
+                            "id": i,
+                            "name": props.name,
+                            "total_gb": round(total / 1024**3, 1),
+                            "free_gb": round(free / 1024**3, 1),
+                            "used_gb": round((total - free) / 1024**3, 1),
+                        }
+                    )
         except ImportError:
             pass
 
@@ -183,34 +185,35 @@ def create_app():
     @app.get("/metrics")
     async def metrics() -> str:
         from fastapi.responses import PlainTextResponse
+
         runtime = get_runtime()
         lines = [
-            f"# HELP omniff_requests_total Total requests processed",
-            f"# TYPE omniff_requests_total counter",
+            "# HELP omniff_requests_total Total requests processed",
+            "# TYPE omniff_requests_total counter",
             f"omniff_requests_total {runtime._request_count}",
         ]
 
         try:
             import torch
+
             if torch.cuda.is_available():
                 for i in range(torch.cuda.device_count()):
                     free, total = torch.cuda.mem_get_info(i)
                     used = total - free
-                    lines.append(f"# HELP omniff_gpu_memory_used_bytes GPU memory used")
-                    lines.append(f"# TYPE omniff_gpu_memory_used_bytes gauge")
+                    lines.append("# HELP omniff_gpu_memory_used_bytes GPU memory used")
+                    lines.append("# TYPE omniff_gpu_memory_used_bytes gauge")
                     lines.append(f'omniff_gpu_memory_used_bytes{{gpu="{i}"}} {used}')
-                    lines.append(f"# HELP omniff_gpu_memory_total_bytes GPU memory total")
-                    lines.append(f"# TYPE omniff_gpu_memory_total_bytes gauge")
+                    lines.append("# HELP omniff_gpu_memory_total_bytes GPU memory total")
+                    lines.append("# TYPE omniff_gpu_memory_total_bytes gauge")
                     lines.append(f'omniff_gpu_memory_total_bytes{{gpu="{i}"}} {total}')
         except ImportError:
             pass
 
         loaded_count = sum(
-            1 for name in runtime.models.list()
-            if (m := runtime.models.get(name)) and m.is_loaded
+            1 for name in runtime.models.list() if (m := runtime.models.get(name)) and m.is_loaded
         )
-        lines.append(f"# HELP omniff_models_loaded Number of loaded models")
-        lines.append(f"# TYPE omniff_models_loaded gauge")
+        lines.append("# HELP omniff_models_loaded Number of loaded models")
+        lines.append("# TYPE omniff_models_loaded gauge")
         lines.append(f"omniff_models_loaded {loaded_count}")
 
         return PlainTextResponse("\n".join(lines) + "\n", media_type="text/plain")

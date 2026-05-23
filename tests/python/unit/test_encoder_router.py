@@ -1,5 +1,6 @@
 import pytest
-from omniff.router.encoder_router import EncoderRouter, ROUTE_LABELS, ROUTE_DESCRIPTIONS
+
+from omniff.router.encoder_router import ROUTE_DESCRIPTIONS, ROUTE_LABELS, EncoderRouter
 
 
 def test_route_labels_match_descriptions():
@@ -13,13 +14,16 @@ def test_modality_overrides():
     assert router.route("x", input_modality="document").route_class == "DOCUMENT_READ"
     assert router.route("", input_modality="audio").route_class == "AUDIO_TRANSCRIBE_ONLY"
     assert router.route("question", input_modality="audio").route_class == "AUDIO_QA"
-    assert router.route("x", input_modality="image", output_modality="image").route_class == "IMAGE_EDIT"
+    assert (
+        router.route("x", input_modality="image", output_modality="image").route_class
+        == "IMAGE_EDIT"
+    )
     assert router.route("x", input_modality="image").route_class == "IMAGE_CAPTION"
 
 
 def test_encoder_route_text():
     try:
-        from sentence_transformers import SentenceTransformer
+        import sentence_transformers  # noqa: F401
     except ImportError:
         pytest.skip("sentence-transformers not installed")
 
@@ -31,7 +35,7 @@ def test_encoder_route_text():
 
 def test_encoder_route_code_detection():
     try:
-        from sentence_transformers import SentenceTransformer
+        import sentence_transformers  # noqa: F401
     except ImportError:
         pytest.skip("sentence-transformers not installed")
 

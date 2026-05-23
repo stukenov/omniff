@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from omniff.graph.types import OmniGraph, OmniNode, Edge
+from omniff.graph.types import OmniGraph, OmniNode
 
 
 class GraphPlanner:
@@ -98,11 +98,13 @@ class GraphPlanner:
 
         for node_def in template:
             config = {**node_def["config"], **controls}
-            graph.add_node(OmniNode(
-                id=node_def["id"],
-                node_type=node_def["type"],
-                config=config,
-            ))
+            graph.add_node(
+                OmniNode(
+                    id=node_def["id"],
+                    node_type=node_def["type"],
+                    config=config,
+                )
+            )
 
         for i in range(len(template) - 1):
             graph.add_edge(template[i]["id"], template[i + 1]["id"])

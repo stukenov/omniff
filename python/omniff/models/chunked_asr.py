@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Generator
+from collections.abc import Generator
+from typing import Any
 
 from omniff.models.base import OmniModel
 
@@ -23,13 +24,14 @@ class ChunkedASRModel(OmniModel):
         return self._model is not None
 
     def load(self) -> None:
-        from transformers import WhisperForConditionalGeneration, WhisperProcessor
         import torch
+        from transformers import WhisperForConditionalGeneration, WhisperProcessor
 
         device = "cuda" if self.device == "auto" and torch.cuda.is_available() else "cpu"
         self._processor = WhisperProcessor.from_pretrained(self.model_id)
         self._model = WhisperForConditionalGeneration.from_pretrained(
-            self.model_id, torch_dtype=torch.float16,
+            self.model_id,
+            torch_dtype=torch.float16,
         ).to(device)
 
     def unload(self) -> None:
@@ -48,8 +50,8 @@ class ChunkedASRModel(OmniModel):
         if not self.is_loaded:
             raise RuntimeError("Model not loaded")
 
-        import soundfile as sf
         import numpy as np
+        import soundfile as sf
 
         audio_path = inputs["audio_path"]
         audio_data, sr = sf.read(audio_path, dtype="float32")
@@ -59,6 +61,7 @@ class ChunkedASRModel(OmniModel):
 
         if sr != 16000:
             from scipy.signal import resample
+
             num_samples = int(len(audio_data) * 16000 / sr)
             audio_data = resample(audio_data, num_samples).astype(np.float32)
             sr = 16000
@@ -66,7 +69,7 @@ class ChunkedASRModel(OmniModel):
         chunk_samples = int(self.chunk_length_s * sr)
 
         for start in range(0, len(audio_data), chunk_samples):
-            chunk = audio_data[start:start + chunk_samples]
+            chunk = audio_data[start : start + chunk_samples]
             if len(chunk) < sr * 0.5:
                 continue
 

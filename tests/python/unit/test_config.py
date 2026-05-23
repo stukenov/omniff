@@ -1,7 +1,9 @@
-import pytest
 from pathlib import Path
 
-from omniff.runtime.config import OmniFFConfig, RouterConfig, ExpertConfig
+import pytest
+import yaml
+
+from omniff.runtime.config import ExpertConfig, OmniFFConfig, RouterConfig
 
 
 def test_load_config_from_yaml(tmp_path):
@@ -53,7 +55,7 @@ experts: {}
 def test_config_invalid_yaml(tmp_path):
     config_file = tmp_path / "omniff.yaml"
     config_file.write_text(": : : not valid yaml [[[")
-    with pytest.raises(Exception):
+    with pytest.raises((yaml.YAMLError, ValueError)):
         OmniFFConfig.load(config_file)
 
 
@@ -96,9 +98,7 @@ experts:
 
 
 def test_expert_config_defaults():
-    expert = ExpertConfig(
-        name="test", model_type="causal_lm", path="models/test"
-    )
+    expert = ExpertConfig(name="test", model_type="causal_lm", path="models/test")
     assert expert.loading == "warm"
     assert expert.quantization is None
     assert expert.device is None

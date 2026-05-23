@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any
 
 from omniff.models.base import OmniModel
@@ -22,8 +21,8 @@ class TTSModel(OmniModel):
         return self._model is not None
 
     def load(self) -> None:
-        from transformers import AutoProcessor, BarkModel
         import torch
+        from transformers import AutoProcessor, BarkModel
 
         self._processor = AutoProcessor.from_pretrained(self.model_id)
         self._model = BarkModel.from_pretrained(
@@ -58,6 +57,7 @@ class TTSModel(OmniModel):
         sample_rate = self._model.generation_config.sample_rate
 
         import scipy.io.wavfile
+
         scipy.io.wavfile.write(output_path, rate=sample_rate, data=audio_array)
 
         return {

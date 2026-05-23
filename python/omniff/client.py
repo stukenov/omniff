@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, AsyncGenerator
+from collections.abc import AsyncGenerator
+from typing import Any
 
 
 class AsyncClient:
@@ -56,18 +57,21 @@ class AsyncClient:
 
     async def health(self) -> dict[str, str]:
         import httpx
+
         async with httpx.AsyncClient() as client:
             resp = await client.get(f"{self.base_url}/health")
             return resp.json()
 
     async def status(self) -> dict[str, Any]:
         import httpx
+
         async with httpx.AsyncClient() as client:
             resp = await client.get(f"{self.base_url}/status")
             return resp.json()
 
     async def routes(self) -> list[str]:
         import httpx
+
         async with httpx.AsyncClient() as client:
             resp = await client.get(f"{self.base_url}/routes")
             return resp.json().get("routes", [])
@@ -98,4 +102,5 @@ class SyncClient:
 
     def health(self) -> dict[str, str]:
         import httpx
+
         return httpx.get(f"{self.base_url}/health").json()

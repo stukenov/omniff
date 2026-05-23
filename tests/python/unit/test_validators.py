@@ -1,5 +1,5 @@
-from omniff.validators.text_validator import TextValidator
 from omniff.validators.image_validator import ImageValidator
+from omniff.validators.text_validator import TextValidator
 
 
 def test_text_validator_pass():

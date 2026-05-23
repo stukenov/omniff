@@ -11,19 +11,42 @@ class RouteDecision:
 
 
 COMPLEX_KEYWORDS = [
-    "проанализируй", "analyze", "research", "compare", "evaluate",
-    "контракт", "contract", "legal", "юридич",
+    "проанализируй",
+    "analyze",
+    "research",
+    "compare",
+    "evaluate",
+    "контракт",
+    "contract",
+    "legal",
+    "юридич",
 ]
 
 TTS_KEYWORDS = [
-    "read aloud", "speak", "say this", "text to speech", "tts",
-    "pronounce", "voice", "озвучь", "прочитай вслух",
+    "read aloud",
+    "speak",
+    "say this",
+    "text to speech",
+    "tts",
+    "pronounce",
+    "voice",
+    "озвучь",
+    "прочитай вслух",
 ]
 
 CODE_KEYWORDS = [
-    "write code", "write a function", "refactor", "debug",
-    "fix this code", "implement", "код", "напиши функцию",
-    "```", "def ", "class ", "function ",
+    "write code",
+    "write a function",
+    "refactor",
+    "debug",
+    "fix this code",
+    "implement",
+    "код",
+    "напиши функцию",
+    "```",
+    "def ",
+    "class ",
+    "function ",
 ]
 
 

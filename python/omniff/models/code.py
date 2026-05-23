@@ -18,9 +18,18 @@ _CODE_PATTERNS = [
 ]
 
 _CODE_KEYWORDS = [
-    "refactor", "debug", "compile", "syntax error", "function",
-    "variable", "algorithm", "implement", "code review",
-    "fix this code", "write a function", "write code",
+    "refactor",
+    "debug",
+    "compile",
+    "syntax error",
+    "function",
+    "variable",
+    "algorithm",
+    "implement",
+    "code review",
+    "fix this code",
+    "write a function",
+    "write code",
 ]
 
 
@@ -52,7 +61,6 @@ class CodeModel(OmniModel):
 
     def load(self) -> None:
         from transformers import AutoModelForCausalLM, AutoTokenizer
-        import torch
 
         self._tokenizer = AutoTokenizer.from_pretrained(self.model_id)
         self._model = AutoModelForCausalLM.from_pretrained(
@@ -84,7 +92,9 @@ class CodeModel(OmniModel):
         ]
 
         text = self._tokenizer.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True,
+            messages,
+            tokenize=False,
+            add_generation_prompt=True,
             enable_thinking=False,
         )
         model_inputs = self._tokenizer([text], return_tensors="pt").to(self._model.device)
@@ -93,10 +103,11 @@ class CodeModel(OmniModel):
             **model_inputs,
             max_new_tokens=self.max_new_tokens,
         )
-        new_tokens = generated[0][model_inputs["input_ids"].shape[-1]:]
+        new_tokens = generated[0][model_inputs["input_ids"].shape[-1] :]
         response = self._tokenizer.decode(new_tokens, skip_special_tokens=True)
 
         import re as _re
+
         response = _re.sub(r"<think>.*?</think>\s*", "", response, flags=_re.DOTALL)
         response = _re.sub(r"<think>.*", "", response, flags=_re.DOTALL)
 

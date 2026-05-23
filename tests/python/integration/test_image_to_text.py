@@ -1,5 +1,4 @@
 import pytest
-from pathlib import Path
 
 from omniff.models.vlm import VLMModel
 
@@ -15,6 +14,7 @@ def vlm():
 @pytest.fixture
 def test_image(tmp_path):
     from PIL import Image
+
     img = Image.new("RGB", (256, 256), color=(255, 0, 0))
     path = tmp_path / "red_square.png"
     img.save(path)

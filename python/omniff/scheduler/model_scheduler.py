@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
@@ -9,9 +9,9 @@ from omniff.models.base import OmniModel
 
 
 class LoadPolicy(Enum):
-    HOT = "hot"      # always loaded, never evicted
-    WARM = "warm"    # loaded on demand, evicted after TTL
-    COLD = "cold"    # loaded on demand, evicted immediately after use
+    HOT = "hot"  # always loaded, never evicted
+    WARM = "warm"  # loaded on demand, evicted after TTL
+    COLD = "cold"  # loaded on demand, evicted immediately after use
 
 
 @dataclass
@@ -83,10 +83,7 @@ class ModelScheduler:
         if len(loaded) < self.max_loaded:
             return
 
-        candidates = [
-            s for s in loaded
-            if s.policy != LoadPolicy.HOT
-        ]
+        candidates = [s for s in loaded if s.policy != LoadPolicy.HOT]
         if not candidates:
             return
 

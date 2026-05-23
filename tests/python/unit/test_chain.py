@@ -1,5 +1,4 @@
-import pytest
-from omniff.graph.chain import load_chain, list_chains
+from omniff.graph.chain import list_chains, load_chain
 
 
 def test_load_chain(tmp_path):

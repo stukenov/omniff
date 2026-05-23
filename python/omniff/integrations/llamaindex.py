@@ -12,10 +12,19 @@ class OmniFFReader:
     ) -> None:
         self.base_url = base_url
         self.supported_extensions = supported_extensions or [
-            ".jpg", ".jpeg", ".png", ".webp",
-            ".mp3", ".wav", ".flac",
-            ".pdf", ".docx", ".txt",
-            ".mp4", ".avi", ".mov",
+            ".jpg",
+            ".jpeg",
+            ".png",
+            ".webp",
+            ".mp3",
+            ".wav",
+            ".flac",
+            ".pdf",
+            ".docx",
+            ".txt",
+            ".mp4",
+            ".avi",
+            ".mov",
         ]
 
     def load_data(self, file_path: str | Path) -> list[dict[str, Any]]:
@@ -28,14 +37,16 @@ class OmniFFReader:
         client = SyncClient(self.base_url)
         result = client.run(input=str(file_path))
 
-        return [{
-            "text": result.get("output_text", ""),
-            "metadata": {
-                "source": str(file_path),
-                "route": result.get("route", ""),
-                **result.get("metadata", {}),
-            },
-        }]
+        return [
+            {
+                "text": result.get("output_text", ""),
+                "metadata": {
+                    "source": str(file_path),
+                    "route": result.get("route", ""),
+                    **result.get("metadata", {}),
+                },
+            }
+        ]
 
     def can_read(self, file_path: str | Path) -> bool:
         suffix = Path(file_path).suffix.lower()

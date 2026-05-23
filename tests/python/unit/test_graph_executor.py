@@ -1,7 +1,7 @@
 import pytest
 
-from omniff.graph.types import OmniGraph, OmniNode, Edge
 from omniff.graph.executor import GraphExecutor
+from omniff.graph.types import OmniGraph, OmniNode
 from omniff.nodes.registry import NodeRegistry
 
 

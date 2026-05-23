@@ -1,7 +1,7 @@
 import pytest
 
-from omniff.plugins import ModelPlugin, PluginRegistry
 from omniff.models.base import OmniModel
+from omniff.plugins import ModelPlugin, PluginRegistry
 
 
 class DummyModel(OmniModel):

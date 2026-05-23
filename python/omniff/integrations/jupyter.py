@@ -1,17 +1,21 @@
 from __future__ import annotations
 
+from typing import Any
+
 
 def load_ipython_extension(ipython: Any) -> None:
     from IPython.core.magic import register_cell_magic
 
     @register_cell_magic
     def omniff(line: str, cell: str) -> None:
+        from IPython.display import Audio, Image, Markdown, display
+
         from omniff.runtime.config import OmniFFConfig, RouterConfig
         from omniff.runtime.engine import OmniFFRuntime
-        from IPython.display import display, Image, Audio, Markdown
 
         config = OmniFFConfig(
-            name="omniff", version="1.0",
+            name="omniff",
+            version="1.0",
             router=RouterConfig(router_type="keyword", path=""),
         )
         runtime = OmniFFRuntime(config)
@@ -26,7 +30,7 @@ def load_ipython_extension(ipython: Any) -> None:
         result = runtime.run(
             input=cell.strip(),
             thinking=kwargs.get("thinking", "normal"),
-            output_modality=kwargs.get("output", None),
+            output_modality=kwargs.get("output"),
         )
 
         if result.output_path:
@@ -39,6 +43,3 @@ def load_ipython_extension(ipython: Any) -> None:
                 print(f"Output saved: {path}")
         elif result.output_text:
             display(Markdown(result.output_text))
-
-
-from typing import Any

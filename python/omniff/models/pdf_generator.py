@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any
 
 from omniff.models.base import OmniModel
@@ -17,9 +16,9 @@ class PDFGeneratorModel(OmniModel):
 
     def load(self) -> None:
         try:
-            import reportlab
+            import reportlab  # noqa: F401
         except ImportError:
-            raise ImportError("reportlab required: pip install reportlab")
+            raise ImportError("reportlab required: pip install reportlab") from None
         self._loaded = True
 
     def unload(self) -> None:
@@ -31,7 +30,7 @@ class PDFGeneratorModel(OmniModel):
 
         from reportlab.lib.pagesizes import A4
         from reportlab.lib.styles import getSampleStyleSheet
-        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+        from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
 
         text = inputs["text"]
         title = inputs.get("title", "OmniFF Generated Document")
