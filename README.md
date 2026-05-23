@@ -100,18 +100,18 @@ python -m omniff.api
 
 | Pipeline | Input | Output | Model | Status |
 |----------|-------|--------|-------|--------|
-| Text → Text | text / prompt | text | Qwen3-4B | ✅ |
+| Text → Text | text / prompt | text | Qwen3.6-35B-A3B (MoE) | ✅ |
 | Image → Text | image + prompt | text | Qwen2.5-VL-3B | ✅ |
-| Audio → Text | audio file | text | Whisper-large-v3 | ✅ |
-| Image → Image | image + prompt | image | SDXL-turbo | ✅ |
-| Text → Image | prompt | image | SDXL-turbo | ✅ |
+| Audio → Text | audio file | text | Whisper-large-v3-turbo | ✅ |
+| Image → Image | image + prompt | image | Z-Image-Turbo / SDXL-turbo | ✅ |
+| Text → Image | prompt | image | Z-Image-Turbo / SDXL-turbo | ✅ |
 | Video → Text | video + prompt | text | Qwen2.5-VL-3B | ✅ |
 | Document → Text | PDF/DOCX/TXT | text | Extraction + Qwen3 | ✅ |
-| Audio → Translation | audio + target lang | text | Whisper + Qwen3 | ✅ |
-| Audio → Dubbed Audio | audio + target lang | audio | Whisper + Qwen3 + Bark | ✅ |
-| Video → Dubbed Video | video + target lang | video | ffmpeg + Whisper + Qwen3 + Bark + ffmpeg | ✅ |
-| Text → Translation | text + target lang | text | NLLB-200-1.3B (200 languages) | ✅ |
-| Voice Cloning | audio + text | audio | CosyVoice2 / Bark fallback | ✅ |
+| Audio → Translation | audio + target lang | text | Whisper-turbo + HY-MT2 | ✅ |
+| Audio → Dubbed Audio | audio + target lang | audio | Whisper-turbo + HY-MT2 + TTS | ✅ |
+| Video → Dubbed Video | video + target lang | video | ffmpeg + full pipeline | ✅ |
+| Text → Translation | text + target lang | text | Tencent HY-MT2 / NLLB-200 | ✅ |
+| Voice Cloning | audio + text | audio | OmniVoice / CosyVoice / Bark | ✅ |
 
 ## Architecture
 
@@ -244,18 +244,24 @@ router:
   type: keyword
 
 experts:
-  text_small:
-    model_id: Qwen/Qwen3-4B
+  text:
+    model_id: Qwen/Qwen3.6-35B-A3B  # MoE, 3B active params
     loading_policy: warm
     ttl: 300
   vision:
     model_id: Qwen/Qwen2.5-VL-3B-Instruct
     loading_policy: warm
   asr:
-    model_id: openai/whisper-large-v3
+    model_id: openai/whisper-large-v3-turbo
     loading_policy: cold
-  image_edit:
-    model_id: stabilityai/sdxl-turbo
+  image_gen:
+    model_id: Tongyi-MAI/Z-Image-Turbo
+    loading_policy: cold
+  translator:
+    model_id: tencent/Hy-MT2-30B-A3B
+    loading_policy: cold
+  voice_cloner:
+    model_id: k2-fsa/OmniVoice
     loading_policy: cold
 ```
 

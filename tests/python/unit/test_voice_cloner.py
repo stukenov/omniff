@@ -5,8 +5,13 @@ from omniff.models.voice_cloner import VoiceClonerModel
 
 def test_voice_cloner_interface():
     model = VoiceClonerModel()
-    assert model.model_id == "FunAudioLLM/CosyVoice2-0.5B"
+    assert model.model_id == "k2-fsa/OmniVoice"
     assert not model.is_loaded
+
+
+def test_voice_cloner_cosyvoice():
+    model = VoiceClonerModel(model_id="FunAudioLLM/CosyVoice2-0.5B")
+    assert model.model_id == "FunAudioLLM/CosyVoice2-0.5B"
 
 
 def test_voice_cloner_infer_not_loaded():

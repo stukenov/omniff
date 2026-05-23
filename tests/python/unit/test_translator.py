@@ -5,7 +5,13 @@ from omniff.models.translator import TranslatorModel, _resolve_lang
 
 def test_translator_interface():
     model = TranslatorModel()
-    assert model.model_id == "facebook/nllb-200-distilled-1.3B"
+    assert model.model_id == "facebook/nllb-200-distilled-1.3B"  # default
+    assert not model.is_loaded
+
+
+def test_translator_hymt_model_id():
+    model = TranslatorModel(model_id="tencent/Hy-MT2-30B-A3B")
+    assert model.model_id == "tencent/Hy-MT2-30B-A3B"
     assert not model.is_loaded
 
 
@@ -43,3 +49,13 @@ def test_resolve_lang_nllb_codes():
 
 def test_resolve_lang_unknown():
     assert _resolve_lang("unknown_xyz") == "eng_Latn"
+
+
+def test_resolve_lang_hymt():
+    from omniff.models.translator import _resolve_lang_hymt
+
+    assert _resolve_lang_hymt("en") == "English"
+    assert _resolve_lang_hymt("ru") == "Russian"
+    assert _resolve_lang_hymt("kk") == "Kazakh"
+    assert _resolve_lang_hymt("zh") == "Chinese"
+    assert _resolve_lang_hymt("unknown") == "Unknown"

@@ -13,6 +13,20 @@ from omniff.runtime.result import RunResult
 
 _log = get_logger("engine")
 
+# Default model IDs — change here to switch globally, or per-request via controls
+DEFAULT_LLM = "Qwen/Qwen3.6-35B-A3B"
+DEFAULT_ASR = "openai/whisper-large-v3-turbo"
+DEFAULT_T2I = "Tongyi-MAI/Z-Image-Turbo"
+DEFAULT_TTS = "suno/bark-small"
+DEFAULT_TRANSLATOR = "tencent/Hy-MT2-30B-A3B"
+DEFAULT_VOICE_CLONER = "k2-fsa/OmniVoice"
+
+# Legacy model IDs — still available via controls
+LEGACY_LLM = "Qwen/Qwen3-4B"
+LEGACY_ASR = "openai/whisper-large-v3"
+LEGACY_T2I = "stabilityai/sdxl-turbo"
+LEGACY_TRANSLATOR = "facebook/nllb-200-distilled-1.3B"
+
 
 def _detect_input_modality(input_path: str) -> str:
     if len(input_path) > 255 or "\n" in input_path:
@@ -221,7 +235,7 @@ class OmniFFRuntime:
             else:
                 prompt = input
 
-        model_id = controls.get("model_id", "Qwen/Qwen3-4B")
+        model_id = controls.get("model_id", DEFAULT_LLM)
         llm = self._ensure_model("llm", LLMModel, model_id=model_id, device="auto")
         enable_thinking = thinking not in ("off", "fast")
         self._mutex.acquire("llm")
@@ -235,7 +249,7 @@ class OmniFFRuntime:
     ) -> RunResult:
         from omniff.models.llm import LLMModel
 
-        model_id = controls.get("model_id", "Qwen/Qwen3-4B")
+        model_id = controls.get("model_id", DEFAULT_LLM)
         llm = self._ensure_model("llm", LLMModel, trace=trace, model_id=model_id, device="auto")
         enable_thinking = thinking not in ("off", "fast")
         max_tokens = 2048 if enable_thinking else 512
@@ -305,7 +319,7 @@ class OmniFFRuntime:
         if prompt:
             from omniff.models.llm import LLMModel
 
-            llm_id = controls.get("llm_model_id", "Qwen/Qwen3-4B")
+            llm_id = controls.get("llm_model_id", DEFAULT_LLM)
             llm = self._ensure_model("llm", LLMModel, trace=trace, model_id=llm_id, device="auto")
             self._mutex.acquire("llm")
             try:
@@ -326,7 +340,7 @@ class OmniFFRuntime:
     ) -> RunResult:
         from omniff.models.image_edit import ImageEditModel
 
-        model_id = controls.get("model_id", "stabilityai/sdxl-turbo")
+        model_id = controls.get("model_id", DEFAULT_T2I)
         editor = self._ensure_model(
             "image_edit", ImageEditModel, trace=trace, model_id=model_id, device="auto"
         )
@@ -353,7 +367,7 @@ class OmniFFRuntime:
     ) -> RunResult:
         from omniff.models.text_to_image import TextToImageModel
 
-        model_id = controls.get("model_id", "stabilityai/sdxl-turbo")
+        model_id = controls.get("model_id", DEFAULT_T2I)
         gen = self._ensure_model(
             "text_to_image", TextToImageModel, trace=trace, model_id=model_id, device="auto"
         )
@@ -404,7 +418,7 @@ class OmniFFRuntime:
     ) -> RunResult:
         from omniff.models.document_reader import DocumentReaderModel
 
-        llm_id = controls.get("model_id", "Qwen/Qwen3-4B")
+        llm_id = controls.get("model_id", DEFAULT_LLM)
         reader = self._ensure_model(
             "document_reader", DocumentReaderModel, trace=trace, llm_model_id=llm_id, device="auto"
         )
@@ -454,7 +468,7 @@ class OmniFFRuntime:
     def _run_code(self, prompt: str, controls: dict, trace: RequestTrace) -> RunResult:
         from omniff.models.code import CodeModel
 
-        model_id = controls.get("model_id", "Qwen/Qwen3-4B")
+        model_id = controls.get("model_id", DEFAULT_LLM)
         code = self._ensure_model("code", CodeModel, trace=trace, model_id=model_id, device="auto")
         self._mutex.acquire("code")
         try:
@@ -475,7 +489,7 @@ class OmniFFRuntime:
         from omniff.models.document_reader import DocumentReaderModel
         from omniff.models.pdf_generator import PDFGeneratorModel
 
-        llm_id = controls.get("model_id", "Qwen/Qwen3-4B")
+        llm_id = controls.get("model_id", DEFAULT_LLM)
         reader = self._ensure_model(
             "document_reader", DocumentReaderModel, trace=trace, llm_model_id=llm_id, device="auto"
         )
@@ -523,7 +537,7 @@ class OmniFFRuntime:
         target_lang = controls.get("target_language", "English")
         source_lang = controls.get("language")
 
-        asr_id = controls.get("asr_model_id", "openai/whisper-large-v3")
+        asr_id = controls.get("asr_model_id", DEFAULT_ASR)
         asr = self._ensure_model("asr", ASRModel, trace=trace, model_id=asr_id, device="auto")
         self._mutex.acquire("asr")
         try:
@@ -533,7 +547,7 @@ class OmniFFRuntime:
             self._mutex.release("asr")
         transcript = asr_result["text"]
 
-        llm_id = controls.get("model_id", "Qwen/Qwen3-4B")
+        llm_id = controls.get("model_id", DEFAULT_LLM)
         llm = self._ensure_model("llm", LLMModel, trace=trace, model_id=llm_id, device="auto")
         translate_prompt = (
             f"Translate the following text to {target_lang}. "
@@ -572,7 +586,7 @@ class OmniFFRuntime:
         source_lang = controls.get("language")
 
         # Step 1: ASR
-        asr_id = controls.get("asr_model_id", "openai/whisper-large-v3")
+        asr_id = controls.get("asr_model_id", DEFAULT_ASR)
         asr = self._ensure_model("asr", ASRModel, trace=trace, model_id=asr_id, device="auto")
         self._mutex.acquire("asr")
         try:
@@ -583,7 +597,7 @@ class OmniFFRuntime:
         transcript = asr_result["text"]
 
         # Step 2: Translation
-        llm_id = controls.get("model_id", "Qwen/Qwen3-4B")
+        llm_id = controls.get("model_id", DEFAULT_LLM)
         llm = self._ensure_model("llm", LLMModel, trace=trace, model_id=llm_id, device="auto")
         translate_prompt = (
             f"Translate the following text to {target_lang}. "
@@ -598,7 +612,7 @@ class OmniFFRuntime:
         translated = tr_result["text"]
 
         # Step 3: TTS
-        tts_id = controls.get("tts_model_id", "suno/bark-small")
+        tts_id = controls.get("tts_model_id", DEFAULT_TTS)
         tts = self._ensure_model("tts", TTSModel, trace=trace, model_id=tts_id, device="auto")
         output_path = output or "dubbed_audio.wav"
         voice_preset = controls.get("voice_preset", "v2/en_speaker_6")
@@ -657,7 +671,7 @@ class OmniFFRuntime:
             )
 
         # Step 2: ASR
-        asr_id = controls.get("asr_model_id", "openai/whisper-large-v3")
+        asr_id = controls.get("asr_model_id", DEFAULT_ASR)
         asr = self._ensure_model("asr", ASRModel, trace=trace, model_id=asr_id, device="auto")
         self._mutex.acquire("asr")
         try:
@@ -668,7 +682,7 @@ class OmniFFRuntime:
         transcript = asr_result["text"]
 
         # Step 3: Translation
-        llm_id = controls.get("model_id", "Qwen/Qwen3-4B")
+        llm_id = controls.get("model_id", DEFAULT_LLM)
         llm = self._ensure_model("llm", LLMModel, trace=trace, model_id=llm_id, device="auto")
         translate_prompt = (
             f"Translate the following text to {target_lang}. "
@@ -683,7 +697,7 @@ class OmniFFRuntime:
         translated = tr_result["text"]
 
         # Step 4: TTS
-        tts_id = controls.get("tts_model_id", "suno/bark-small")
+        tts_id = controls.get("tts_model_id", DEFAULT_TTS)
         tts = self._ensure_model("tts", TTSModel, trace=trace, model_id=tts_id, device="auto")
         dubbed_audio = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
         dubbed_audio.close()
@@ -738,7 +752,7 @@ class OmniFFRuntime:
         source_lang = controls.get("source_language", "en")
         target_lang = controls.get("target_language", "en")
 
-        model_id = controls.get("translator_model_id", "facebook/nllb-200-distilled-1.3B")
+        model_id = controls.get("translator_model_id", DEFAULT_TRANSLATOR)
         translator = self._ensure_model(
             "translator", TranslatorModel, trace=trace, model_id=model_id, device="auto"
         )
@@ -774,7 +788,7 @@ class OmniFFRuntime:
         """Voice cloning: reference audio + text → speech in cloned voice."""
         from omniff.models.voice_cloner import VoiceClonerModel
 
-        model_id = controls.get("voice_clone_model_id", "FunAudioLLM/CosyVoice2-0.5B")
+        model_id = controls.get("voice_clone_model_id", DEFAULT_VOICE_CLONER)
         cloner = self._ensure_model(
             "voice_cloner", VoiceClonerModel, trace=trace, model_id=model_id, device="auto"
         )
