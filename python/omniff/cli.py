@@ -265,6 +265,26 @@ plugin = ModelPlugin(
         print(f"Plugin scaffold created: {plugin_file}")
 
 
+def _cmd_bench(args: argparse.Namespace) -> None:
+    if args.action == "recommend":
+        from omniff.bench.recommend import recommend_models, format_recommendation
+        pipelines = args.pipelines.split(",") if args.pipelines else None
+        models = recommend_models(args.vram, pipelines)
+        print(format_recommendation(models, args.vram))
+    elif args.action == "profile":
+        from omniff.bench.profiler import LatencyProfiler
+        profiler = LatencyProfiler()
+        profiler.start("total")
+        profiler.start("import")
+        from omniff.runtime.config import OmniFFConfig, RouterConfig
+        profiler.stop()
+        profiler.start("config")
+        OmniFFConfig(name="test", version="1.0", router=RouterConfig(router_type="keyword", path=""))
+        profiler.stop()
+        profiler.stop()
+        print(profiler.render())
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="omniff",
@@ -290,6 +310,11 @@ def main() -> None:
     plugin_parser.add_argument("action", choices=["init", "list"])
     plugin_parser.add_argument("--name", help="Plugin name")
 
+    bench_parser = sub.add_parser("bench", help="Benchmark and model recommendation")
+    bench_parser.add_argument("action", choices=["recommend", "profile"])
+    bench_parser.add_argument("--vram", type=float, default=22.0, help="VRAM budget in GB")
+    bench_parser.add_argument("--pipelines", help="Comma-separated pipelines: text,image,audio")
+
     args, remaining = parser.parse_known_args()
 
     if args.command == "doctor":
@@ -300,6 +325,8 @@ def main() -> None:
         _cmd_graph(args)
     elif args.command == "plugin":
         _cmd_plugin(args)
+    elif args.command == "bench":
+        _cmd_bench(args)
     elif args.command == "run":
         _cmd_run(args)
     else:

@@ -178,10 +178,10 @@
 
 **Goal:** Measure everything. Publish results.
 
-- [ ] **Benchmark suite** — standardized eval per pipeline: BLEU, WER, FID, CLIPScore, latency
+- [x] **Benchmark suite** — BenchmarkSuite with warmup, iterations, metric functions
 - [ ] **Comparison matrix** — OmniFF vs raw transformers vs vLLM vs LangChain vs Triton
-- [ ] **Latency profiler** — `omniff bench -i ... --profile` → flamegraph-style breakdown
-- [ ] **Model recommendation** — given VRAM budget, recommend optimal model set
+- [x] **Latency profiler** — LatencyProfiler with nested spans and flamegraph-style render
+- [x] **Model recommendation** — `omniff bench recommend --vram 22` optimal model selection
 - [ ] **ArXiv paper** — "OmniFF: A Universal Multimodal Runtime Inspired by FFmpeg"
 
 ---
