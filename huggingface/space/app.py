@@ -614,7 +614,7 @@ _ROUTE_LABELS = {
 # ---------------------------------------------------------------------------
 _CUSTOM_CSS = """
 /* ==================================================================
-   BASE — Typography, Container
+   BASE — Typography, Container, 4pt grid
    ================================================================== */
 :root {
     --omiff-blue: #0071e3;
@@ -626,24 +626,26 @@ _CUSTOM_CSS = """
     --omiff-border: rgba(0, 0, 0, 0.08);
     --omiff-border-subtle: rgba(0, 0, 0, 0.04);
     --omiff-surface: rgba(0, 0, 0, 0.015);
-    --omiff-green: #34c759;
-    --omiff-orange: #ff9500;
-    --omiff-purple: #af52de;
-    --omiff-red: #ff3b30;
-    --omiff-teal: #32ade6;
     --omiff-violet: #bf5af2;
-    --omiff-radius-sm: 8px;
-    --omiff-radius-md: 12px;
-    --omiff-radius-lg: 16px;
-    --omiff-radius-xl: 20px;
+    --omiff-radius-sm: 6px;
+    --omiff-radius-md: 10px;
+    --omiff-radius-lg: 14px;
 }
 
 .gradio-container {
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text",
                  "Helvetica Neue", Arial, sans-serif !important;
-    max-width: 960px !important;
+    max-width: 1120px !important;
     margin: 0 auto !important;
+    padding: 0 8px !important;
 }
+
+/* Tighten all block spacing globally */
+.block { margin-bottom: 2px !important; }
+.form { gap: 6px !important; }
+.gap { gap: 4px !important; }
+.tabitem { padding: 8px 0 0 0 !important; }
+.panel { padding: 0 !important; }
 
 /* ==================================================================
    DARK MODE
@@ -666,8 +668,9 @@ _CUSTOM_CSS = """
     --omiff-border-subtle: rgba(255, 255, 255, 0.05);
     --omiff-surface: rgba(255, 255, 255, 0.04);
 }
+.dark .omiff-header { border-bottom-color: var(--omiff-border) !important; }
 .dark .omiff-header h1 { color: var(--omiff-text-primary) !important; }
-.dark .omiff-header p { color: var(--omiff-text-secondary) !important; }
+.dark .omiff-header .omiff-sub { color: var(--omiff-text-secondary) !important; }
 .dark .omiff-header .omiff-badge {
     background: rgba(191, 90, 242, 0.15) !important;
 }
@@ -684,16 +687,12 @@ _CUSTOM_CSS = """
     color: #409cff !important;
     border-bottom-color: #409cff !important;
 }
-.dark .omiff-capabilities span {
-    background: rgba(255, 255, 255, 0.06) !important;
-    color: var(--omiff-text-secondary) !important;
-}
 .dark .omiff-chat-hint { color: var(--omiff-text-tertiary) !important; }
-.dark .omiff-section-label { color: var(--omiff-text-secondary) !important; }
 .dark .omiff-footer {
     border-top-color: var(--omiff-border) !important;
 }
-.dark .omiff-footer p { color: var(--omiff-text-secondary) !important; }
+.dark .omiff-footer p,
+.dark .omiff-footer span { color: var(--omiff-text-tertiary) !important; }
 .dark .omiff-footer a { color: #409cff !important; }
 .dark label span { color: var(--omiff-text-primary) !important; }
 .dark .output-textbox textarea {
@@ -705,7 +704,7 @@ _CUSTOM_CSS = """
 }
 .dark textarea:focus, .dark input[type="text"]:focus {
     border-color: #409cff !important;
-    box-shadow: 0 0 0 3px rgba(64, 156, 255, 0.15) !important;
+    box-shadow: 0 0 0 2px rgba(64, 156, 255, 0.15) !important;
 }
 .dark .accordion {
     border-color: var(--omiff-border) !important;
@@ -717,66 +716,63 @@ _CUSTOM_CSS = """
 .dark button.secondary {
     border-color: var(--omiff-border) !important;
 }
-.dark .omiff-status-pill {
-    background: rgba(255, 255, 255, 0.06) !important;
-    color: var(--omiff-text-secondary) !important;
-}
 
 /* ==================================================================
-   HEADER — Concise, confident identity
+   HEADER — Compact single-line identity
    ================================================================== */
 .omiff-header {
-    text-align: center;
-    padding: 36px 16px 28px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 16px 10px 16px;
     border-bottom: 1px solid var(--omiff-border);
-    margin-bottom: 4px;
+    margin-bottom: 0;
 }
 .omiff-header h1 {
-    font-size: 32px !important;
+    font-size: 22px !important;
     font-weight: 700 !important;
-    letter-spacing: -0.8px !important;
+    letter-spacing: -0.5px !important;
     color: var(--omiff-text-primary) !important;
-    margin-bottom: 6px !important;
-    line-height: 1.15 !important;
-}
-.omiff-header p {
-    font-size: 15px !important;
-    color: var(--omiff-text-secondary) !important;
-    font-weight: 400 !important;
     margin: 0 !important;
-    line-height: 1.5 !important;
+    line-height: 1.2 !important;
+}
+.omiff-header .omiff-sub {
+    font-size: 13px;
+    color: var(--omiff-text-secondary);
+    font-weight: 400;
+    margin: 0;
+    line-height: 1.2;
 }
 .omiff-header .omiff-badge {
-    display: inline-block;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 600;
     color: var(--omiff-violet);
     background: rgba(191, 90, 242, 0.08);
-    padding: 3px 10px;
+    padding: 2px 8px;
     border-radius: 100px;
-    margin-top: 10px;
     letter-spacing: 0.5px;
     text-transform: uppercase;
 }
 
 /* ==================================================================
-   TABS — 5 tabs: Chat (hero), Understand, Create, Transcribe, Code
+   TABS — Flat hierarchy, no nesting. 8 top-level tabs.
    ================================================================== */
 .tab-nav {
     border-bottom: 1px solid var(--omiff-border) !important;
     gap: 0 !important;
-    padding: 0 16px !important;
+    padding: 0 8px !important;
     justify-content: center !important;
 }
 .tab-nav button {
-    font-size: 13px !important;
+    font-size: 12px !important;
     font-weight: 500 !important;
-    padding: 12px 20px !important;
+    padding: 8px 14px !important;
     color: var(--omiff-text-secondary) !important;
     border: none !important;
     border-bottom: 2px solid transparent !important;
     background: none !important;
-    transition: color 0.2s ease, border-color 0.2s ease !important;
+    transition: color 0.15s ease, border-color 0.15s ease !important;
     letter-spacing: 0.1px !important;
     white-space: nowrap !important;
 }
@@ -788,24 +784,21 @@ _CUSTOM_CSS = """
     border-bottom: 2px solid var(--omiff-blue) !important;
     font-weight: 600 !important;
 }
-/* Chat tab always bold — it is the primary entry point */
 .tab-nav button:first-child {
     font-weight: 600 !important;
-    letter-spacing: 0 !important;
 }
 
 /* ==================================================================
-   BUTTONS
+   BUTTONS — compact
    ================================================================== */
 .primary {
     background: var(--omiff-blue) !important;
     border: none !important;
     border-radius: var(--omiff-radius-md) !important;
-    font-size: 14px !important;
+    font-size: 13px !important;
     font-weight: 600 !important;
-    padding: 10px 24px !important;
-    transition: background 0.2s ease, transform 0.1s ease !important;
-    letter-spacing: 0.1px !important;
+    padding: 8px 20px !important;
+    transition: background 0.15s ease, transform 0.1s ease !important;
 }
 .primary:hover {
     background: var(--omiff-blue-hover) !important;
@@ -816,48 +809,47 @@ _CUSTOM_CSS = """
 }
 button.secondary {
     border-radius: var(--omiff-radius-md) !important;
-    font-size: 13px !important;
+    font-size: 12px !important;
     font-weight: 500 !important;
     border: 1px solid var(--omiff-border) !important;
 }
 
 /* ==================================================================
-   INPUTS — consistent radii, focus rings
+   INPUTS — tighter
    ================================================================== */
 textarea, input[type="text"], .wrap input {
-    border-radius: var(--omiff-radius-md) !important;
+    border-radius: var(--omiff-radius-sm) !important;
     border: 1px solid var(--omiff-border) !important;
-    font-size: 14px !important;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    font-size: 13px !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
 }
 textarea:focus, input[type="text"]:focus {
     border-color: var(--omiff-blue) !important;
-    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1) !important;
+    box-shadow: 0 0 0 2px rgba(0, 113, 227, 0.1) !important;
     outline: none !important;
 }
 
 /* ==================================================================
-   LABELS
+   LABELS — smaller
    ================================================================== */
 label span {
-    font-size: 13px !important;
+    font-size: 12px !important;
     font-weight: 600 !important;
     color: var(--omiff-text-primary) !important;
-    letter-spacing: 0.1px !important;
 }
 
 /* ==================================================================
-   ACCORDION — progressive disclosure
+   ACCORDION — progressive disclosure, compact
    ================================================================== */
 .accordion {
     border: 1px solid var(--omiff-border-subtle) !important;
-    border-radius: var(--omiff-radius-md) !important;
-    margin-top: 8px !important;
+    border-radius: var(--omiff-radius-sm) !important;
+    margin-top: 4px !important;
     overflow: hidden !important;
 }
 .accordion > .label-wrap {
-    padding: 10px 16px !important;
-    font-size: 13px !important;
+    padding: 6px 12px !important;
+    font-size: 12px !important;
     font-weight: 500 !important;
     color: var(--omiff-text-secondary) !important;
     background: var(--omiff-surface) !important;
@@ -869,53 +861,35 @@ label span {
 .output-textbox textarea {
     background: var(--omiff-surface) !important;
     border: 1px solid var(--omiff-border-subtle) !important;
+    font-size: 13px !important;
 }
 
 /* ==================================================================
-   CHATBOT — the hero experience
+   CHATBOT — compact hero
    ================================================================== */
 .chatbot-wrap {
-    border-radius: var(--omiff-radius-lg) !important;
+    border-radius: var(--omiff-radius-md) !important;
     border: 1px solid var(--omiff-border) !important;
 }
-
-/* Chat subtitle / hint text */
 .omiff-chat-hint {
-    font-size: 13px;
+    font-size: 12px;
     color: var(--omiff-text-tertiary);
     text-align: center;
-    padding: 4px 0 2px 0;
-    line-height: 1.5;
-}
-
-/* Capabilities row — replaces the old pipeline tags */
-.omiff-capabilities {
-    display: flex;
-    justify-content: center;
-    gap: 6px;
-    flex-wrap: wrap;
-    padding: 6px 0 4px 0;
-}
-.omiff-capabilities span {
-    font-size: 11px;
-    font-weight: 500;
-    padding: 3px 10px;
-    border-radius: 100px;
-    background: rgba(0, 0, 0, 0.035);
-    color: var(--omiff-text-secondary);
-    letter-spacing: 0.2px;
+    padding: 2px 0 0 0;
+    line-height: 1.4;
+    margin: 0;
 }
 
 /* Status pill shown during processing */
 .omiff-status-pill {
     display: inline-block;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 500;
     color: var(--omiff-text-secondary);
     background: var(--omiff-surface);
-    padding: 6px 14px;
+    padding: 4px 12px;
     border-radius: 100px;
-    margin: 8px 0;
+    margin: 4px 0;
     animation: omiff-pulse 1.5s ease-in-out infinite;
 }
 @keyframes omiff-pulse {
@@ -924,30 +898,19 @@ label span {
 }
 
 /* ==================================================================
-   SECTION LABELS — specialized tabs
-   ================================================================== */
-.omiff-section-label {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    color: var(--omiff-text-secondary);
-    padding: 8px 0 4px 4px;
-}
-
-/* ==================================================================
-   FOOTER
+   FOOTER — single condensed line
    ================================================================== */
 .omiff-footer {
     text-align: center;
-    padding: 28px 16px;
+    padding: 10px 16px;
     border-top: 1px solid var(--omiff-border);
-    margin-top: 16px;
+    margin-top: 4px;
 }
 .omiff-footer p {
-    font-size: 12px !important;
-    color: var(--omiff-text-secondary) !important;
-    line-height: 1.6 !important;
+    font-size: 11px !important;
+    color: var(--omiff-text-tertiary) !important;
+    line-height: 1.5 !important;
+    margin: 0 !important;
 }
 .omiff-footer a {
     color: var(--omiff-blue) !important;
@@ -959,19 +922,18 @@ label span {
 }
 
 /* ==================================================================
-   SPACING — 8pt base grid
+   COMPACT CONTROLS — inline options row
    ================================================================== */
-.block {
-    margin-bottom: 4px !important;
-}
-.form {
-    gap: 12px !important;
+.omiff-inline-opts {
+    display: flex;
+    align-items: end;
+    gap: 8px;
 }
 """
 
 
 # ---------------------------------------------------------------------------
-# Gradio UI — Round 2: Apple HIG Production Design
+# Gradio UI — Round 3: Compact, dense, flat hierarchy (Apple HIG)
 # ---------------------------------------------------------------------------
 with gr.Blocks(
     title="OmniFF -- FFmpeg for AI",
@@ -981,34 +943,37 @@ with gr.Blocks(
         neutral_hue=gr.themes.colors.gray,
         font=gr.themes.GoogleFont("Inter"),
         font_mono=gr.themes.GoogleFont("JetBrains Mono"),
-        radius_size=gr.themes.sizes.radius_lg,
+        radius_size=gr.themes.sizes.radius_md,
     ),
     css=_CUSTOM_CSS,
 ) as demo:
 
-    # ---- Header ----
+    # ---- Header — single compact line ----
     gr.HTML(
-        """
-        <div class="omiff-header">
-            <h1>OmniFF</h1>
-            <p>FFmpeg for AI &mdash; one interface for every modality</p>
-            <span class="omiff-badge">ZeroGPU</span>
-        </div>
-        """
+        '<div class="omiff-header">'
+        "<h1>OmniFF</h1>"
+        '<span class="omiff-sub">FFmpeg for AI</span>'
+        '<span class="omiff-badge">ZeroGPU</span>'
+        "</div>"
     )
 
     # ==================================================================
-    # TAB 1: Chat — the hero. Everything starts here.
+    # Flat tab bar — no sub-tabs. Every pipeline is one click away.
+    # Chat | Image | Video | Generate | Transform | Transcribe | Text | Documents | Code
     # ==================================================================
+
+    # ------------------------------------------------------------------
+    # TAB: Chat — the universal multimodal entry point
+    # ------------------------------------------------------------------
     with gr.Tab("Chat", id="chat"):
         gr.HTML(
             '<p class="omiff-chat-hint">'
-            "Send text, images, audio, video, or documents. OmniFF routes automatically."
+            "Text, images, audio, video, documents -- auto-routed."
             "</p>"
         )
 
         chatbot = gr.Chatbot(
-            height=520,
+            height=420,
             type="messages",
             show_label=False,
             avatar_images=(
@@ -1016,9 +981,9 @@ with gr.Blocks(
                 "https://huggingface.co/datasets/huggingface/brand-assets/resolve/main/hf-logo.svg",
             ),
             placeholder=(
-                '<div style="text-align: center; padding: 40px 20px; opacity: 0.6;">'
-                '<p style="font-size: 18px; font-weight: 600; margin-bottom: 4px;">What can I help with?</p>'
-                '<p style="font-size: 13px;">Drop a file or type a message to begin.</p>'
+                '<div style="text-align:center; padding:24px 16px; opacity:0.5;">'
+                '<p style="font-size:16px; font-weight:600; margin-bottom:2px;">What can I help with?</p>'
+                '<p style="font-size:12px;">Drop a file or type a message.</p>'
                 "</div>"
             ),
         )
@@ -1032,28 +997,7 @@ with gr.Blocks(
             stop_btn=True,
         )
 
-        # Capabilities row — subdued, informational, not distracting
-        gr.HTML(
-            '<div class="omiff-capabilities">'
-            "<span>Text</span>"
-            "<span>Vision</span>"
-            "<span>Audio</span>"
-            "<span>Video</span>"
-            "<span>Documents</span>"
-            "<span>Code</span>"
-            "<span>Image Gen</span>"
-            "</div>"
-        )
-
         def respond(message, history):
-            """
-            Universal chat handler with proper Gradio message format.
-
-            Key fixes from round 1:
-            - Files use {"path": ...} dict format, not gr.Image()/gr.Audio() objects
-            - Adds routing status messages during processing
-            - Graceful error handling wraps all pipeline calls
-            """
             if not message or (
                 not message.get("text", "").strip() and not message.get("files")
             ):
@@ -1062,7 +1006,6 @@ with gr.Blocks(
             text = message.get("text", "")
             files = message.get("files", [])
 
-            # --- Build user messages ---
             if files:
                 for f in files:
                     fp = (
@@ -1074,14 +1017,12 @@ with gr.Blocks(
                             else getattr(f, "name", str(f))
                         )
                     )
-                    # Use {"path": ...} dict format for proper rendering
                     history.append({"role": "user", "content": {"path": fp}})
                 if text:
                     history.append({"role": "user", "content": text})
             else:
                 history.append({"role": "user", "content": text})
 
-            # --- Determine route for status message ---
             file_paths = []
             for f in files:
                 if isinstance(f, str):
@@ -1091,22 +1032,11 @@ with gr.Blocks(
                 elif hasattr(f, "name"):
                     file_paths.append(f.name)
 
-            if file_paths:
-                modality = _classify_file(file_paths[0])
-                route_label = _ROUTE_LABELS.get(modality, "model")
-            elif text:
-                intent = _detect_intent(text)
-                route_label = _ROUTE_LABELS.get(intent, "Language model (Qwen3)")
-            else:
-                route_label = "model"
-
-            # --- Process with error handling ---
             try:
                 response = universal_chat(message, history)
                 content = response.get("content", "")
 
                 if isinstance(content, list):
-                    # Compound response (e.g. text + generated image)
                     for item in content:
                         if isinstance(item, dict):
                             if item.get("type") == "text":
@@ -1116,20 +1046,14 @@ with gr.Blocks(
                             elif item.get("type") == "image":
                                 img_path = item.get("image", {}).get("path", "")
                                 history.append(
-                                    {
-                                        "role": "assistant",
-                                        "content": {"path": img_path},
-                                    }
+                                    {"role": "assistant", "content": {"path": img_path}}
                                 )
                         else:
-                            history.append(
-                                {"role": "assistant", "content": str(item)}
-                            )
+                            history.append({"role": "assistant", "content": str(item)})
                 else:
                     history.append({"role": "assistant", "content": content})
 
             except Exception as exc:
-                # Graceful error — never show a raw traceback
                 error_msg = str(exc)
                 if len(error_msg) > 200:
                     error_msg = error_msg[:200] + "..."
@@ -1137,9 +1061,9 @@ with gr.Blocks(
                     {
                         "role": "assistant",
                         "content": (
-                            f"Something went wrong while processing your request.\n\n"
+                            f"Something went wrong.\n\n"
                             f"**Error:** {error_msg}\n\n"
-                            f"Try again, or use a specialized tab for more control."
+                            f"Try again, or use a specialized tab."
                         ),
                     }
                 )
@@ -1148,273 +1072,190 @@ with gr.Blocks(
 
         chat_input.submit(respond, [chat_input, chatbot], [chatbot, chat_input])
 
-    # ==================================================================
-    # TAB 2: Understand — Vision + Video (both use VLM)
-    # ==================================================================
-    with gr.Tab("Understand", id="understand"):
-        gr.HTML('<p class="omiff-section-label">Visual Understanding</p>')
-
-        with gr.Tabs():
-            # -- Image sub-tab --
-            with gr.Tab("Image"):
-                with gr.Row(equal_height=True):
-                    with gr.Column(scale=1):
-                        img_input = gr.Image(
-                            type="filepath",
-                            label="Image",
-                            height=300,
-                        )
-                        img_prompt = gr.Textbox(
-                            label="Question",
-                            value="Describe this image in detail.",
-                            lines=2,
-                        )
-                        img_btn = gr.Button(
-                            "Analyze", variant="primary", size="lg"
-                        )
-                    with gr.Column(scale=1):
-                        img_output = gr.Textbox(
-                            label="Analysis",
-                            lines=12,
-                            show_copy_button=True,
-                            elem_classes=["output-textbox"],
-                        )
-                img_btn.click(
-                    process_image, [img_input, img_prompt], img_output
+    # ------------------------------------------------------------------
+    # TAB: Image — analyze an image (VLM)
+    # ------------------------------------------------------------------
+    with gr.Tab("Image", id="image"):
+        with gr.Row(equal_height=True):
+            with gr.Column(scale=1):
+                img_input = gr.Image(type="filepath", label="Image", height=240)
+                img_prompt = gr.Textbox(
+                    label="Question",
+                    value="Describe this image in detail.",
+                    lines=2,
                 )
-
-            # -- Video sub-tab --
-            with gr.Tab("Video"):
-                with gr.Row(equal_height=True):
-                    with gr.Column(scale=1):
-                        vid_input = gr.Video(label="Video", height=300)
-                        vid_prompt = gr.Textbox(
-                            label="Question",
-                            value="Describe what happens in this video.",
-                            lines=2,
-                        )
-                        vid_btn = gr.Button(
-                            "Analyze", variant="primary", size="lg"
-                        )
-                    with gr.Column(scale=1):
-                        vid_output = gr.Textbox(
-                            label="Analysis",
-                            lines=12,
-                            show_copy_button=True,
-                            elem_classes=["output-textbox"],
-                        )
-                vid_btn.click(
-                    process_video, [vid_input, vid_prompt], vid_output
+                img_btn = gr.Button("Analyze", variant="primary")
+            with gr.Column(scale=1):
+                img_output = gr.Textbox(
+                    label="Analysis", lines=10,
+                    show_copy_button=True, elem_classes=["output-textbox"],
                 )
+        img_btn.click(process_image, [img_input, img_prompt], img_output)
 
-    # ==================================================================
-    # TAB 3: Create — Text-to-Image + Image-to-Image (both use SDXL)
-    # ==================================================================
-    with gr.Tab("Create", id="create"):
-        gr.HTML('<p class="omiff-section-label">Image Creation</p>')
-
-        with gr.Tabs():
-            # -- Generate sub-tab --
-            with gr.Tab("Generate"):
-                with gr.Row(equal_height=True):
-                    with gr.Column(scale=1):
-                        gen_prompt = gr.Textbox(
-                            label="Prompt",
-                            lines=3,
-                            placeholder="A cabin in the mountains at golden hour, cinematic lighting...",
-                        )
-                        with gr.Accordion("Options", open=False):
-                            gen_seed = gr.Number(
-                                label="Seed",
-                                value=-1,
-                                info="-1 for random",
-                            )
-                        gen_btn = gr.Button(
-                            "Generate", variant="primary", size="lg"
-                        )
-                    with gr.Column(scale=1):
-                        gen_output = gr.Image(label="Result", height=420)
-                gen_btn.click(
-                    generate_image, [gen_prompt, gen_seed], gen_output
+    # ------------------------------------------------------------------
+    # TAB: Video — analyze a video (VLM)
+    # ------------------------------------------------------------------
+    with gr.Tab("Video", id="video"):
+        with gr.Row(equal_height=True):
+            with gr.Column(scale=1):
+                vid_input = gr.Video(label="Video", height=240)
+                vid_prompt = gr.Textbox(
+                    label="Question",
+                    value="Describe what happens in this video.",
+                    lines=2,
                 )
-
-            # -- Transform sub-tab --
-            with gr.Tab("Transform"):
-                with gr.Row(equal_height=True):
-                    with gr.Column(scale=1):
-                        i2i_input = gr.Image(
-                            type="filepath",
-                            label="Source Image",
-                            height=260,
-                        )
-                        i2i_prompt = gr.Textbox(
-                            label="Style Prompt",
-                            value="Make it look like a watercolor painting",
-                            lines=2,
-                        )
-                        with gr.Accordion("Options", open=False):
-                            i2i_strength = gr.Slider(
-                                minimum=0.1,
-                                maximum=1.0,
-                                value=0.5,
-                                step=0.05,
-                                label="Strength",
-                                info="Lower = preserve original. Higher = creative freedom.",
-                            )
-                        i2i_btn = gr.Button(
-                            "Transform", variant="primary", size="lg"
-                        )
-                    with gr.Column(scale=1):
-                        i2i_output = gr.Image(label="Result", height=420)
-                i2i_btn.click(
-                    edit_image,
-                    [i2i_input, i2i_prompt, i2i_strength],
-                    i2i_output,
+                vid_btn = gr.Button("Analyze", variant="primary")
+            with gr.Column(scale=1):
+                vid_output = gr.Textbox(
+                    label="Analysis", lines=10,
+                    show_copy_button=True, elem_classes=["output-textbox"],
                 )
+        vid_btn.click(process_video, [vid_input, vid_prompt], vid_output)
 
-    # ==================================================================
-    # TAB 4: Transcribe — Audio/Speech
-    # ==================================================================
+    # ------------------------------------------------------------------
+    # TAB: Generate — text to image (SDXL Turbo)
+    # ------------------------------------------------------------------
+    with gr.Tab("Generate", id="generate"):
+        with gr.Row(equal_height=True):
+            with gr.Column(scale=1):
+                gen_prompt = gr.Textbox(
+                    label="Prompt", lines=2,
+                    placeholder="A cabin in the mountains at golden hour...",
+                )
+                with gr.Row():
+                    gen_seed = gr.Number(label="Seed", value=-1, scale=1)
+                    gen_btn = gr.Button("Generate", variant="primary", scale=2)
+            with gr.Column(scale=1):
+                gen_output = gr.Image(label="Result", height=360)
+        gen_btn.click(generate_image, [gen_prompt, gen_seed], gen_output)
+
+    # ------------------------------------------------------------------
+    # TAB: Transform — image to image (SDXL Turbo)
+    # ------------------------------------------------------------------
+    with gr.Tab("Transform", id="transform"):
+        with gr.Row(equal_height=True):
+            with gr.Column(scale=1):
+                i2i_input = gr.Image(type="filepath", label="Source", height=200)
+                i2i_prompt = gr.Textbox(
+                    label="Style Prompt",
+                    value="Make it look like a watercolor painting",
+                    lines=2,
+                )
+                with gr.Row():
+                    i2i_strength = gr.Slider(
+                        minimum=0.1, maximum=1.0, value=0.5, step=0.05,
+                        label="Strength", scale=2,
+                    )
+                    i2i_btn = gr.Button("Transform", variant="primary", scale=1)
+            with gr.Column(scale=1):
+                i2i_output = gr.Image(label="Result", height=360)
+        i2i_btn.click(edit_image, [i2i_input, i2i_prompt, i2i_strength], i2i_output)
+
+    # ------------------------------------------------------------------
+    # TAB: Transcribe — audio/speech (Whisper)
+    # ------------------------------------------------------------------
     with gr.Tab("Transcribe", id="transcribe"):
-        gr.HTML('<p class="omiff-section-label">Speech Recognition</p>')
         with gr.Row(equal_height=True):
             with gr.Column(scale=1):
                 aud_input = gr.Audio(
-                    type="filepath",
-                    label="Audio",
+                    type="filepath", label="Audio",
                     sources=["upload", "microphone"],
                 )
-                with gr.Accordion("Options", open=False):
+                with gr.Row():
                     aud_lang = gr.Dropdown(
                         ["", "en", "ru", "kk", "zh", "de", "fr", "es", "ja"],
-                        value="",
-                        label="Language",
-                        info="Leave empty for auto-detection",
+                        value="", label="Language", scale=2,
+                        info="Empty = auto-detect",
                     )
-                aud_btn = gr.Button("Transcribe", variant="primary", size="lg")
+                    aud_btn = gr.Button("Transcribe", variant="primary", scale=1)
             with gr.Column(scale=1):
                 aud_output = gr.Textbox(
-                    label="Transcription",
-                    lines=12,
-                    show_copy_button=True,
-                    elem_classes=["output-textbox"],
+                    label="Transcription", lines=10,
+                    show_copy_button=True, elem_classes=["output-textbox"],
                 )
         aud_btn.click(process_audio, [aud_input, aud_lang], aud_output)
 
-    # ==================================================================
-    # TAB 5: Tools — Text, Documents, Code
-    # ==================================================================
-    with gr.Tab("Tools", id="tools"):
-        gr.HTML('<p class="omiff-section-label">Text Processing</p>')
-
-        with gr.Tabs():
-            # -- Text generation --
-            with gr.Tab("Text"):
-                with gr.Row(equal_height=True):
-                    with gr.Column(scale=1):
-                        txt_input = gr.Textbox(
-                            label="Prompt",
-                            lines=4,
-                            placeholder="Ask anything...",
-                        )
-                        with gr.Accordion("Options", open=False):
-                            txt_thinking = gr.Radio(
-                                ["off", "normal"],
-                                value="off",
-                                label="Reasoning mode",
-                                info="Extended reasoning for complex questions",
-                            )
-                        txt_btn = gr.Button(
-                            "Generate", variant="primary", size="lg"
-                        )
-                    with gr.Column(scale=1):
-                        txt_output = gr.Textbox(
-                            label="Response",
-                            lines=12,
-                            show_copy_button=True,
-                            elem_classes=["output-textbox"],
-                        )
-                txt_btn.click(
-                    process_text, [txt_input, txt_thinking], txt_output
+    # ------------------------------------------------------------------
+    # TAB: Text — LLM text generation
+    # ------------------------------------------------------------------
+    with gr.Tab("Text", id="text"):
+        with gr.Row(equal_height=True):
+            with gr.Column(scale=1):
+                txt_input = gr.Textbox(
+                    label="Prompt", lines=3,
+                    placeholder="Ask anything...",
                 )
-
-            # -- Documents --
-            with gr.Tab("Documents"):
-                with gr.Row(equal_height=True):
-                    with gr.Column(scale=1):
-                        doc_input = gr.File(
-                            label="Document",
-                            file_types=[
-                                ".txt", ".md", ".csv", ".json",
-                                ".xml", ".html", ".log", ".pdf",
-                            ],
-                        )
-                        doc_prompt = gr.Textbox(
-                            label="Instruction",
-                            value="Summarize this document.",
-                            lines=2,
-                        )
-                        doc_btn = gr.Button(
-                            "Process", variant="primary", size="lg"
-                        )
-                    with gr.Column(scale=1):
-                        doc_output = gr.Textbox(
-                            label="Result",
-                            lines=12,
-                            show_copy_button=True,
-                            elem_classes=["output-textbox"],
-                        )
-                doc_btn.click(
-                    process_document, [doc_input, doc_prompt], doc_output
+                with gr.Row():
+                    txt_thinking = gr.Radio(
+                        ["off", "normal"], value="off",
+                        label="Reasoning", scale=2,
+                    )
+                    txt_btn = gr.Button("Generate", variant="primary", scale=1)
+            with gr.Column(scale=1):
+                txt_output = gr.Textbox(
+                    label="Response", lines=10,
+                    show_copy_button=True, elem_classes=["output-textbox"],
                 )
+        txt_btn.click(process_text, [txt_input, txt_thinking], txt_output)
 
-            # -- Code --
-            with gr.Tab("Code"):
-                with gr.Row(equal_height=True):
-                    with gr.Column(scale=1):
-                        code_task = gr.Textbox(
-                            label="Task",
-                            lines=4,
-                            placeholder="Write a merge sort function...",
-                        )
-                        with gr.Accordion("Options", open=False):
-                            code_lang = gr.Dropdown(
-                                [
-                                    "Python", "JavaScript", "TypeScript",
-                                    "Rust", "Go", "Java", "C++", "",
-                                ],
-                                value="Python",
-                                label="Language",
-                            )
-                        code_btn = gr.Button(
-                            "Generate", variant="primary", size="lg"
-                        )
-                    with gr.Column(scale=1):
-                        code_output = gr.Code(
-                            label="Output",
-                            language="python",
-                            lines=20,
-                        )
-                code_btn.click(
-                    generate_code, [code_task, code_lang], code_output
+    # ------------------------------------------------------------------
+    # TAB: Documents — document analysis (LLM)
+    # ------------------------------------------------------------------
+    with gr.Tab("Documents", id="documents"):
+        with gr.Row(equal_height=True):
+            with gr.Column(scale=1):
+                doc_input = gr.File(
+                    label="Document",
+                    file_types=[".txt", ".md", ".csv", ".json",
+                                ".xml", ".html", ".log", ".pdf"],
                 )
+                doc_prompt = gr.Textbox(
+                    label="Instruction",
+                    value="Summarize this document.",
+                    lines=2,
+                )
+                doc_btn = gr.Button("Process", variant="primary")
+            with gr.Column(scale=1):
+                doc_output = gr.Textbox(
+                    label="Result", lines=10,
+                    show_copy_button=True, elem_classes=["output-textbox"],
+                )
+        doc_btn.click(process_document, [doc_input, doc_prompt], doc_output)
 
-    # ---- Footer ----
+    # ------------------------------------------------------------------
+    # TAB: Code — code generation (LLM)
+    # ------------------------------------------------------------------
+    with gr.Tab("Code", id="code"):
+        with gr.Row(equal_height=True):
+            with gr.Column(scale=1):
+                code_task = gr.Textbox(
+                    label="Task", lines=3,
+                    placeholder="Write a merge sort function...",
+                )
+                with gr.Row():
+                    code_lang = gr.Dropdown(
+                        ["Python", "JavaScript", "TypeScript",
+                         "Rust", "Go", "Java", "C++", ""],
+                        value="Python", label="Language", scale=2,
+                    )
+                    code_btn = gr.Button("Generate", variant="primary", scale=1)
+            with gr.Column(scale=1):
+                code_output = gr.Code(label="Output", language="python", lines=14)
+        code_btn.click(generate_code, [code_task, code_lang], code_output)
+
+    # ---- Footer — condensed single line ----
     gr.HTML(
-        """
-        <div class="omiff-footer">
-            <p>
-                <a href="https://github.com/stukenov/omniff" target="_blank">GitHub</a>
-                &nbsp;&middot;&nbsp;
-                <a href="https://huggingface.co/stukenov/omniff" target="_blank">HuggingFace</a>
-                &nbsp;&middot;&nbsp;
-                Built by <a href="https://github.com/stukenov" target="_blank">Saken Tukenov</a>
-            </p>
-            <p style="margin-top: 6px; font-size: 11px !important;">
-                8 pipelines &middot; Qwen3 &middot; Qwen2.5-VL &middot; Whisper &middot; SDXL Turbo
-            </p>
-        </div>
-        """
+        '<div class="omiff-footer">'
+        "<p>"
+        '<a href="https://github.com/stukenov/omniff" target="_blank">GitHub</a>'
+        " &middot; "
+        '<a href="https://huggingface.co/stukenov/omniff" target="_blank">HuggingFace</a>'
+        " &middot; "
+        '<a href="https://github.com/stukenov" target="_blank">Saken Tukenov</a>'
+        " &middot; "
+        "Qwen3 &middot; Qwen2.5-VL &middot; Whisper &middot; SDXL Turbo"
+        "</p>"
+        "</div>"
     )
 
 demo.launch(show_error=True)
