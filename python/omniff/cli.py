@@ -96,7 +96,8 @@ def _cmd_doctor(args: argparse.Namespace) -> None:
         if torch.cuda.is_available():
             for i in range(torch.cuda.device_count()):
                 name = torch.cuda.get_device_name(i)
-                mem = torch.cuda.get_device_properties(i).total_mem
+                props = torch.cuda.get_device_properties(i)
+                mem = getattr(props, "total_memory", getattr(props, "total_mem", 0))
                 free_gb = (mem - torch.cuda.memory_reserved(i)) / 1024**3
                 print(f"  GPU {i}: {name} ({mem / 1024**3:.1f} GB total, {free_gb:.1f} GB free)")
         else:

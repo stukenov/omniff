@@ -15,7 +15,12 @@ _log = get_logger("engine")
 
 
 def _detect_input_modality(input_path: str) -> str:
-    if not Path(input_path).exists():
+    if len(input_path) > 255 or "\n" in input_path:
+        return "text"
+    try:
+        if not Path(input_path).exists():
+            return "text"
+    except OSError:
         return "text"
     suffix = Path(input_path).suffix.lower()
     if suffix in (".jpg", ".jpeg", ".png", ".webp", ".bmp", ".gif"):
@@ -109,7 +114,8 @@ class OmniFFRuntime:
         with trace.span("route"):
             input_modality = _detect_input_modality(input)
 
-            if input_modality == "text" and not Path(input).exists():
+            is_file = len(input) <= 255 and "\n" not in input and Path(input).exists()
+            if input_modality == "text" and not is_file:
                 if prompt:
                     prompt = f"{input}\n\n{prompt}"
                 else:
@@ -214,10 +220,13 @@ class OmniFFRuntime:
         model_id = controls.get("model_id", "Qwen/Qwen3-4B")
         llm = self._ensure_model("llm", LLMModel, trace=trace, model_id=model_id, device="auto")
         enable_thinking = thinking not in ("off", "fast")
+        max_tokens = 2048 if enable_thinking else 512
         self._mutex.acquire("llm")
         try:
             with trace.span("infer", model=model_id):
-                result = llm.infer({"prompt": prompt, "thinking": enable_thinking})
+                result = llm.infer(
+                    {"prompt": prompt, "thinking": enable_thinking, "max_new_tokens": max_tokens}
+                )
         finally:
             self._mutex.release("llm")
         return RunResult(output_text=result["text"], route=route)

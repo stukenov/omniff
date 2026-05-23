@@ -61,9 +61,10 @@ class LLMModel(OmniModel):
         text = self._tokenizer.apply_chat_template(messages, **chat_kwargs)
         model_inputs = self._tokenizer([text], return_tensors="pt").to(self._model.device)
 
+        max_tokens = inputs.get("max_new_tokens", self.max_new_tokens)
         generated = self._model.generate(
             **model_inputs,
-            max_new_tokens=self.max_new_tokens,
+            max_new_tokens=max_tokens,
         )
         new_tokens = generated[0][model_inputs["input_ids"].shape[-1] :]
         response = self._tokenizer.decode(new_tokens, skip_special_tokens=True)
