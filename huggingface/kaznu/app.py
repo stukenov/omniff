@@ -20,7 +20,6 @@ import torch
 _llm = {"model": None, "tokenizer": None}
 _vlm = {"model": None, "processor": None}
 _asr = {"model": None, "processor": None}
-_translator = {"model": None, "tokenizer": None}
 _t2i = {"pipe": None}
 _i2i = {"pipe": None}
 
@@ -77,30 +76,6 @@ def _load_asr():
     _asr["model"] = WhisperForConditionalGeneration.from_pretrained(
         model_id, torch_dtype=torch.float16, device_map={"": "cuda:1"}
     )
-
-
-def _load_translator():
-    if _translator["model"] is not None:
-        return
-    from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
-
-    model_id = "tencent/Hy-MT2-30B-A3B"
-    quant_config = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_compute_dtype=torch.float16)
-    _translator["tokenizer"] = AutoTokenizer.from_pretrained(model_id)
-    _translator["model"] = AutoModelForCausalLM.from_pretrained(
-        model_id, quantization_config=quant_config, device_map={"": "cuda:0"}
-    )
-
-
-def _translate_with_hymt(text: str, src_lang: str, tgt_lang: str) -> str:
-    _load_translator()
-    model = _translator["model"]
-    tokenizer = _translator["tokenizer"]
-    prompt = f"Translate the following text from {src_lang} to {tgt_lang}.\n{src_lang}: {text}\n{tgt_lang}:"
-    inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
-    generated = model.generate(**inputs, max_new_tokens=1024)
-    new_tokens = generated[0][inputs["input_ids"].shape[-1]:]
-    return tokenizer.decode(new_tokens, skip_special_tokens=True).strip()
 
 
 def _load_t2i():
@@ -301,16 +276,12 @@ def translate_text(text: str, source_lang: str, target_lang: str) -> str:
         return "Введите текст для перевода."
     if not target_lang:
         return "Выберите целевой язык."
-    src = source_lang or "Auto"
-    try:
-        return _translate_with_hymt(text, src, target_lang)
-    except Exception:
-        src_hint = f" from {source_lang}" if source_lang else ""
-        messages = [
-            {"role": "system", "content": f"Translate the following text{src_hint} to {target_lang}. Return ONLY the translation."},
-            {"role": "user", "content": text},
-        ]
-        return _llm_generate(messages, thinking="off", max_tokens=1024)
+    src_hint = f" from {source_lang}" if source_lang else ""
+    messages = [
+        {"role": "system", "content": f"Translate the following text{src_hint} to {target_lang}. Return ONLY the translation."},
+        {"role": "user", "content": text},
+    ]
+    return _llm_generate(messages, thinking="off", max_tokens=1024)
 
 
 def translate_audio(audio_path: str, language: str, target_lang: str) -> str:
@@ -809,7 +780,7 @@ with gr.Blocks(title="OmniFF — FFmpeg для ИИ") as demo:
         '<a href="https://github.com/stukenov/omniff" target="_blank">GitHub</a> &middot; '
         '<a href="https://huggingface.co/stukenov/omniff" target="_blank">HuggingFace</a> &middot; '
         '<a href="https://github.com/stukenov" target="_blank">Saken Tukenov</a> &middot; '
-        'Qwen3 &middot; Qwen2.5-VL &middot; Whisper &middot; Z-Image-Turbo &middot; 2×A10 22GB'
+        'Qwen3.6-35B &middot; Qwen2.5-VL &middot; Whisper-turbo &middot; Z-Image-Turbo &middot; 2×A10 22GB'
         '</p></div>'
     )
 
