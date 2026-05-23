@@ -125,6 +125,9 @@ class OmniFFRuntime:
             "TEXT_TO_IMAGE": lambda: self._run_text_to_image(prompt or input, controls, output, trace),
             "VIDEO_CAPTION": lambda: self._run_video_to_text(input, prompt, controls, trace),
             "DOCUMENT_READ": lambda: self._run_document_to_text(input, prompt, controls, trace),
+            "TEXT_TO_SPEECH": lambda: self._run_text_to_speech(prompt or input, controls, output, trace),
+            "CODE": lambda: self._run_code(prompt or input, controls, trace),
+            "DOCUMENT_TO_DOCUMENT": lambda: self._run_document_to_document(input, prompt, controls, output, trace),
         }
 
         handler = dispatch.get(route.route_class)
@@ -304,6 +307,71 @@ class OmniFFRuntime:
             self._mutex.release("document_reader")
         return RunResult(
             output_text=result["text"], route="DOCUMENT_READ",
+            metadata={"source": result.get("source", "extraction")},
+        )
+
+
+    def _run_text_to_speech(self, text: str, controls: dict, output: str | None, trace: RequestTrace) -> RunResult:
+        from omniff.models.tts import TTSModel
+
+        model_id = controls.get("model_id", "suno/bark-small")
+        tts = self._ensure_model("tts", TTSModel, trace=trace, model_id=model_id, device="auto")
+        output_path = output or "output.wav"
+        self._mutex.acquire("tts")
+        try:
+            with trace.span("infer", model=model_id):
+                result = tts.infer({
+                    "text": text,
+                    "output_path": output_path,
+                    "voice_preset": controls.get("voice_preset", "v2/en_speaker_6"),
+                })
+        finally:
+            self._mutex.release("tts")
+        return RunResult(
+            output_path=result["audio_path"], route="TEXT_TO_SPEECH",
+            metadata={"duration_s": result.get("duration_s", 0)},
+        )
+
+    def _run_code(self, prompt: str, controls: dict, trace: RequestTrace) -> RunResult:
+        from omniff.models.code import CodeModel
+
+        model_id = controls.get("model_id", "Qwen/Qwen3-4B")
+        code = self._ensure_model("code", CodeModel, trace=trace, model_id=model_id, device="auto")
+        self._mutex.acquire("code")
+        try:
+            with trace.span("infer", model=model_id):
+                result = code.infer({"prompt": prompt})
+        finally:
+            self._mutex.release("code")
+        return RunResult(output_text=result["text"], route="CODE")
+
+    def _run_document_to_document(self, doc_path: str, prompt: str | None, controls: dict, output: str | None, trace: RequestTrace) -> RunResult:
+        from omniff.models.document_reader import DocumentReaderModel
+        from omniff.models.pdf_generator import PDFGeneratorModel
+
+        llm_id = controls.get("model_id", "Qwen/Qwen3-4B")
+        reader = self._ensure_model("document_reader", DocumentReaderModel, trace=trace, llm_model_id=llm_id, device="auto")
+        self._mutex.acquire("document_reader")
+        try:
+            with trace.span("extract", model=llm_id):
+                result = reader.infer({
+                    "document_path": doc_path,
+                    "prompt": prompt or "Summarize this document.",
+                })
+        finally:
+            self._mutex.release("document_reader")
+
+        pdf_gen = self._ensure_model("pdf_generator", PDFGeneratorModel, trace=trace)
+        output_path = output or "output.pdf"
+        with trace.span("generate_pdf"):
+            pdf_result = pdf_gen.infer({
+                "text": result["text"],
+                "title": prompt or "Document Summary",
+                "output_path": output_path,
+            })
+
+        return RunResult(
+            output_path=pdf_result["pdf_path"], route="DOCUMENT_TO_DOCUMENT",
             metadata={"source": result.get("source", "extraction")},
         )
 

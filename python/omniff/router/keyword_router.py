@@ -15,6 +15,17 @@ COMPLEX_KEYWORDS = [
     "контракт", "contract", "legal", "юридич",
 ]
 
+TTS_KEYWORDS = [
+    "read aloud", "speak", "say this", "text to speech", "tts",
+    "pronounce", "voice", "озвучь", "прочитай вслух",
+]
+
+CODE_KEYWORDS = [
+    "write code", "write a function", "refactor", "debug",
+    "fix this code", "implement", "код", "напиши функцию",
+    "```", "def ", "class ", "function ",
+]
+
 
 class KeywordRouter:
     def route(
@@ -45,6 +56,15 @@ class KeywordRouter:
 
         if output_modality == "image":
             return RouteDecision("TEXT_TO_IMAGE", 0.8, "normal")
+
+        if output_modality == "audio" or any(kw in prompt_lower for kw in TTS_KEYWORDS):
+            return RouteDecision("TEXT_TO_SPEECH", 0.8, "off")
+
+        if output_modality == "document":
+            return RouteDecision("DOCUMENT_TO_DOCUMENT", 0.8, "normal")
+
+        if any(kw in prompt_lower for kw in CODE_KEYWORDS):
+            return RouteDecision("CODE", 0.8, "normal")
 
         if any(kw in prompt_lower for kw in COMPLEX_KEYWORDS):
             return RouteDecision("TEXT_COMPLEX", 0.7, "deep")

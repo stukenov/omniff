@@ -57,6 +57,30 @@ def test_route_text_to_image():
     assert decision.route_class == "TEXT_TO_IMAGE"
 
 
+def test_route_text_to_speech():
+    router = KeywordRouter()
+    decision = router.route("read aloud this text", output_modality="audio")
+    assert decision.route_class == "TEXT_TO_SPEECH"
+
+
+def test_route_text_to_speech_keyword():
+    router = KeywordRouter()
+    decision = router.route("text to speech: hello world")
+    assert decision.route_class == "TEXT_TO_SPEECH"
+
+
+def test_route_code():
+    router = KeywordRouter()
+    decision = router.route("write code to refactor this function")
+    assert decision.route_class == "CODE"
+
+
+def test_route_document_to_document():
+    router = KeywordRouter()
+    decision = router.route("summarize", output_modality="document")
+    assert decision.route_class == "DOCUMENT_TO_DOCUMENT"
+
+
 def test_route_decision_fields():
     router = KeywordRouter()
     decision = router.route("hello")

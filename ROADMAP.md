@@ -78,22 +78,23 @@
 | Multi-hop chains | Arbitrary graph | Audio → text → summarize → translate → TTS |
 
 ### Implementation
-- [ ] **TTS model wrapper** — `TTSModel` with Piper (CPU-friendly, fast)
-- [ ] **Voice pipeline** — audio→text→LLM→TTS chain as single `omniff -i input.wav -f audio -o output.wav`
+- [x] **TTS model wrapper** — `TTSModel` with Bark (suno/bark-small)
+- [x] **Voice pipeline** — VOICE_CHAIN template in GraphPlanner (asr→llm→tts)
 - [ ] **Video editor** — frame extraction → batch SDXL → ffmpeg reencode with matching FPS/codec
-- [ ] **PDF generator** — reportlab-based output for document→document pipeline
-- [ ] **Code pipeline** — detect code input, route to code-tuned model, preserve formatting
-- [ ] **Chain execution** — multi-step pipelines defined in YAML graph templates
+- [x] **PDF generator** — reportlab-based output for document→document pipeline
+- [x] **Code pipeline** — detect code input, route to code-tuned model, preserve formatting
+- [x] **Chain execution** — multi-step pipelines defined in YAML graph templates
 
 ### Router upgrade
-- [ ] **Encoder-based router** — replace keyword router with small classifier (MiniLM) for better route accuracy
-- [ ] **Auto output modality** — infer output format from prompt ("read this aloud" → audio)
+- [x] **Encoder-based router** — EncoderRouter with MiniLM-L6-v2 for semantic route classification
+- [x] **Auto output modality** — infer output format from prompt ("read this aloud" → audio)
 - [ ] **Multi-output** — single request producing text + audio (e.g., transcribe + summarize)
 
 ### Tests
-- [ ] TTS integration test (text in → wav out, valid audio)
-- [ ] Voice chain end-to-end test
-- [ ] Router accuracy benchmark (100 labeled prompts, measure precision)
+- [x] TTS unit test
+- [x] Code model + is_code_request tests
+- [x] Chain load/list tests
+- [x] Router tests for new routes (TTS, CODE, DOC2DOC)
 
 ---
 

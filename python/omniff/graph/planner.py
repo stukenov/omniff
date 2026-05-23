@@ -51,6 +51,32 @@ class GraphPlanner:
             {"id": "validate", "type": "text_validate", "config": {"min_length": 1}},
             {"id": "mux", "type": "muxer", "config": {"modality": "text"}},
         ],
+        "TEXT_TO_SPEECH": [
+            {"id": "demux", "type": "demuxer", "config": {"modality": "text"}},
+            {"id": "tts", "type": "tts_infer", "config": {}},
+            {"id": "validate", "type": "audio_validate", "config": {}},
+            {"id": "mux", "type": "muxer", "config": {"modality": "audio"}},
+        ],
+        "CODE": [
+            {"id": "demux", "type": "demuxer", "config": {"modality": "text"}},
+            {"id": "code", "type": "code_infer", "config": {}},
+            {"id": "validate", "type": "text_validate", "config": {"min_length": 1}},
+            {"id": "mux", "type": "muxer", "config": {"modality": "text"}},
+        ],
+        "DOCUMENT_TO_DOCUMENT": [
+            {"id": "demux", "type": "demuxer", "config": {"modality": "document"}},
+            {"id": "reader", "type": "document_read_infer", "config": {}},
+            {"id": "pdf_gen", "type": "pdf_generate", "config": {}},
+            {"id": "validate", "type": "file_validate", "config": {}},
+            {"id": "mux", "type": "muxer", "config": {"modality": "document"}},
+        ],
+        "VOICE_CHAIN": [
+            {"id": "demux", "type": "demuxer", "config": {"modality": "audio"}},
+            {"id": "asr", "type": "asr_infer", "config": {}},
+            {"id": "llm", "type": "llm_infer", "config": {}},
+            {"id": "tts", "type": "tts_infer", "config": {}},
+            {"id": "mux", "type": "muxer", "config": {"modality": "audio"}},
+        ],
     }
 
     def plan(
