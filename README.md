@@ -1,3 +1,25 @@
+---
+license: apache-2.0
+tags:
+  - multimodal
+  - runtime
+  - inference
+  - ffmpeg
+  - text-generation
+  - image-to-text
+  - text-to-image
+  - automatic-speech-recognition
+  - video-understanding
+  - document-understanding
+language:
+  - en
+  - ru
+  - kk
+  - zh
+library_name: omniff
+pipeline_tag: text-generation
+---
+
 <p align="center">
   <img src="https://img.shields.io/badge/OmniFF-FFmpeg_for_AI-blue?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTEyIDJMMyA3djEwbDkgNSA5LTVWN2wtOS01eiIgZmlsbD0id2hpdGUiLz48L3N2Zz4="/>
 </p>

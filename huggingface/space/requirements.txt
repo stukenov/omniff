@@ -1,0 +1,12 @@
+torch
+transformers
+accelerate
+sentencepiece
+protobuf
+qwen-vl-utils
+soundfile
+scipy
+Pillow
+opencv-python-headless
+pyyaml
+pydantic
