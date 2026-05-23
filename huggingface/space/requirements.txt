@@ -1,5 +1,6 @@
 torch
 transformers
+diffusers
 accelerate
 sentencepiece
 protobuf
@@ -8,5 +9,3 @@ soundfile
 scipy
 Pillow
 opencv-python-headless
-pyyaml
-pydantic
