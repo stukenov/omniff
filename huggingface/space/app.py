@@ -356,6 +356,130 @@ def generate_code(task: str, language: str) -> str:
 
 
 # ---------------------------------------------------------------------------
+# 9. Text Translation (LLM-based)
+# ---------------------------------------------------------------------------
+@spaces.GPU(duration=120)
+def translate_text(text: str, source_lang: str, target_lang: str) -> str:
+    if not text.strip():
+        return "Please enter text to translate."
+    if not target_lang:
+        return "Please select a target language."
+    src = f" from {source_lang}" if source_lang else ""
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                f"You are a professional translator. Translate the following text{src} to {target_lang}. "
+                "Return ONLY the translation, nothing else."
+            ),
+        },
+        {"role": "user", "content": text},
+    ]
+    return _llm_generate(messages, thinking="off", max_tokens=1024)
+
+
+# ---------------------------------------------------------------------------
+# 10. Audio Translation (ASR -> LLM translate)
+# ---------------------------------------------------------------------------
+@spaces.GPU(duration=120)
+def translate_audio(audio_path: str, language: str, target_lang: str) -> str:
+    if not audio_path:
+        return "Please upload an audio file."
+    if not target_lang:
+        return "Please select a target language."
+
+    transcript = process_audio(audio_path, language)
+    if transcript.startswith("Please") or transcript.startswith("No output"):
+        return transcript
+
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                f"Translate the following text to {target_lang}. "
+                "Return ONLY the translation."
+            ),
+        },
+        {"role": "user", "content": transcript},
+    ]
+    translation = _llm_generate(messages, thinking="off", max_tokens=1024)
+    return f"**Original transcript:**\n{transcript}\n\n**Translation ({target_lang}):**\n{translation}"
+
+
+# ---------------------------------------------------------------------------
+# 11. Audio Dubbing (ASR -> translate -> info, TTS needs local GPU)
+# ---------------------------------------------------------------------------
+@spaces.GPU(duration=120)
+def dub_audio(audio_path: str, language: str, target_lang: str) -> str:
+    if not audio_path:
+        return "Please upload an audio file."
+    if not target_lang:
+        return "Please select a target language."
+
+    transcript = process_audio(audio_path, language)
+    if transcript.startswith("Please") or transcript.startswith("No output"):
+        return transcript
+
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                f"Translate the following text to {target_lang}. "
+                "Return ONLY the translation."
+            ),
+        },
+        {"role": "user", "content": transcript},
+    ]
+    translation = _llm_generate(messages, thinking="off", max_tokens=1024)
+    return (
+        f"**Original transcript:**\n{transcript}\n\n"
+        f"**Dubbed text ({target_lang}):**\n{translation}\n\n"
+        f"_(Full audio dubbing with TTS/voice cloning requires local GPU runtime with OmniVoice)_"
+    )
+
+
+# ---------------------------------------------------------------------------
+# 12. Agent mode (multi-step reasoning)
+# ---------------------------------------------------------------------------
+@spaces.GPU(duration=120)
+def run_agent(task: str, max_steps: int) -> str:
+    if not task.strip():
+        return "Please describe a task for the agent."
+
+    max_steps = max(1, min(int(max_steps), 10))
+    output_parts = [f"**Task:** {task}\n"]
+
+    plan_msgs = [
+        {
+            "role": "system",
+            "content": (
+                "You are an AI agent. Break the user's task into clear numbered steps. "
+                "Be specific and actionable."
+            ),
+        },
+        {"role": "user", "content": task},
+    ]
+    plan = _llm_generate(plan_msgs, thinking="off", max_tokens=1024)
+    output_parts.append(f"**Plan:**\n{plan}\n")
+
+    exec_msgs = [
+        {
+            "role": "system",
+            "content": (
+                "You are an AI agent executing a plan step by step. "
+                "For each step, show your reasoning (Thought), what you do (Action), "
+                "and what you observe (Observation). Then give a final answer."
+            ),
+        },
+        {"role": "user", "content": f"Task: {task}\n\nPlan:\n{plan}\n\nExecute this plan now."},
+    ]
+    result = _llm_generate(exec_msgs, thinking="off", max_tokens=2048)
+    output_parts.append(f"**Execution:**\n{result}")
+
+    return "\n".join(output_parts)
+
+
+# ---------------------------------------------------------------------------
 # Universal Chat — auto-routing multimodal pipeline
 # ---------------------------------------------------------------------------
 _IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".tiff", ".tif"}
@@ -573,27 +697,28 @@ def universal_chat(message: dict, history: list) -> dict:
 # ---------------------------------------------------------------------------
 # Warm-up (pre-download models on CPU at startup)
 # ---------------------------------------------------------------------------
-def _warmup():
-    import threading
+_SPACE_MODELS = [
+    "Qwen/Qwen3-4B",
+    "Qwen/Qwen2.5-VL-3B-Instruct",
+    "openai/whisper-large-v3",
+    "stabilityai/sdxl-turbo",
+]
 
-    def _do():
+
+def _download_all_models():
+    """Download all models synchronously at build time so they're cached."""
+    from huggingface_hub import snapshot_download
+
+    for model_id in _SPACE_MODELS:
         try:
-            from huggingface_hub import snapshot_download
-
-            for model_id in [
-                "Qwen/Qwen3-4B",
-                "Qwen/Qwen2.5-VL-3B-Instruct",
-                "openai/whisper-large-v3",
-                "stabilityai/sdxl-turbo",
-            ]:
-                snapshot_download(model_id)
-        except Exception:
-            pass
-
-    threading.Thread(target=_do, daemon=True).start()
+            print(f"[OmniFF] Downloading {model_id}...")
+            snapshot_download(model_id)
+            print(f"[OmniFF] ✓ {model_id} cached")
+        except Exception as e:
+            print(f"[OmniFF] ✗ {model_id} failed: {e}")
 
 
-_warmup()
+_download_all_models()
 
 # ---------------------------------------------------------------------------
 # Routing labels — human-readable pipeline names for loading states
@@ -606,6 +731,9 @@ _ROUTE_LABELS = {
     "text": "Language model (Qwen3)",
     "text_to_image": "Image generator (SDXL Turbo)",
     "code": "Language model (Qwen3)",
+    "translate": "Language model (Qwen3)",
+    "dub": "Whisper + Qwen3",
+    "agent": "Language model (Qwen3)",
 }
 
 
@@ -1243,6 +1371,136 @@ with gr.Blocks(
                 code_output = gr.Code(label="Output", language="python", lines=14)
         code_btn.click(generate_code, [code_task, code_lang], code_output)
 
+    # ------------------------------------------------------------------
+    # TAB: Translate — text and audio translation
+    # ------------------------------------------------------------------
+    with gr.Tab("Translate", id="translate"):
+        with gr.Row(equal_height=True):
+            with gr.Column(scale=1):
+                tr_input = gr.Textbox(
+                    label="Text to Translate", lines=4,
+                    placeholder="Enter text or upload audio below...",
+                )
+                tr_audio = gr.Audio(
+                    type="filepath", label="Or Upload Audio",
+                    sources=["upload", "microphone"],
+                )
+                with gr.Row():
+                    tr_src_lang = gr.Dropdown(
+                        ["", "English", "Russian", "Kazakh", "Chinese",
+                         "French", "German", "Spanish", "Japanese", "Korean"],
+                        value="", label="Source", scale=1,
+                        info="Empty = auto-detect",
+                    )
+                    tr_tgt_lang = gr.Dropdown(
+                        ["English", "Russian", "Kazakh", "Chinese",
+                         "French", "German", "Spanish", "Japanese", "Korean"],
+                        value="English", label="Target", scale=1,
+                    )
+                    tr_btn = gr.Button("Translate", variant="primary", scale=1)
+            with gr.Column(scale=1):
+                tr_output = gr.Textbox(
+                    label="Translation", lines=10,
+                    show_copy_button=True, elem_classes=["output-textbox"],
+                )
+
+        def _handle_translate(text, audio, src_lang, tgt_lang):
+            if audio:
+                lang_code = ""
+                lang_map = {"english": "en", "russian": "ru", "kazakh": "kk",
+                            "chinese": "zh", "french": "fr", "german": "de",
+                            "spanish": "es", "japanese": "ja", "korean": "ko"}
+                if src_lang:
+                    lang_code = lang_map.get(src_lang.lower(), "")
+                return translate_audio(audio, lang_code, tgt_lang)
+            if text and text.strip():
+                return translate_text(text, src_lang, tgt_lang)
+            return "Please enter text or upload audio."
+
+        tr_btn.click(
+            _handle_translate,
+            [tr_input, tr_audio, tr_src_lang, tr_tgt_lang],
+            tr_output,
+        )
+
+    # ------------------------------------------------------------------
+    # TAB: Dub — audio/video dubbing pipeline
+    # ------------------------------------------------------------------
+    with gr.Tab("Dub", id="dub"):
+        with gr.Row(equal_height=True):
+            with gr.Column(scale=1):
+                dub_audio_input = gr.Audio(
+                    type="filepath", label="Audio File",
+                    sources=["upload", "microphone"],
+                )
+                dub_video_input = gr.Video(label="Or Video File", height=200)
+                with gr.Row():
+                    dub_src_lang = gr.Dropdown(
+                        ["", "en", "ru", "kk", "zh", "de", "fr", "es", "ja"],
+                        value="", label="Source Lang", scale=1,
+                        info="Empty = auto-detect",
+                    )
+                    dub_tgt_lang = gr.Dropdown(
+                        ["English", "Russian", "Kazakh", "Chinese",
+                         "French", "German", "Spanish", "Japanese"],
+                        value="English", label="Target Lang", scale=1,
+                    )
+                    dub_btn = gr.Button("Dub", variant="primary", scale=1)
+            with gr.Column(scale=1):
+                dub_output = gr.Textbox(
+                    label="Dubbing Result", lines=12,
+                    show_copy_button=True, elem_classes=["output-textbox"],
+                )
+
+        def _handle_dub(audio, video, src_lang, tgt_lang):
+            if video:
+                transcript = process_video(video, "Transcribe all speech in this video word by word.")
+                messages = [
+                    {
+                        "role": "system",
+                        "content": f"Translate the following text to {tgt_lang}. Return ONLY the translation.",
+                    },
+                    {"role": "user", "content": transcript},
+                ]
+                translation = _llm_generate(messages, thinking="off", max_tokens=1024)
+                return (
+                    f"**Video transcript:**\n{transcript}\n\n"
+                    f"**Dubbed ({tgt_lang}):**\n{translation}\n\n"
+                    f"_(Full video dubbing with audio muxing requires local GPU runtime)_"
+                )
+            if audio:
+                return dub_audio(audio, src_lang, tgt_lang)
+            return "Please upload an audio or video file."
+
+        dub_btn.click(
+            _handle_dub,
+            [dub_audio_input, dub_video_input, dub_src_lang, dub_tgt_lang],
+            dub_output,
+        )
+
+    # ------------------------------------------------------------------
+    # TAB: Agent — multi-step reasoning
+    # ------------------------------------------------------------------
+    with gr.Tab("Agent", id="agent"):
+        with gr.Row(equal_height=True):
+            with gr.Column(scale=1):
+                agent_task = gr.Textbox(
+                    label="Task", lines=3,
+                    placeholder="Research and explain quantum computing applications...",
+                )
+                with gr.Row():
+                    agent_steps = gr.Slider(
+                        minimum=1, maximum=10, value=5, step=1,
+                        label="Max Steps", scale=2,
+                    )
+                    agent_btn = gr.Button("Run Agent", variant="primary", scale=1)
+            with gr.Column(scale=1):
+                agent_output = gr.Textbox(
+                    label="Agent Output", lines=14,
+                    show_copy_button=True, elem_classes=["output-textbox"],
+                )
+        agent_btn.click(run_agent, [agent_task, agent_steps], agent_output)
+
     # ---- Footer — condensed single line ----
     gr.HTML(
         '<div class="omiff-footer">'
@@ -1253,7 +1511,7 @@ with gr.Blocks(
         " &middot; "
         '<a href="https://github.com/stukenov" target="_blank">Saken Tukenov</a>'
         " &middot; "
-        "Qwen3 &middot; Qwen2.5-VL &middot; Whisper &middot; SDXL Turbo"
+        "Qwen3 &middot; Qwen2.5-VL &middot; Whisper &middot; SDXL Turbo &middot; Translation &middot; Dubbing &middot; Agent"
         "</p>"
         "</div>"
     )
