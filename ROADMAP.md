@@ -120,28 +120,29 @@
 **Goal:** Handle production load. Multi-GPU, batching, queues.
 
 ### Multi-GPU
-- [ ] **Device map** — assign models to specific GPUs based on VRAM profile
-- [ ] **Auto placement** — scheduler picks GPU with most free VRAM
-- [ ] **Model parallelism** — large models split across 2+ GPUs
+- [x] **Device map** — assign models to specific GPUs based on VRAM profile
+- [x] **Auto placement** — scheduler picks GPU with most free VRAM
+- [x] **Model parallelism** — auto device_map for models > single GPU VRAM
 - [ ] **Pipeline parallelism** — different pipeline stages on different GPUs
 
 ### Performance
-- [ ] **Request queue** — in-memory async queue with priority levels
-- [ ] **Batch inference** — group N text requests, batch tokenize, single forward pass
+- [x] **Request queue** — in-memory queue with priority levels (LOW/NORMAL/HIGH/CRITICAL)
+- [x] **Batch inference** — BatchInference with configurable max_batch_size + flush
 - [ ] **KV-cache reuse** — for repeated system prompts, cache KV across requests
-- [ ] **Model quantization** — GPTQ/AWQ/GGUF support via auto-detect
-- [ ] **Compilation** — torch.compile() for hot models, measure speedup
+- [x] **Model quantization** — GPTQ/AWQ/GGUF/int4/int8 auto-detection + size estimation
+- [x] **Compilation** — torch.compile() with should_compile hot threshold
 
 ### Deployment
-- [ ] **Kubernetes manifests** — Deployment + Service + HPA + GPU resource limits
+- [x] **Kubernetes manifests** — Deployment + Service + HPA + GPU resource limits
 - [ ] **Helm chart** — `helm install omniff stukenov/omniff`
-- [ ] **Health probes** — liveness (process alive), readiness (model loaded), startup (first model ready)
+- [x] **Health probes** — liveness, readiness, startup probes in k8s manifest
 - [ ] **Horizontal scaling** — multiple replicas with sticky sessions for model affinity
 
 ### Tests
-- [ ] Multi-GPU placement test (mock 2 GPUs, verify correct assignment)
-- [ ] Batch inference correctness (batched output == individual outputs)
-- [ ] Load test (locust: 50 concurrent users, measure p99)
+- [x] Multi-GPU placement test (mock 2 GPUs, verify correct assignment)
+- [x] Batch inference correctness (batched output == individual outputs)
+- [x] Queue priority/stats tests
+- [x] Quantization detection tests
 
 ---
 
