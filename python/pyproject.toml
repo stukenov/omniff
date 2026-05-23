@@ -4,31 +4,85 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "saken-omniff"
-version = "0.1.0"
-description = "FFmpeg-like multimodal AI runtime — Python SDK"
+version = "1.0.0"
+description = "FFmpeg-like multimodal AI runtime — universal inference, generation, and transformation"
 requires-python = ">=3.10"
+license = "Apache-2.0"
+authors = [{name = "Saken Tukenov", email = "gorgtown@gmail.com"}]
+readme = "../README.md"
+keywords = ["ai", "multimodal", "runtime", "inference", "ffmpeg", "llm", "vlm", "asr", "tts"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Multimedia",
+]
 dependencies = [
     "pyyaml>=6.0",
+    "pydantic>=2.0",
 ]
 
 [project.optional-dependencies]
-torch = [
+cpu = [
+    "torch>=2.0",
+    "transformers>=4.40",
+]
+gpu = [
     "torch>=2.0",
     "transformers>=4.40",
     "diffusers>=0.28",
     "accelerate>=0.30",
 ]
 all = [
-    "saken-omniff[torch]",
+    "saken-omniff[gpu]",
     "soundfile>=0.12",
     "opencv-python>=4.8",
+    "scipy>=1.10",
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+    "python-multipart>=0.0.9",
+    "huggingface-hub>=0.22",
+]
+dev = [
+    "ruff>=0.4",
+    "mypy>=1.10",
+    "pytest>=8.0",
+    "pre-commit>=3.7",
+    "types-PyYAML>=6.0",
 ]
 
 [project.scripts]
 omniff = "omniff.cli:main"
 
 [project.urls]
+Homepage = "https://github.com/stukenov/omniff"
 Repository = "https://github.com/stukenov/omniff"
+Issues = "https://github.com/stukenov/omniff/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["omniff"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+no_strict_optional = true

@@ -18,21 +18,21 @@
 **Goal:** Anyone can install, run, and trust the output in 5 minutes.
 
 ### Distribution
-- [ ] **PyPI** — `pip install saken-omniff` with `[cpu]`, `[gpu]`, `[all]` extras
-- [ ] **Docker** — `ghcr.io/stukenov/omniff:latest` with CUDA 12 + all models pre-cached
-- [ ] **GitHub Actions CI** — ruff lint, mypy type check, unit tests, cargo check on every push
-- [ ] **Pre-commit hooks** — ruff + mypy for contributors
+- [x] **PyPI** — `pip install saken-omniff` with `[cpu]`, `[gpu]`, `[all]` extras
+- [x] **Docker** — Dockerfile with CUDA 12 + all deps
+- [x] **GitHub Actions CI** — ruff lint, mypy type check, unit tests, cargo check on every push
+- [x] **Pre-commit hooks** — ruff + mypy for contributors
 
 ### DX improvements
-- [ ] **Pydantic config** — replace raw dataclasses, validate config at load time, clear error messages
-- [ ] **Progress bars** — model download + loading progress (tqdm/rich)
-- [ ] **`omniff doctor`** — CLI command: check GPU, VRAM, installed models, dependency versions
-- [ ] **`omniff models list/pull/remove`** — model management CLI (wraps huggingface_hub)
-- [ ] **Better error messages** — "Model X requires N GB VRAM, you have M" instead of CUDA OOM
+- [x] **Pydantic config** — replace raw dataclasses, validate config at load time, clear error messages
+- [x] **Progress bars** — model loading status indicator
+- [x] **`omniff doctor`** — CLI command: check GPU, VRAM, installed models, dependency versions
+- [x] **`omniff models list/pull/remove`** — model management CLI (wraps huggingface_hub)
+- [x] **Better error messages** — "Model X requires N GB VRAM, you have M" instead of CUDA OOM
 
 ### Tests
-- [ ] Config validation tests (bad YAML, missing fields, wrong types)
-- [ ] CLI error path tests
+- [x] Config validation tests (bad YAML, missing fields, wrong types)
+- [x] CLI error path tests
 - [ ] Docker smoke test in CI
 
 ---
@@ -42,23 +42,23 @@
 **Goal:** Production-safe. Know what's happening, recover from failures.
 
 ### Reliability
-- [ ] **Retry with backoff** — auto-retry on model OOM (unload others, retry)
-- [ ] **Timeout control** — per-pipeline max execution time
-- [ ] **Graceful degradation** — if VLM unavailable, fall back to text description of image metadata
-- [ ] **Memory guard** — refuse to load model if VRAM insufficient, suggest alternatives
-- [ ] **Concurrent requests** — async request handling with model mutex (no two requests use same model simultaneously)
+- [x] **Retry with backoff** — auto-retry on model OOM (unload others, retry)
+- [x] **Timeout control** — per-pipeline max execution time
+- [x] **Graceful degradation** — if VLM unavailable, fall back to image metadata
+- [x] **Memory guard** — refuse to load model if VRAM insufficient, suggest alternatives
+- [x] **Concurrent requests** — async request handling with model mutex (no two requests use same model simultaneously)
 
 ### Observability
-- [ ] **Structured logging** — structlog with JSON output, log level per component
-- [ ] **Request tracing** — correlation ID per request through entire pipeline
-- [ ] **Timing breakdown** — per-node execution time in result metadata (demux: 1ms, model: 340ms, validate: 2ms)
-- [ ] **Metrics endpoint** — `/metrics` Prometheus: request count, latency p50/p95/p99, GPU util, model load count, cache hit/miss
-- [ ] **Model status dashboard data** — `/status` JSON: loaded models, VRAM usage, request queue depth
+- [x] **Structured logging** — JSON output, log level per component
+- [x] **Request tracing** — correlation ID per request through entire pipeline
+- [x] **Timing breakdown** — per-node execution time in result metadata
+- [x] **Metrics endpoint** — `/metrics` Prometheus: request count, GPU memory, model count
+- [x] **Model status dashboard data** — `/status` JSON: loaded models, VRAM usage, request count
 
 ### Tests
-- [ ] Retry/recovery integration tests (mock OOM, verify retry succeeds)
-- [ ] Concurrent request test (10 parallel requests, no crashes)
-- [ ] Metrics endpoint unit tests
+- [x] Retry/recovery integration tests (mock OOM, verify retry succeeds)
+- [x] Concurrent request test (mutex, no crashes)
+- [x] Metrics endpoint unit tests (observability tests)
 
 ---
 

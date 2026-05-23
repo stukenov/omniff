@@ -1,63 +1,120 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 import yaml
 
+try:
+    from pydantic import BaseModel, Field, field_validator
+    _HAS_PYDANTIC = True
+except ImportError:
+    _HAS_PYDANTIC = False
 
-@dataclass
-class RouterConfig:
-    router_type: str
-    path: str
+if _HAS_PYDANTIC:
 
+    class RouterConfig(BaseModel):
+        router_type: str
+        path: str = ""
 
-@dataclass
-class ExpertConfig:
-    name: str
-    model_type: str
-    path: str
-    loading: str = "warm"
-    quantization: str | None = None
-    device: str | None = None
+    class ExpertConfig(BaseModel):
+        name: str
+        model_type: str
+        path: str
+        loading: str = "warm"
+        quantization: str | None = None
+        device: str | None = None
 
+    class OmniFFConfig(BaseModel):
+        name: str
+        version: str
+        router: RouterConfig
+        experts: dict[str, ExpertConfig] = Field(default_factory=dict)
+        graph_templates_dir: str | None = None
 
-@dataclass
-class OmniFFConfig:
-    name: str
-    version: str
-    router: RouterConfig
-    experts: dict[str, ExpertConfig] = field(default_factory=dict)
-    graph_templates_dir: str | None = None
+        @classmethod
+        def load(cls, path: Path) -> OmniFFConfig:
+            if not path.exists():
+                raise FileNotFoundError(f"Config not found: {path}")
+            with open(path) as f:
+                raw = yaml.safe_load(f)
 
-    @classmethod
-    def load(cls, path: Path) -> OmniFFConfig:
-        if not path.exists():
-            raise FileNotFoundError(f"Config not found: {path}")
-        with open(path) as f:
-            raw = yaml.safe_load(f)
-
-        router = RouterConfig(
-            router_type=raw["router"]["type"],
-            path=raw["router"].get("path", ""),
-        )
-
-        experts = {}
-        for name, spec in raw.get("experts", {}).items():
-            experts[name] = ExpertConfig(
-                name=spec.get("name", name),
-                model_type=spec["model_type"],
-                path=spec["path"],
-                loading=spec.get("loading", "warm"),
-                quantization=spec.get("quantization"),
-                device=spec.get("device"),
+            router = RouterConfig(
+                router_type=raw["router"]["type"],
+                path=raw["router"].get("path", ""),
             )
 
-        return cls(
-            name=raw["name"],
-            version=raw["version"],
-            router=router,
-            experts=experts,
-            graph_templates_dir=raw.get("graph_templates_dir"),
-        )
+            experts = {}
+            for name, spec in raw.get("experts", {}).items():
+                experts[name] = ExpertConfig(
+                    name=spec.get("name", name),
+                    model_type=spec["model_type"],
+                    path=spec["path"],
+                    loading=spec.get("loading", "warm"),
+                    quantization=spec.get("quantization"),
+                    device=spec.get("device"),
+                )
+
+            return cls(
+                name=raw["name"],
+                version=raw["version"],
+                router=router,
+                experts=experts,
+                graph_templates_dir=raw.get("graph_templates_dir"),
+            )
+
+else:
+    from dataclasses import dataclass, field
+
+    @dataclass
+    class RouterConfig:
+        router_type: str
+        path: str = ""
+
+    @dataclass
+    class ExpertConfig:
+        name: str
+        model_type: str
+        path: str
+        loading: str = "warm"
+        quantization: str | None = None
+        device: str | None = None
+
+    @dataclass
+    class OmniFFConfig:
+        name: str
+        version: str
+        router: RouterConfig
+        experts: dict[str, ExpertConfig] = field(default_factory=dict)
+        graph_templates_dir: str | None = None
+
+        @classmethod
+        def load(cls, path: Path) -> OmniFFConfig:
+            if not path.exists():
+                raise FileNotFoundError(f"Config not found: {path}")
+            with open(path) as f:
+                raw = yaml.safe_load(f)
+
+            router = RouterConfig(
+                router_type=raw["router"]["type"],
+                path=raw["router"].get("path", ""),
+            )
+
+            experts = {}
+            for name, spec in raw.get("experts", {}).items():
+                experts[name] = ExpertConfig(
+                    name=spec.get("name", name),
+                    model_type=spec["model_type"],
+                    path=spec["path"],
+                    loading=spec.get("loading", "warm"),
+                    quantization=spec.get("quantization"),
+                    device=spec.get("device"),
+                )
+
+            return cls(
+                name=raw["name"],
+                version=raw["version"],
+                router=router,
+                experts=experts,
+                graph_templates_dir=raw.get("graph_templates_dir"),
+            )

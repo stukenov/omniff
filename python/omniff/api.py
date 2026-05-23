@@ -106,6 +106,72 @@ def create_app():
         planner = GraphPlanner()
         return {"routes": planner.available_routes()}
 
+    @app.get("/status")
+    async def status() -> dict[str, Any]:
+        runtime = get_runtime()
+        loaded = []
+        for name in runtime.models.list():
+            m = runtime.models.get(name)
+            loaded.append({"name": name, "loaded": m.is_loaded if m else False})
+
+        gpu_info = []
+        try:
+            import torch
+            if torch.cuda.is_available():
+                for i in range(torch.cuda.device_count()):
+                    props = torch.cuda.get_device_properties(i)
+                    free, total = torch.cuda.mem_get_info(i)
+                    gpu_info.append({
+                        "id": i,
+                        "name": props.name,
+                        "total_gb": round(total / 1024**3, 1),
+                        "free_gb": round(free / 1024**3, 1),
+                        "used_gb": round((total - free) / 1024**3, 1),
+                    })
+        except ImportError:
+            pass
+
+        return {
+            "models": loaded,
+            "gpus": gpu_info,
+            "request_count": runtime._request_count,
+        }
+
+    @app.get("/metrics")
+    async def metrics() -> str:
+        from fastapi.responses import PlainTextResponse
+        runtime = get_runtime()
+        lines = [
+            f"# HELP omniff_requests_total Total requests processed",
+            f"# TYPE omniff_requests_total counter",
+            f"omniff_requests_total {runtime._request_count}",
+        ]
+
+        try:
+            import torch
+            if torch.cuda.is_available():
+                for i in range(torch.cuda.device_count()):
+                    free, total = torch.cuda.mem_get_info(i)
+                    used = total - free
+                    lines.append(f"# HELP omniff_gpu_memory_used_bytes GPU memory used")
+                    lines.append(f"# TYPE omniff_gpu_memory_used_bytes gauge")
+                    lines.append(f'omniff_gpu_memory_used_bytes{{gpu="{i}"}} {used}')
+                    lines.append(f"# HELP omniff_gpu_memory_total_bytes GPU memory total")
+                    lines.append(f"# TYPE omniff_gpu_memory_total_bytes gauge")
+                    lines.append(f'omniff_gpu_memory_total_bytes{{gpu="{i}"}} {total}')
+        except ImportError:
+            pass
+
+        loaded_count = sum(
+            1 for name in runtime.models.list()
+            if (m := runtime.models.get(name)) and m.is_loaded
+        )
+        lines.append(f"# HELP omniff_models_loaded Number of loaded models")
+        lines.append(f"# TYPE omniff_models_loaded gauge")
+        lines.append(f"omniff_models_loaded {loaded_count}")
+
+        return PlainTextResponse("\n".join(lines) + "\n", media_type="text/plain")
+
     return app
 
 
