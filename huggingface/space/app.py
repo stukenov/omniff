@@ -62,7 +62,7 @@ def _load_asr():
         return
     from transformers import WhisperForConditionalGeneration, WhisperProcessor
 
-    model_id = "openai/whisper-large-v3"
+    model_id = "openai/whisper-large-v3-turbo"
     _asr["processor"] = WhisperProcessor.from_pretrained(model_id)
     _asr["model"] = WhisperForConditionalGeneration.from_pretrained(
         model_id, torch_dtype=torch.float16, device_map="auto"
@@ -111,7 +111,7 @@ def _llm_generate(messages: list, thinking: str = "off", max_tokens: int = 512) 
     generated = model.generate(**inputs, max_new_tokens=max_tokens)
     new_tokens = generated[0][inputs["input_ids"].shape[-1] :]
     response = tokenizer.decode(new_tokens, skip_special_tokens=True)
-    return _strip_think(response) or "No output generated."
+    return _strip_think(response) or "Ответ не сгенерирован."
 
 
 # ---------------------------------------------------------------------------
@@ -120,7 +120,7 @@ def _llm_generate(messages: list, thinking: str = "off", max_tokens: int = 512) 
 @spaces.GPU(duration=120)
 def process_text(text: str, thinking: str) -> str:
     if not text.strip():
-        return "Please enter some text."
+        return "Введите текст."
     return _llm_generate([{"role": "user", "content": text}], thinking)
 
 
@@ -130,7 +130,7 @@ def process_text(text: str, thinking: str) -> str:
 @spaces.GPU(duration=120)
 def process_image(image_path: str, prompt: str) -> str:
     if not image_path:
-        return "Please upload an image."
+        return "Загрузите изображение."
 
     _load_vlm()
     model = _vlm["model"]
@@ -143,7 +143,7 @@ def process_image(image_path: str, prompt: str) -> str:
             "role": "user",
             "content": [
                 {"type": "image", "image": image_path},
-                {"type": "text", "text": prompt or "Describe this image in detail."},
+                {"type": "text", "text": prompt or "Опишите это изображение подробно."},
             ],
         }
     ]
@@ -160,7 +160,7 @@ def process_image(image_path: str, prompt: str) -> str:
 
     generated = model.generate(**inputs, max_new_tokens=512)
     new_tokens = generated[0][inputs["input_ids"].shape[-1] :]
-    return processor.decode(new_tokens, skip_special_tokens=True).strip() or "No output generated."
+    return processor.decode(new_tokens, skip_special_tokens=True).strip() or "Ответ не сгенерирован."
 
 
 # ---------------------------------------------------------------------------
@@ -169,7 +169,7 @@ def process_image(image_path: str, prompt: str) -> str:
 @spaces.GPU(duration=60)
 def process_audio(audio_path: str, language: str) -> str:
     if not audio_path:
-        return "Please upload an audio file."
+        return "Загрузите аудио файл."
 
     _load_asr()
     model = _asr["model"]
@@ -199,7 +199,7 @@ def process_audio(audio_path: str, language: str) -> str:
     predicted_ids = model.generate(input_features, **gen_kwargs)
     return (
         processor.batch_decode(predicted_ids, skip_special_tokens=True)[0].strip()
-        or "No output generated."
+        or "Ответ не сгенерирован."
     )
 
 
@@ -255,7 +255,7 @@ def edit_image(image_path: str, prompt: str, strength: float):
 @spaces.GPU(duration=120)
 def process_video(video_path: str, prompt: str) -> str:
     if not video_path:
-        return "Please upload a video."
+        return "Загрузите видео."
 
     _load_vlm()
     model = _vlm["model"]
@@ -275,7 +275,7 @@ def process_video(video_path: str, prompt: str) -> str:
                 },
                 {
                     "type": "text",
-                    "text": prompt or "Describe what happens in this video.",
+                    "text": prompt or "Опишите, что происходит в этом видео.",
                 },
             ],
         }
@@ -293,7 +293,7 @@ def process_video(video_path: str, prompt: str) -> str:
 
     generated = model.generate(**inputs, max_new_tokens=512)
     new_tokens = generated[0][inputs["input_ids"].shape[-1] :]
-    return processor.decode(new_tokens, skip_special_tokens=True).strip() or "No output generated."
+    return processor.decode(new_tokens, skip_special_tokens=True).strip() or "Ответ не сгенерирован."
 
 
 # ---------------------------------------------------------------------------
@@ -302,7 +302,7 @@ def process_video(video_path: str, prompt: str) -> str:
 @spaces.GPU(duration=120)
 def process_document(file_obj, prompt: str) -> str:
     if not file_obj:
-        return "Please upload a document."
+        return "Загрузите документ."
 
     file_path = file_obj if isinstance(file_obj, str) else getattr(file_obj, "name", str(file_obj))
     ext = file_path.rsplit(".", 1)[-1].lower() if "." in file_path else ""
@@ -316,7 +316,7 @@ def process_document(file_obj, prompt: str) -> str:
             text_content = "\n".join(page.get_text() for page in doc)
             doc.close()
         except ImportError:
-            return "PDF support requires PyMuPDF (fitz). Upload a .txt file instead."
+            return "Для PDF нужен PyMuPDF (fitz). Загрузите .txt файл."
     elif ext in ("txt", "md", "csv", "json", "xml", "html", "log"):
         with open(file_path, encoding="utf-8", errors="replace") as f:
             text_content = f.read()
@@ -325,7 +325,7 @@ def process_document(file_obj, prompt: str) -> str:
             text_content = f.read()
 
     if not text_content.strip():
-        return "Could not extract text from document."
+        return "Не удалось извлечь текст из документа."
 
     if len(text_content) > 8000:
         text_content = text_content[:8000] + "\n\n[... truncated ...]"
@@ -341,7 +341,7 @@ def process_document(file_obj, prompt: str) -> str:
 @spaces.GPU(duration=120)
 def generate_code(task: str, language: str) -> str:
     if not task.strip():
-        return "Please describe what code to generate."
+        return "Опишите, какой код нужно сгенерировать."
 
     lang_hint = f" in {language}" if language else ""
     messages = [
@@ -361,9 +361,9 @@ def generate_code(task: str, language: str) -> str:
 @spaces.GPU(duration=120)
 def translate_text(text: str, source_lang: str, target_lang: str) -> str:
     if not text.strip():
-        return "Please enter text to translate."
+        return "Введите текст для перевода."
     if not target_lang:
-        return "Please select a target language."
+        return "Выберите целевой язык."
     src = f" from {source_lang}" if source_lang else ""
     messages = [
         {
@@ -384,9 +384,9 @@ def translate_text(text: str, source_lang: str, target_lang: str) -> str:
 @spaces.GPU(duration=120)
 def translate_audio(audio_path: str, language: str, target_lang: str) -> str:
     if not audio_path:
-        return "Please upload an audio file."
+        return "Загрузите аудио файл."
     if not target_lang:
-        return "Please select a target language."
+        return "Выберите целевой язык."
 
     transcript = process_audio(audio_path, language)
     if transcript.startswith("Please") or transcript.startswith("No output"):
@@ -403,7 +403,7 @@ def translate_audio(audio_path: str, language: str, target_lang: str) -> str:
         {"role": "user", "content": transcript},
     ]
     translation = _llm_generate(messages, thinking="off", max_tokens=1024)
-    return f"**Original transcript:**\n{transcript}\n\n**Translation ({target_lang}):**\n{translation}"
+    return f"**Оригинальная транскрипция:**\n{transcript}\n\n**Перевод ({target_lang}):**\n{translation}"
 
 
 # ---------------------------------------------------------------------------
@@ -412,9 +412,9 @@ def translate_audio(audio_path: str, language: str, target_lang: str) -> str:
 @spaces.GPU(duration=120)
 def dub_audio(audio_path: str, language: str, target_lang: str) -> str:
     if not audio_path:
-        return "Please upload an audio file."
+        return "Загрузите аудио файл."
     if not target_lang:
-        return "Please select a target language."
+        return "Выберите целевой язык."
 
     transcript = process_audio(audio_path, language)
     if transcript.startswith("Please") or transcript.startswith("No output"):
@@ -432,9 +432,9 @@ def dub_audio(audio_path: str, language: str, target_lang: str) -> str:
     ]
     translation = _llm_generate(messages, thinking="off", max_tokens=1024)
     return (
-        f"**Original transcript:**\n{transcript}\n\n"
-        f"**Dubbed text ({target_lang}):**\n{translation}\n\n"
-        f"_(Full audio dubbing with TTS/voice cloning requires local GPU runtime with OmniVoice)_"
+        f"**Оригинальная транскрипция:**\n{transcript}\n\n"
+        f"**Дубляж текст ({target_lang}):**\n{translation}\n\n"
+        f"_(Полный аудио-дубляж с TTS/клонированием голоса требует локальный GPU с OmniVoice)_"
     )
 
 
@@ -444,10 +444,10 @@ def dub_audio(audio_path: str, language: str, target_lang: str) -> str:
 @spaces.GPU(duration=120)
 def run_agent(task: str, max_steps: int) -> str:
     if not task.strip():
-        return "Please describe a task for the agent."
+        return "Опишите задачу для агента."
 
     max_steps = max(1, min(int(max_steps), 10))
-    output_parts = [f"**Task:** {task}\n"]
+    output_parts = [f"**Задача:** {task}\n"]
 
     plan_msgs = [
         {
@@ -460,7 +460,7 @@ def run_agent(task: str, max_steps: int) -> str:
         {"role": "user", "content": task},
     ]
     plan = _llm_generate(plan_msgs, thinking="off", max_tokens=1024)
-    output_parts.append(f"**Plan:**\n{plan}\n")
+    output_parts.append(f"**План:**\n{plan}\n")
 
     exec_msgs = [
         {
@@ -474,7 +474,7 @@ def run_agent(task: str, max_steps: int) -> str:
         {"role": "user", "content": f"Task: {task}\n\nPlan:\n{plan}\n\nExecute this plan now."},
     ]
     result = _llm_generate(exec_msgs, thinking="off", max_tokens=2048)
-    output_parts.append(f"**Execution:**\n{result}")
+    output_parts.append(f"**Выполнение:**\n{result}")
 
     return "\n".join(output_parts)
 
@@ -595,7 +595,7 @@ def universal_chat(message: dict, history: list) -> dict:
                 translated = process_text(tr_prompt, "off")
                 return {
                     "role": "assistant",
-                    "content": f"**Original transcript:**\n{transcript}\n\n**Dubbed ({target_lang}):**\n{translated}\n\n_(Full audio dubbing with TTS requires local GPU runtime)_",
+                    "content": f"**Оригинальная транскрипция:**\n{transcript}\n\n**Дубляж ({target_lang}):**\n{translated}\n\n_(Полный аудио-дубляж с TTS требует локальный GPU рантайм)_",
                 }
             elif text and _TRANSLATE_PATTERNS.search(text):
                 # Audio translation: ASR → Translate
@@ -609,14 +609,14 @@ def universal_chat(message: dict, history: list) -> dict:
                 translated = process_text(tr_prompt, "off")
                 return {
                     "role": "assistant",
-                    "content": f"**Original transcript:**\n{transcript}\n\n**Translation ({target_lang}):**\n{translated}",
+                    "content": f"**Оригинальная транскрипция:**\n{transcript}\n\n**Перевод ({target_lang}):**\n{translated}",
                 }
             result = process_audio(first_file, "")
             if text:
                 full_prompt = f"The user uploaded an audio file. Here is the transcription:\n\n{result}\n\nUser's question: {text}"
                 answer = process_text(full_prompt, "off")
-                return {"role": "assistant", "content": f"**Transcription:**\n{result}\n\n**Answer:**\n{answer}"}
-            return {"role": "assistant", "content": f"**Transcription:**\n{result}"}
+                return {"role": "assistant", "content": f"**Транскрипция:**\n{result}\n\n**Ответ:**\n{answer}"}
+            return {"role": "assistant", "content": f"**Транскрипция:**\n{result}"}
 
         elif modality == "video":
             if text and _DUB_PATTERNS.search(text):
@@ -630,20 +630,20 @@ def universal_chat(message: dict, history: list) -> dict:
                 translated = process_text(tr_prompt, "off")
                 return {
                     "role": "assistant",
-                    "content": f"**Video transcript:**\n{result}\n\n**Dubbed ({target_lang}):**\n{translated}\n\n_(Full video dubbing with audio muxing requires local GPU runtime)_",
+                    "content": f"**Транскрипция видео:**\n{result}\n\n**Дубляж ({target_lang}):**\n{translated}\n\n_(Полный видео-дубляж с микшированием аудио требует локальный GPU рантайм)_",
                 }
             result = process_video(first_file, text or "Describe what happens in this video.")
             return {"role": "assistant", "content": result}
 
         elif modality == "document":
-            result = process_document(first_file, text or "Summarize this document.")
+            result = process_document(first_file, text or "Кратко изложите этот документ.")
             return {"role": "assistant", "content": result}
 
     # Case 2: Text only
     if not text:
         return {
             "role": "assistant",
-            "content": "Send me a message or upload a file. I can understand text, images, audio, video, and documents.",
+            "content": "Отправьте сообщение или загрузите файл. Я понимаю текст, изображения, аудио, видео и документы.",
         }
 
     intent = _detect_intent(text)
@@ -657,11 +657,11 @@ def universal_chat(message: dict, history: list) -> dict:
             return {
                 "role": "assistant",
                 "content": [
-                    {"type": "text", "text": f"Generated from: *{text}*"},
+                    {"type": "text", "text": f"Сгенерировано из: *{text}*"},
                     {"type": "image", "image": {"path": tmp.name}},
                 ],
             }
-        return {"role": "assistant", "content": "Could not generate the image. Please try a different prompt."}
+        return {"role": "assistant", "content": "Не удалось сгенерировать изображение. Попробуйте другой промпт."}
 
     if intent == "translate":
         target_lang = "English"
@@ -672,7 +672,7 @@ def universal_chat(message: dict, history: list) -> dict:
                 break
         tr_prompt = f"Translate the following text to {target_lang}. Return ONLY the translation.\n\n{text}"
         translated = process_text(tr_prompt, "off")
-        return {"role": "assistant", "content": f"**Translation ({target_lang}):**\n{translated}"}
+        return {"role": "assistant", "content": f"**Перевод ({target_lang}):**\n{translated}"}
 
     if intent == "code":
         result = generate_code(text, "")
@@ -680,13 +680,13 @@ def universal_chat(message: dict, history: list) -> dict:
 
     if intent == "agent":
         steps = []
-        steps.append(f"**Task:** {text}\n")
+        steps.append(f"**Задача:** {text}\n")
         thinking_prompt = f"Break this task into steps and solve it:\n\n{text}"
         plan = process_text(thinking_prompt, "off")
-        steps.append(f"**Plan:**\n{plan}\n")
+        steps.append(f"**План:**\n{plan}\n")
         execution_prompt = f"Execute this plan and provide the final answer:\n\nTask: {text}\nPlan: {plan}"
         answer = process_text(execution_prompt, "off")
-        steps.append(f"**Result:**\n{answer}")
+        steps.append(f"**Результат:**\n{answer}")
         return {"role": "assistant", "content": "\n".join(steps)}
 
     # Default: text-to-text
@@ -700,22 +700,28 @@ def universal_chat(message: dict, history: list) -> dict:
 _SPACE_MODELS = [
     "Qwen/Qwen3-4B",
     "Qwen/Qwen2.5-VL-3B-Instruct",
-    "openai/whisper-large-v3",
+    "openai/whisper-large-v3-turbo",
     "stabilityai/sdxl-turbo",
 ]
 
 
 def _download_all_models():
-    """Download all models synchronously at build time so they're cached."""
-    from huggingface_hub import snapshot_download
+    """Download all models in background so Gradio starts immediately."""
+    import threading
 
-    for model_id in _SPACE_MODELS:
-        try:
-            print(f"[OmniFF] Downloading {model_id}...")
-            snapshot_download(model_id)
-            print(f"[OmniFF] ✓ {model_id} cached")
-        except Exception as e:
-            print(f"[OmniFF] ✗ {model_id} failed: {e}")
+    def _do():
+        from huggingface_hub import snapshot_download
+
+        for model_id in _SPACE_MODELS:
+            try:
+                print(f"[OmniFF] Downloading {model_id}...")
+                snapshot_download(model_id)
+                print(f"[OmniFF] ✓ {model_id} cached")
+            except Exception as e:
+                print(f"[OmniFF] ✗ {model_id} failed: {e}")
+        print("[OmniFF] All models cached.")
+
+    threading.Thread(target=_do, daemon=True).start()
 
 
 _download_all_models()
@@ -1064,7 +1070,7 @@ label span {
 # Gradio UI — Round 3: Compact, dense, flat hierarchy (Apple HIG)
 # ---------------------------------------------------------------------------
 with gr.Blocks(
-    title="OmniFF -- FFmpeg for AI",
+    title="OmniFF — FFmpeg для ИИ",
     theme=gr.themes.Soft(
         primary_hue=gr.themes.colors.blue,
         secondary_hue=gr.themes.colors.gray,
@@ -1080,7 +1086,7 @@ with gr.Blocks(
     gr.HTML(
         '<div class="omiff-header">'
         "<h1>OmniFF</h1>"
-        '<span class="omiff-sub">FFmpeg for AI</span>'
+        '<span class="omiff-sub">FFmpeg для ИИ</span>'
         '<span class="omiff-badge">ZeroGPU</span>'
         "</div>"
     )
@@ -1093,10 +1099,10 @@ with gr.Blocks(
     # ------------------------------------------------------------------
     # TAB: Chat — the universal multimodal entry point
     # ------------------------------------------------------------------
-    with gr.Tab("Chat", id="chat"):
+    with gr.Tab("Чат", id="chat"):
         gr.HTML(
             '<p class="omiff-chat-hint">'
-            "Text, images, audio, video, documents -- auto-routed."
+            "Текст, изображения, аудио, видео, документы — авто-маршрутизация."
             "</p>"
         )
 
@@ -1110,14 +1116,14 @@ with gr.Blocks(
             ),
             placeholder=(
                 '<div style="text-align:center; padding:24px 16px; opacity:0.5;">'
-                '<p style="font-size:16px; font-weight:600; margin-bottom:2px;">What can I help with?</p>'
-                '<p style="font-size:12px;">Drop a file or type a message.</p>'
+                '<p style="font-size:16px; font-weight:600; margin-bottom:2px;">Чем могу помочь?</p>'
+                '<p style="font-size:12px;">Загрузите файл или напишите сообщение.</p>'
                 "</div>"
             ),
         )
 
         chat_input = gr.MultimodalTextbox(
-            placeholder="Message OmniFF...",
+            placeholder="Сообщение OmniFF...",
             show_label=False,
             file_count="single",
             sources=["upload", "microphone"],
@@ -1189,9 +1195,9 @@ with gr.Blocks(
                     {
                         "role": "assistant",
                         "content": (
-                            f"Something went wrong.\n\n"
-                            f"**Error:** {error_msg}\n\n"
-                            f"Try again, or use a specialized tab."
+                            f"Что-то пошло не так.\n\n"
+                            f"**Ошибка:** {error_msg}\n\n"
+                            f"Попробуйте снова или используйте специализированную вкладку."
                         ),
                     }
                 )
@@ -1203,19 +1209,19 @@ with gr.Blocks(
     # ------------------------------------------------------------------
     # TAB: Image — analyze an image (VLM)
     # ------------------------------------------------------------------
-    with gr.Tab("Image", id="image"):
+    with gr.Tab("Изображение", id="image"):
         with gr.Row(equal_height=True):
             with gr.Column(scale=1):
-                img_input = gr.Image(type="filepath", label="Image", height=240)
+                img_input = gr.Image(type="filepath", label="Изображение", height=240)
                 img_prompt = gr.Textbox(
-                    label="Question",
-                    value="Describe this image in detail.",
+                    label="Вопрос",
+                    value="Опишите это изображение подробно.",
                     lines=2,
                 )
-                img_btn = gr.Button("Analyze", variant="primary")
+                img_btn = gr.Button("Анализ", variant="primary")
             with gr.Column(scale=1):
                 img_output = gr.Textbox(
-                    label="Analysis", lines=10,
+                    label="Результат", lines=10,
                     show_copy_button=True, elem_classes=["output-textbox"],
                 )
         img_btn.click(process_image, [img_input, img_prompt], img_output)
@@ -1223,19 +1229,19 @@ with gr.Blocks(
     # ------------------------------------------------------------------
     # TAB: Video — analyze a video (VLM)
     # ------------------------------------------------------------------
-    with gr.Tab("Video", id="video"):
+    with gr.Tab("Видео", id="video"):
         with gr.Row(equal_height=True):
             with gr.Column(scale=1):
-                vid_input = gr.Video(label="Video", height=240)
+                vid_input = gr.Video(label="Видео", height=240)
                 vid_prompt = gr.Textbox(
-                    label="Question",
-                    value="Describe what happens in this video.",
+                    label="Вопрос",
+                    value="Опишите, что происходит в этом видео.",
                     lines=2,
                 )
-                vid_btn = gr.Button("Analyze", variant="primary")
+                vid_btn = gr.Button("Анализ", variant="primary")
             with gr.Column(scale=1):
                 vid_output = gr.Textbox(
-                    label="Analysis", lines=10,
+                    label="Результат", lines=10,
                     show_copy_button=True, elem_classes=["output-textbox"],
                 )
         vid_btn.click(process_video, [vid_input, vid_prompt], vid_output)
@@ -1243,62 +1249,62 @@ with gr.Blocks(
     # ------------------------------------------------------------------
     # TAB: Generate — text to image (SDXL Turbo)
     # ------------------------------------------------------------------
-    with gr.Tab("Generate", id="generate"):
+    with gr.Tab("Генерация", id="generate"):
         with gr.Row(equal_height=True):
             with gr.Column(scale=1):
                 gen_prompt = gr.Textbox(
-                    label="Prompt", lines=2,
-                    placeholder="A cabin in the mountains at golden hour...",
+                    label="Промпт", lines=2,
+                    placeholder="Домик в горах на закате...",
                 )
                 with gr.Row():
-                    gen_seed = gr.Number(label="Seed", value=-1, scale=1)
-                    gen_btn = gr.Button("Generate", variant="primary", scale=2)
+                    gen_seed = gr.Number(label="Сид", value=-1, scale=1)
+                    gen_btn = gr.Button("Создать", variant="primary", scale=2)
             with gr.Column(scale=1):
-                gen_output = gr.Image(label="Result", height=360)
+                gen_output = gr.Image(label="Результат", height=360)
         gen_btn.click(generate_image, [gen_prompt, gen_seed], gen_output)
 
     # ------------------------------------------------------------------
     # TAB: Transform — image to image (SDXL Turbo)
     # ------------------------------------------------------------------
-    with gr.Tab("Transform", id="transform"):
+    with gr.Tab("Трансформация", id="transform"):
         with gr.Row(equal_height=True):
             with gr.Column(scale=1):
-                i2i_input = gr.Image(type="filepath", label="Source", height=200)
+                i2i_input = gr.Image(type="filepath", label="Исходник", height=200)
                 i2i_prompt = gr.Textbox(
-                    label="Style Prompt",
-                    value="Make it look like a watercolor painting",
+                    label="Стиль",
+                    value="Сделай как акварельную картину",
                     lines=2,
                 )
                 with gr.Row():
                     i2i_strength = gr.Slider(
                         minimum=0.1, maximum=1.0, value=0.5, step=0.05,
-                        label="Strength", scale=2,
+                        label="Сила", scale=2,
                     )
-                    i2i_btn = gr.Button("Transform", variant="primary", scale=1)
+                    i2i_btn = gr.Button("Преобразовать", variant="primary", scale=1)
             with gr.Column(scale=1):
-                i2i_output = gr.Image(label="Result", height=360)
+                i2i_output = gr.Image(label="Результат", height=360)
         i2i_btn.click(edit_image, [i2i_input, i2i_prompt, i2i_strength], i2i_output)
 
     # ------------------------------------------------------------------
     # TAB: Transcribe — audio/speech (Whisper)
     # ------------------------------------------------------------------
-    with gr.Tab("Transcribe", id="transcribe"):
+    with gr.Tab("Транскрипция", id="transcribe"):
         with gr.Row(equal_height=True):
             with gr.Column(scale=1):
                 aud_input = gr.Audio(
-                    type="filepath", label="Audio",
+                    type="filepath", label="Аудио",
                     sources=["upload", "microphone"],
                 )
                 with gr.Row():
                     aud_lang = gr.Dropdown(
                         ["", "en", "ru", "kk", "zh", "de", "fr", "es", "ja"],
-                        value="", label="Language", scale=2,
-                        info="Empty = auto-detect",
+                        value="", label="Язык", scale=2,
+                        info="Пусто = авто-определение",
                     )
-                    aud_btn = gr.Button("Transcribe", variant="primary", scale=1)
+                    aud_btn = gr.Button("Распознать", variant="primary", scale=1)
             with gr.Column(scale=1):
                 aud_output = gr.Textbox(
-                    label="Transcription", lines=10,
+                    label="Транскрипция", lines=10,
                     show_copy_button=True, elem_classes=["output-textbox"],
                 )
         aud_btn.click(process_audio, [aud_input, aud_lang], aud_output)
@@ -1306,22 +1312,22 @@ with gr.Blocks(
     # ------------------------------------------------------------------
     # TAB: Text — LLM text generation
     # ------------------------------------------------------------------
-    with gr.Tab("Text", id="text"):
+    with gr.Tab("Текст", id="text"):
         with gr.Row(equal_height=True):
             with gr.Column(scale=1):
                 txt_input = gr.Textbox(
-                    label="Prompt", lines=3,
-                    placeholder="Ask anything...",
+                    label="Запрос", lines=3,
+                    placeholder="Спросите что угодно...",
                 )
                 with gr.Row():
                     txt_thinking = gr.Radio(
                         ["off", "normal"], value="off",
-                        label="Reasoning", scale=2,
+                        label="Рассуждение", scale=2,
                     )
-                    txt_btn = gr.Button("Generate", variant="primary", scale=1)
+                    txt_btn = gr.Button("Генерировать", variant="primary", scale=1)
             with gr.Column(scale=1):
                 txt_output = gr.Textbox(
-                    label="Response", lines=10,
+                    label="Ответ", lines=10,
                     show_copy_button=True, elem_classes=["output-textbox"],
                 )
         txt_btn.click(process_text, [txt_input, txt_thinking], txt_output)
@@ -1329,23 +1335,23 @@ with gr.Blocks(
     # ------------------------------------------------------------------
     # TAB: Documents — document analysis (LLM)
     # ------------------------------------------------------------------
-    with gr.Tab("Documents", id="documents"):
+    with gr.Tab("Документы", id="documents"):
         with gr.Row(equal_height=True):
             with gr.Column(scale=1):
                 doc_input = gr.File(
-                    label="Document",
+                    label="Документ",
                     file_types=[".txt", ".md", ".csv", ".json",
                                 ".xml", ".html", ".log", ".pdf"],
                 )
                 doc_prompt = gr.Textbox(
-                    label="Instruction",
-                    value="Summarize this document.",
+                    label="Инструкция",
+                    value="Кратко изложите этот документ.",
                     lines=2,
                 )
-                doc_btn = gr.Button("Process", variant="primary")
+                doc_btn = gr.Button("Обработать", variant="primary")
             with gr.Column(scale=1):
                 doc_output = gr.Textbox(
-                    label="Result", lines=10,
+                    label="Результат", lines=10,
                     show_copy_button=True, elem_classes=["output-textbox"],
                 )
         doc_btn.click(process_document, [doc_input, doc_prompt], doc_output)
@@ -1353,69 +1359,69 @@ with gr.Blocks(
     # ------------------------------------------------------------------
     # TAB: Code — code generation (LLM)
     # ------------------------------------------------------------------
-    with gr.Tab("Code", id="code"):
+    with gr.Tab("Код", id="code"):
         with gr.Row(equal_height=True):
             with gr.Column(scale=1):
                 code_task = gr.Textbox(
-                    label="Task", lines=3,
-                    placeholder="Write a merge sort function...",
+                    label="Задача", lines=3,
+                    placeholder="Напиши функцию сортировки слиянием...",
                 )
                 with gr.Row():
                     code_lang = gr.Dropdown(
                         ["Python", "JavaScript", "TypeScript",
                          "Rust", "Go", "Java", "C++", ""],
-                        value="Python", label="Language", scale=2,
+                        value="Python", label="Язык", scale=2,
                     )
-                    code_btn = gr.Button("Generate", variant="primary", scale=1)
+                    code_btn = gr.Button("Генерировать", variant="primary", scale=1)
             with gr.Column(scale=1):
-                code_output = gr.Code(label="Output", language="python", lines=14)
+                code_output = gr.Code(label="Результат", language="python", lines=14)
         code_btn.click(generate_code, [code_task, code_lang], code_output)
 
     # ------------------------------------------------------------------
     # TAB: Translate — text and audio translation
     # ------------------------------------------------------------------
-    with gr.Tab("Translate", id="translate"):
+    with gr.Tab("Перевод", id="translate"):
         with gr.Row(equal_height=True):
             with gr.Column(scale=1):
                 tr_input = gr.Textbox(
-                    label="Text to Translate", lines=4,
-                    placeholder="Enter text or upload audio below...",
+                    label="Текст для перевода", lines=4,
+                    placeholder="Введите текст или загрузите аудио ниже...",
                 )
                 tr_audio = gr.Audio(
-                    type="filepath", label="Or Upload Audio",
+                    type="filepath", label="Или загрузите аудио",
                     sources=["upload", "microphone"],
                 )
                 with gr.Row():
                     tr_src_lang = gr.Dropdown(
-                        ["", "English", "Russian", "Kazakh", "Chinese",
-                         "French", "German", "Spanish", "Japanese", "Korean"],
-                        value="", label="Source", scale=1,
-                        info="Empty = auto-detect",
+                        ["", "Английский", "Русский", "Казахский", "Китайский",
+                         "Французский", "Немецкий", "Испанский", "Японский", "Корейский"],
+                        value="", label="Исходный", scale=1,
+                        info="Пусто = авто-определение",
                     )
                     tr_tgt_lang = gr.Dropdown(
-                        ["English", "Russian", "Kazakh", "Chinese",
-                         "French", "German", "Spanish", "Japanese", "Korean"],
-                        value="English", label="Target", scale=1,
+                        ["Английский", "Русский", "Казахский", "Китайский",
+                         "Французский", "Немецкий", "Испанский", "Японский", "Корейский"],
+                        value="Русский", label="Целевой", scale=1,
                     )
-                    tr_btn = gr.Button("Translate", variant="primary", scale=1)
+                    tr_btn = gr.Button("Перевести", variant="primary", scale=1)
             with gr.Column(scale=1):
                 tr_output = gr.Textbox(
-                    label="Translation", lines=10,
+                    label="Перевод", lines=10,
                     show_copy_button=True, elem_classes=["output-textbox"],
                 )
 
         def _handle_translate(text, audio, src_lang, tgt_lang):
             if audio:
                 lang_code = ""
-                lang_map = {"english": "en", "russian": "ru", "kazakh": "kk",
-                            "chinese": "zh", "french": "fr", "german": "de",
-                            "spanish": "es", "japanese": "ja", "korean": "ko"}
+                lang_map = {"английский": "en", "русский": "ru", "казахский": "kk",
+                            "китайский": "zh", "французский": "fr", "немецкий": "de",
+                            "испанский": "es", "японский": "ja", "корейский": "ko"}
                 if src_lang:
                     lang_code = lang_map.get(src_lang.lower(), "")
                 return translate_audio(audio, lang_code, tgt_lang)
             if text and text.strip():
                 return translate_text(text, src_lang, tgt_lang)
-            return "Please enter text or upload audio."
+            return "Введите текст или загрузите аудио."
 
         tr_btn.click(
             _handle_translate,
@@ -1426,29 +1432,29 @@ with gr.Blocks(
     # ------------------------------------------------------------------
     # TAB: Dub — audio/video dubbing pipeline
     # ------------------------------------------------------------------
-    with gr.Tab("Dub", id="dub"):
+    with gr.Tab("Дубляж", id="dub"):
         with gr.Row(equal_height=True):
             with gr.Column(scale=1):
                 dub_audio_input = gr.Audio(
-                    type="filepath", label="Audio File",
+                    type="filepath", label="Аудио файл",
                     sources=["upload", "microphone"],
                 )
-                dub_video_input = gr.Video(label="Or Video File", height=200)
+                dub_video_input = gr.Video(label="Или видео файл", height=200)
                 with gr.Row():
                     dub_src_lang = gr.Dropdown(
                         ["", "en", "ru", "kk", "zh", "de", "fr", "es", "ja"],
-                        value="", label="Source Lang", scale=1,
-                        info="Empty = auto-detect",
+                        value="", label="Исходный язык", scale=1,
+                        info="Пусто = авто-определение",
                     )
                     dub_tgt_lang = gr.Dropdown(
-                        ["English", "Russian", "Kazakh", "Chinese",
-                         "French", "German", "Spanish", "Japanese"],
-                        value="English", label="Target Lang", scale=1,
+                        ["Английский", "Русский", "Казахский", "Китайский",
+                         "Французский", "Немецкий", "Испанский", "Японский"],
+                        value="Русский", label="Целевой язык", scale=1,
                     )
-                    dub_btn = gr.Button("Dub", variant="primary", scale=1)
+                    dub_btn = gr.Button("Дублировать", variant="primary", scale=1)
             with gr.Column(scale=1):
                 dub_output = gr.Textbox(
-                    label="Dubbing Result", lines=12,
+                    label="Результат дубляжа", lines=12,
                     show_copy_button=True, elem_classes=["output-textbox"],
                 )
 
@@ -1464,13 +1470,13 @@ with gr.Blocks(
                 ]
                 translation = _llm_generate(messages, thinking="off", max_tokens=1024)
                 return (
-                    f"**Video transcript:**\n{transcript}\n\n"
-                    f"**Dubbed ({tgt_lang}):**\n{translation}\n\n"
-                    f"_(Full video dubbing with audio muxing requires local GPU runtime)_"
+                    f"**Транскрипция видео:**\n{transcript}\n\n"
+                    f"**Дубляж ({tgt_lang}):**\n{translation}\n\n"
+                    f"_(Полный видео-дубляж с микшированием аудио требует локальный GPU рантайм)_"
                 )
             if audio:
                 return dub_audio(audio, src_lang, tgt_lang)
-            return "Please upload an audio or video file."
+            return "Загрузите аудио или видео файл."
 
         dub_btn.click(
             _handle_dub,
@@ -1481,22 +1487,22 @@ with gr.Blocks(
     # ------------------------------------------------------------------
     # TAB: Agent — multi-step reasoning
     # ------------------------------------------------------------------
-    with gr.Tab("Agent", id="agent"):
+    with gr.Tab("Агент", id="agent"):
         with gr.Row(equal_height=True):
             with gr.Column(scale=1):
                 agent_task = gr.Textbox(
-                    label="Task", lines=3,
-                    placeholder="Research and explain quantum computing applications...",
+                    label="Задача", lines=3,
+                    placeholder="Исследуй и объясни применения квантовых вычислений...",
                 )
                 with gr.Row():
                     agent_steps = gr.Slider(
                         minimum=1, maximum=10, value=5, step=1,
-                        label="Max Steps", scale=2,
+                        label="Макс. шагов", scale=2,
                     )
-                    agent_btn = gr.Button("Run Agent", variant="primary", scale=1)
+                    agent_btn = gr.Button("Запустить", variant="primary", scale=1)
             with gr.Column(scale=1):
                 agent_output = gr.Textbox(
-                    label="Agent Output", lines=14,
+                    label="Результат агента", lines=14,
                     show_copy_button=True, elem_classes=["output-textbox"],
                 )
         agent_btn.click(run_agent, [agent_task, agent_steps], agent_output)
@@ -1511,7 +1517,7 @@ with gr.Blocks(
         " &middot; "
         '<a href="https://github.com/stukenov" target="_blank">Saken Tukenov</a>'
         " &middot; "
-        "Qwen3 &middot; Qwen2.5-VL &middot; Whisper &middot; SDXL Turbo &middot; Translation &middot; Dubbing &middot; Agent"
+        "Qwen3 &middot; Qwen2.5-VL &middot; Whisper &middot; SDXL Turbo &middot; Перевод &middot; Дубляж &middot; Агент"
         "</p>"
         "</div>"
     )
