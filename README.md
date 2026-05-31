@@ -39,10 +39,11 @@ pipeline_tag: text-generation
 </p>
 
 <p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache_2.0-green"/></a>
   <img src="https://img.shields.io/badge/python-≥3.10-3776AB?logo=python&logoColor=white"/>
   <img src="https://img.shields.io/badge/rust-workspace-DEA584?logo=rust&logoColor=white"/>
-  <img src="https://img.shields.io/badge/license-Apache_2.0-green"/>
   <img src="https://img.shields.io/badge/tests-100_passed-brightgreen"/>
+  <a href="https://github.com/stukenov/omniff/stargazers"><img src="https://img.shields.io/github/stars/stukenov/omniff?style=social"/></a>
 </p>
 
 ---
@@ -73,6 +74,20 @@ omniff -i lecture.mp4 -p "Summarize this video"
 omniff -i report.pdf -p "Extract key findings"
 # → Key findings: 1) Revenue grew 23%...
 ```
+
+## Features
+
+- **Any modality → any modality** — text, image, audio, video, and documents flow through one runtime (see [Pipelines](#pipelines)).
+- **FFmpeg-style CLI** — familiar `-i / -p / -f / -o` flags, plus `models`, `graph`, `plugin`, and `bench` subcommands.
+- **Graph-based execution** — inputs are routed, planned into a DAG, and walked through model → filter → validate → mux nodes.
+- **Model scheduler** — hot/warm/cold loading policies with TTL eviction and LRU to fit limited VRAM.
+- **Thinking+ control** — dial reasoning effort per request: `off → fast → normal → deep → research`.
+- **Validation pipeline** — multi-pass required/optional checks on generated output.
+- **Streaming & agent modes** — token-by-token streaming (`--stream`) and multi-step agent runs (`--agent`).
+- **HTTP & WebSocket API** — FastAPI server with `/run`, `/run/file`, `/run/stream`, `/ws`, and `/health`.
+- **Pluggable models** — register custom model implementations via the plugin registry.
+- **YAML pipelines & config** — declarative graph templates and a single `omniff.yaml` runtime configuration.
+- **Python SDK** — drive the runtime directly with `from omniff import OmniFFRuntime`.
 
 ## Quickstart
 
@@ -292,6 +307,10 @@ Tested on **KazNU server** (2× NVIDIA A10 22GB).
 | Rust crates | `omniff-core`, `omniff-graph`, `omniff-runtime`, `omniff-cli` |
 | GitHub | [`stukenov/omniff`](https://github.com/stukenov/omniff) |
 | Hugging Face | [`stukenov/omniff-runtime`](https://huggingface.co/stukenov/omniff-runtime) |
+
+## Related projects
+
+- [**data-translate**](https://github.com/stukenov/data-translate) — HuggingFace dataset translation.
 
 ## License
 
