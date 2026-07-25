@@ -1,0 +1,94 @@
+- generic [ref=e1]:
+  - main [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e16]:
+        - generic [ref=e20]:
+          - heading "OmniFF" [level=1] [ref=e21]
+          - generic [ref=e22]: FFmpeg для ИИ
+          - generic [ref=e23]: ZeroGPU
+        - generic [ref=e24]:
+          - generic [ref=e25]:
+            - generic [ref=e26]:
+              - button [ref=e27] [cursor=pointer]: Чат
+              - button [ref=e28] [cursor=pointer]: Изображение
+              - button [ref=e29] [cursor=pointer]: Видео
+              - button [ref=e30] [cursor=pointer]: Генерация
+              - button [ref=e31] [cursor=pointer]: Трансформация
+              - button [ref=e32] [cursor=pointer]: Транскрипция
+              - button [ref=e33] [cursor=pointer]: Текст
+              - button [ref=e34] [cursor=pointer]: Документы
+              - button [ref=e35] [cursor=pointer]: Код
+              - button [ref=e36] [cursor=pointer]: Перевод
+              - button [ref=e37] [cursor=pointer]: Дубляж
+              - button [ref=e38] [cursor=pointer]: Агент
+            - tablist [ref=e39]:
+              - tab "Чат" [ref=e40] [cursor=pointer]
+              - tab "Изображение" [ref=e41] [cursor=pointer]
+              - tab "Видео" [ref=e42] [cursor=pointer]
+              - tab "Генерация" [ref=e43] [cursor=pointer]
+              - tab "Трансформация" [ref=e44] [cursor=pointer]
+              - tab "Транскрипция" [ref=e45] [cursor=pointer]
+              - tab "Текст" [active] [selected] [ref=e46] [cursor=pointer]
+              - tab "Документы" [ref=e47] [cursor=pointer]
+              - tab "Код" [ref=e48] [cursor=pointer]
+            - button [ref=e50] [cursor=pointer]:
+              - img [ref=e51]
+          - tabpanel [ref=e216]:
+            - generic [ref=e218]:
+              - generic [ref=e219]:
+                - generic [ref=e222]:
+                  - generic [ref=e223]: Запрос
+                  - textbox "Запрос" [ref=e225]:
+                    - /placeholder: Спросите что угодно...
+                - generic [ref=e226]:
+                  - group [ref=e228]:
+                    - generic [ref=e229]: Рассуждение
+                    - generic [ref=e230]:
+                      - generic [ref=e231] [cursor=pointer]:
+                        - radio "off" [checked] [ref=e232]
+                        - generic [ref=e233]: "off"
+                      - generic [ref=e234] [cursor=pointer]:
+                        - radio "normal" [ref=e235]
+                        - generic [ref=e236]: normal
+                  - button "Генерировать" [ref=e237] [cursor=pointer]
+              - generic [ref=e241]:
+                - button "Copy" [ref=e242] [cursor=pointer]:
+                  - img [ref=e243]
+                - generic [ref=e246]: Ответ
+                - textbox [disabled] [ref=e248]
+        - paragraph [ref=e94]:
+          - link "GitHub" [ref=e95] [cursor=pointer]:
+            - /url: https://github.com/stukenov/omniff
+          - text: ·
+          - link "HuggingFace" [ref=e96] [cursor=pointer]:
+            - /url: https://huggingface.co/stukenov/omniff
+          - text: ·
+          - link "Saken Tukenov" [ref=e97] [cursor=pointer]:
+            - /url: https://github.com/stukenov
+          - text: · Qwen3 · Qwen2.5-VL · Whisper · SDXL Turbo · Перевод · Дубляж · Агент
+      - generic [ref=e7]:
+        - button "Use via API logo" [ref=e8] [cursor=pointer]:
+          - text: Use via API
+          - img "logo" [ref=e9]
+        - generic [ref=e10]: ·
+        - link "Built with Gradio logo" [ref=e11] [cursor=pointer]:
+          - /url: https://gradio.app
+          - text: Built with Gradio
+          - img "logo" [ref=e12]
+        - generic [ref=e13]: ·
+        - button "Settings Settings" [ref=e14] [cursor=pointer]:
+          - text: Settings
+          - img "Settings" [ref=e15]
+  - generic [ref=e99]:
+    - generic [ref=e100]:
+      - img [ref=e101]
+      - link "stukenov" [ref=e102] [cursor=pointer]:
+        - /url: https://huggingface.co/stukenov
+      - generic [ref=e103]: /
+      - link "omniff-demo" [ref=e104] [cursor=pointer]:
+        - /url: https://huggingface.co/spaces/stukenov/omniff-demo
+      - link "0" [ref=e105] [cursor=pointer]:
+        - /url: https://huggingface.co/spaces/stukenov/omniff-demo
+        - img [ref=e106]
+        - paragraph [ref=e108]: "0"
+    - img [ref=e110] [cursor=pointer]

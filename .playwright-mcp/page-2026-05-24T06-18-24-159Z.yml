@@ -1,0 +1,44 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: ⚡
+      - generic [ref=e7]: OmniFF
+      - generic [ref=e8]: /
+      - generic [ref=e9]: FFmpeg для ИИ
+    - navigation [ref=e11]:
+      - link "Верстак" [ref=e12] [cursor=pointer]:
+        - /url: /
+      - link "Live" [ref=e13] [cursor=pointer]:
+        - /url: /live
+      - link "Пайплайны" [ref=e14] [cursor=pointer]:
+        - /url: /pipelines
+      - link "История" [ref=e15] [cursor=pointer]:
+        - /url: /history
+  - generic [ref=e32]:
+    - generic [ref=e33]: Что создать?
+    - generic [ref=e34]:
+      - button "📝 Написать Текст, эссе" [ref=e35] [cursor=pointer]:
+        - generic [ref=e36]: 📝
+        - generic [ref=e37]:
+          - generic [ref=e38]: Написать
+          - generic [ref=e39]: Текст, эссе
+      - button "🎨 Картинка Текст → изображение" [ref=e40] [cursor=pointer]:
+        - generic [ref=e41]: 🎨
+        - generic [ref=e42]:
+          - generic [ref=e43]: Картинка
+          - generic [ref=e44]: Текст → изображение
+      - button "💻 Код По описанию" [ref=e45] [cursor=pointer]:
+        - generic [ref=e46]: 💻
+        - generic [ref=e47]:
+          - generic [ref=e48]: Код
+          - generic [ref=e49]: По описанию
+      - button "🌐 Перевести На другой язык" [ref=e50] [cursor=pointer]:
+        - generic [ref=e51]: 🌐
+        - generic [ref=e52]:
+          - generic [ref=e53]: Перевести
+          - generic [ref=e54]: На другой язык
+  - generic [ref=e27]:
+    - button "📎" [ref=e28] [cursor=pointer]
+    - textbox "Сообщение, файл, ссылка..." [ref=e29]
+    - button "🎤" [ref=e30] [cursor=pointer]
+    - button "▶" [ref=e31] [cursor=pointer]

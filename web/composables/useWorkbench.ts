@@ -9,7 +9,6 @@ export interface FileAction {
   optPlaceholder?: string
   optChoices?: string[]
   route: string
-  result: string
   next: string[]
 }
 
@@ -26,8 +25,8 @@ export type FileType = "image" | "video" | "audio" | "document" | "none"
 const FILE_CONFIGS: Record<FileType, FileConfig> = {
   image: {
     icon: "🖼",
-    name: "landscape.jpg",
-    meta: "Изображение · 2.4 MB",
+    name: null,
+    meta: null,
     iconBg: "var(--accent-soft)",
     actions: [
       {
@@ -37,11 +36,9 @@ const FILE_CONFIGS: Record<FileType, FileConfig> = {
         desc: "Что изображено?",
         color: "var(--accent-soft)",
         optType: "textarea",
-        optPlaceholder: "Вопрос...",
+        optPlaceholder: "Вопрос к изображению...",
         route: "Qwen2.5-VL",
-        result:
-          "Горный пейзаж. Альпийское озеро с бирюзовой водой. Заснеженные вершины в закатном свете. Хвойные деревья по берегу.",
-        next: ["🌐 Перевести", "🎨 Стилизовать"],
+        next: ["🌐 Перевести"],
       },
       {
         id: "ocr",
@@ -53,62 +50,33 @@ const FILE_CONFIGS: Record<FileType, FileConfig> = {
         optLabel: "На язык",
         optChoices: ["Русский", "Казахский", "English"],
         route: "VL + Qwen3",
-        result: 'Текст: "Mountain Lake Resort"\n→ «Горный Озёрный Курорт»',
-        next: ["📋 Копировать", "🔄 Другой язык"],
-      },
-      {
-        id: "upscale",
-        icon: "✨",
-        name: "Улучшить",
-        desc: "×2 разрешение",
-        color: "var(--orange-soft)",
-        optType: null,
-        route: "Real-ESRGAN",
-        result: "2400×1600 → 4800×3200 · PNG · 8.7 MB",
-        next: ["⬇ Скачать", "🎨 Стилизовать"],
+        next: ["📋 Копировать"],
       },
     ],
   },
   video: {
     icon: "🎬",
-    name: "lecture.mp4",
-    meta: "Видео · 45:12",
+    name: null,
+    meta: null,
     iconBg: "var(--purple-soft)",
     actions: [
       {
-        id: "transcribe",
-        icon: "📝",
-        name: "Транскрибировать",
-        desc: "Речь → текст",
+        id: "describe",
+        icon: "👁",
+        name: "Описать",
+        desc: "Что на видео?",
         color: "var(--green-soft)",
-        optType: "select",
-        optLabel: "Язык",
-        optChoices: ["Авто", "Қазақша", "Русский"],
-        route: "Whisper-turbo",
-        result:
-          "[00:00] Сәлеметсіздер, дәріске қош келдіңіздер.\n[00:05] Кванттық механика негіздері.\n[00:12] Шрёдингер теңдеуін еске түсірейік.\n\n⏱ 45:12 · Қазақша",
-        next: ["🌐 Перевести", "📋 Резюме", "💬 SRT"],
-      },
-      {
-        id: "subtitles",
-        icon: "💬",
-        name: "Субтитры",
-        desc: ".srt файл",
-        color: "var(--orange-soft)",
-        optType: "select",
-        optLabel: "Язык",
-        optChoices: ["Оригинал", "Русский", "English"],
-        route: "Whisper+Qwen3",
-        result:
-          "1\n00:00:00 --> 00:00:05\nСәлеметсіздер, дәріске\nқош келдіңіздер.\n\n📄 lecture.srt · 127 строк",
-        next: ["⬇ Скачать", "🌐 Перевести"],
+        optType: "textarea",
+        optPlaceholder: "Вопрос к видео...",
+        route: "Qwen2.5-VL",
+        next: ["🌐 Перевести"],
       },
     ],
   },
   audio: {
     icon: "🎵",
-    name: "interview.m4a",
-    meta: "Аудио · 18:34",
+    name: null,
+    meta: null,
     iconBg: "var(--green-soft)",
     actions: [
       {
@@ -119,30 +87,16 @@ const FILE_CONFIGS: Record<FileType, FileConfig> = {
         color: "var(--green-soft)",
         optType: "select",
         optLabel: "Язык",
-        optChoices: ["Авто", "Русский", "Қазақша"],
+        optChoices: ["Авто", "Русский", "English", "Қазақша"],
         route: "Whisper-turbo",
-        result:
-          "[Спикер 1] Как вы пришли в науку?\n[Спикер 2] Увлёкся физикой после олимпиады.\n\n⏱ 18:34 · 2 спикера",
         next: ["🌐 Перевести", "📋 Резюме"],
-      },
-      {
-        id: "summarize",
-        icon: "📋",
-        name: "Резюме",
-        desc: "Ключевые тезисы",
-        color: "var(--orange-soft)",
-        optType: null,
-        route: "Whisper+Qwen3",
-        result:
-          "Путь в науку · Журналист + Физик\n• Олимпиада в 9 классе\n• «Физика — язык вселенной»",
-        next: ["🌐 Перевести", "⬇ Скачать"],
       },
     ],
   },
   document: {
     icon: "📄",
-    name: "paper.pdf",
-    meta: "PDF · 14 стр",
+    name: null,
+    meta: null,
     iconBg: "var(--orange-soft)",
     actions: [
       {
@@ -152,23 +106,8 @@ const FILE_CONFIGS: Record<FileType, FileConfig> = {
         desc: "Главные тезисы",
         color: "var(--orange-soft)",
         optType: null,
-        route: "Qwen3-32B",
-        result:
-          "KazBERT: 94.2% NER\n+7% vs мульти · Морфемный токенизатор\n14 стр · 47 ссылок",
-        next: ["🌐 Перевести", "💬 Спросить"],
-      },
-      {
-        id: "translate",
-        icon: "🌐",
-        name: "Перевести",
-        desc: "Весь документ",
-        color: "var(--green-soft)",
-        optType: "select",
-        optLabel: "На язык",
-        optChoices: ["Русский", "English"],
-        route: "Qwen3-32B",
-        result: "KZ → RU · 14 стр\n📥 paper_RU.pdf",
-        next: ["⬇ Скачать", "📋 Резюме"],
+        route: "Qwen3-8B",
+        next: ["🌐 Перевести"],
       },
       {
         id: "ask",
@@ -178,9 +117,7 @@ const FILE_CONFIGS: Record<FileType, FileConfig> = {
         color: "var(--purple-soft)",
         optType: "textarea",
         optPlaceholder: "Вопрос...",
-        route: "Qwen3-32B",
-        result:
-          "KazBERT лучше благодаря морфемному токенизатору и предобучению на 12 ГБ казахского текста.",
+        route: "Qwen3-8B",
         next: ["💬 Ещё вопрос", "📋 Резюме"],
       },
     ],
@@ -199,9 +136,7 @@ const FILE_CONFIGS: Record<FileType, FileConfig> = {
         color: "var(--accent-soft)",
         optType: "textarea",
         optPlaceholder: "Тема...",
-        route: "Qwen3-32B",
-        result:
-          "ИИ в образовании Центральной Азии\n\nУниверситеты внедряют AI-инструменты...\n[1200 слов]",
+        route: "Qwen3-8B",
         next: ["🌐 Перевести", "📋 Сократить"],
       },
       {
@@ -213,8 +148,7 @@ const FILE_CONFIGS: Record<FileType, FileConfig> = {
         optType: "textarea",
         optPlaceholder: "Описание...",
         route: "Z-Image-Turbo",
-        result: '🖼 «Горы Алатау» · 1024×1024 · Seed 42',
-        next: ["✨ Улучшить", "🔄 Seed"],
+        next: ["🔄 Другой Seed"],
       },
       {
         id: "code",
@@ -224,10 +158,8 @@ const FILE_CONFIGS: Record<FileType, FileConfig> = {
         color: "var(--green-soft)",
         optType: "textarea",
         optPlaceholder: "Задача...",
-        route: "Qwen3-32B",
-        result:
-          'def analyze(text):\n    words = text.split()\n    return {"count": len(words)}\n\nPython · 3 строки',
-        next: ["💬 Объяснить", "🔧 Улучшить"],
+        route: "Qwen3-8B",
+        next: ["💬 Объяснить"],
       },
       {
         id: "translate",
@@ -237,13 +169,18 @@ const FILE_CONFIGS: Record<FileType, FileConfig> = {
         color: "var(--orange-soft)",
         optType: "textarea",
         optPlaceholder: "Текст...",
-        route: "Qwen3-32B",
-        result:
-          'EN → KZ\n«AI transforms education»\n→ «ЖИ білім беруді өзгертеді»',
-        next: ["🔄 Обратный", "📋 Копировать"],
+        route: "Qwen3-8B",
+        next: ["🔄 Обратный"],
       },
     ],
   },
+}
+
+const LANG_MAP: Record<string, string> = {
+  "Авто": "",
+  "Русский": "ru",
+  "English": "en",
+  "Қазақша": "kk",
 }
 
 export function useWorkbench() {
@@ -251,8 +188,11 @@ export function useWorkbench() {
   const selectedAction = ref<FileAction | null>(null)
   const chain = ref<string[]>([])
   const resultText = ref("")
+  const resultImage = ref<string | null>(null)
   const isProcessing = ref(false)
   const showResult = ref(false)
+  const optionValue = ref("")
+  const uploadedFile = ref<File | null>(null)
 
   const fileConfig = computed(() =>
     activeFileType.value ? FILE_CONFIGS[activeFileType.value] : null,
@@ -263,46 +203,150 @@ export function useWorkbench() {
     selectedAction.value = null
     chain.value = []
     resultText.value = ""
+    resultImage.value = null
     showResult.value = false
+    optionValue.value = ""
   }
 
   function selectAction(action: FileAction) {
     selectedAction.value = action
     showResult.value = false
     resultText.value = ""
+    resultImage.value = null
+    optionValue.value = action.optChoices?.[0] ?? ""
     if (!action.optType) {
       runAction(action)
     }
   }
 
-  function runAction(action: FileAction) {
-    isProcessing.value = true
-    showResult.value = true
-    resultText.value = ""
-    chain.value.push(action.name)
-
-    const lines = action.result.split("\n")
-    let i = 0
-    const interval = setInterval(() => {
-      if (i < lines.length) {
-        resultText.value += (i > 0 ? "\n" : "") + lines[i]
-        i++
-      } else {
-        clearInterval(interval)
-        isProcessing.value = false
-      }
-    }, 80)
+  function setFile(file: File) {
+    uploadedFile.value = file
+    const ext = file.name.split(".").pop()?.toLowerCase() ?? ""
+    const imgExts = ["jpg", "jpeg", "png", "gif", "webp", "bmp"]
+    const vidExts = ["mp4", "mov", "avi", "mkv", "webm"]
+    const audExts = ["mp3", "wav", "flac", "ogg", "m4a", "aac"]
+    if (imgExts.includes(ext)) selectFileType("image")
+    else if (vidExts.includes(ext)) selectFileType("video")
+    else if (audExts.includes(ext)) selectFileType("audio")
+    else selectFileType("document")
+    const cfg = FILE_CONFIGS[activeFileType.value!]
+    cfg.name = file.name
+    cfg.meta = `${(file.size / 1024 / 1024).toFixed(1)} MB`
   }
 
-  function runNextAction(label: string) {
+  async function runAction(action: FileAction) {
+    const api = useApi()
+    isProcessing.value = true
+    showResult.value = true
+    resultText.value = "⏳ Обработка..."
+    resultImage.value = null
+    chain.value.push(action.name)
+
+    try {
+      let result = ""
+
+      switch (action.id) {
+        case "write":
+          result = await api.generateText(optionValue.value || "Напиши текст")
+          break
+        case "generate": {
+          const url = await api.generateImage(optionValue.value || "abstract art")
+          resultImage.value = url
+          result = `Изображение сгенерировано`
+          break
+        }
+        case "code":
+          result = await api.generateCode(optionValue.value || "hello world", "Python")
+          break
+        case "translate":
+          result = await api.translate(optionValue.value || "", "", "Русский")
+          break
+        case "describe":
+          if (uploadedFile.value) {
+            result = await api.describeImage(uploadedFile.value, optionValue.value || "Опишите изображение подробно")
+          } else {
+            result = "Загрузите файл для описания"
+          }
+          break
+        case "ocr":
+          if (uploadedFile.value) {
+            const ocrText = await api.describeImage(uploadedFile.value, "Read ALL text visible in this image exactly as written.")
+            const lang = optionValue.value || "Русский"
+            result = await api.translate(ocrText, "", lang)
+            result = `Распознанный текст:\n${ocrText}\n\nПеревод (${lang}):\n${result}`
+          } else {
+            result = "Загрузите изображение с текстом"
+          }
+          break
+        case "transcribe":
+          if (uploadedFile.value) {
+            const lang = LANG_MAP[optionValue.value] ?? ""
+            result = await api.transcribeAudio(uploadedFile.value, lang)
+          } else {
+            result = "Загрузите аудио файл"
+          }
+          break
+        case "summarize":
+          if (uploadedFile.value) {
+            const form = new FormData()
+            form.append("file", uploadedFile.value)
+            form.append("prompt", "Кратко изложите этот документ")
+            const res = await $fetch<{ result: string }>("/api/summarize", { method: "POST", body: form })
+            result = res.result
+          } else {
+            result = "Загрузите документ"
+          }
+          break
+        case "ask":
+          if (uploadedFile.value) {
+            const form = new FormData()
+            form.append("file", uploadedFile.value)
+            form.append("prompt", optionValue.value || "О чём этот документ?")
+            const res = await $fetch<{ result: string }>("/api/summarize", { method: "POST", body: form })
+            result = res.result
+          } else {
+            result = "Загрузите документ"
+          }
+          break
+        default:
+          result = await api.generateText(optionValue.value || action.name)
+      }
+
+      resultText.value = result
+    } catch (e: any) {
+      resultText.value = `Ошибка: ${e?.data?.message || e?.message || "Не удалось выполнить"}`
+    } finally {
+      isProcessing.value = false
+    }
+  }
+
+  async function runNextAction(label: string) {
     const name = label.replace(/^[^\s]+\s/, "")
     chain.value.push(name)
     isProcessing.value = true
-    resultText.value = `⏳ ${label}...`
-    setTimeout(() => {
-      resultText.value = `✓ ${label} — готово`
+    const api = useApi()
+
+    try {
+      if (name === "Перевести") {
+        resultText.value = await api.translate(resultText.value, "", "Русский")
+      } else if (name === "Сократить" || name === "Резюме") {
+        resultText.value = await api.generateText(`Кратко изложи:\n\n${resultText.value}`)
+      } else if (name === "Объяснить") {
+        resultText.value = await api.generateText(`Объясни этот код:\n\n${resultText.value}`)
+      } else if (name === "Обратный") {
+        resultText.value = await api.translate(resultText.value, "", "English")
+      } else if (name === "Другой Seed") {
+        const url = await api.generateImage(optionValue.value || "abstract art")
+        resultImage.value = url
+        resultText.value = "Новое изображение сгенерировано"
+      } else {
+        resultText.value = `✓ ${label} — готово`
+      }
+    } catch (e: any) {
+      resultText.value = `Ошибка: ${e?.message || "Не удалось"}`
+    } finally {
       isProcessing.value = false
-    }, 800)
+    }
   }
 
   function removeFile() {
@@ -310,7 +354,9 @@ export function useWorkbench() {
     selectedAction.value = null
     chain.value = []
     resultText.value = ""
+    resultImage.value = null
     showResult.value = false
+    uploadedFile.value = null
   }
 
   return {
@@ -318,11 +364,15 @@ export function useWorkbench() {
     selectedAction,
     chain,
     resultText,
+    resultImage,
     isProcessing,
     showResult,
+    optionValue,
+    uploadedFile,
     fileConfig,
     selectFileType,
     selectAction,
+    setFile,
     runAction,
     runNextAction,
     removeFile,

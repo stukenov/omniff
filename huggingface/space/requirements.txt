@@ -10,3 +10,4 @@ soundfile
 scipy
 Pillow
 opencv-python-headless
+python-multipart

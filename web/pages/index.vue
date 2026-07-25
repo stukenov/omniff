@@ -6,15 +6,32 @@ const {
   selectedAction,
   chain,
   resultText,
+  resultImage,
   isProcessing,
   showResult,
+  optionValue,
+  uploadedFile,
   fileConfig,
   selectFileType,
   selectAction,
+  setFile,
   runAction,
   runNextAction,
   removeFile,
 } = useWorkbench()
+
+function handleFileDrop(e: DragEvent) {
+  e.preventDefault()
+  const file = e.dataTransfer?.files?.[0]
+  if (file) setFile(file)
+}
+
+function handleFileInput(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (file) setFile(file)
+}
+
+const fileInputRef = ref<HTMLInputElement | null>(null)
 
 const quickTypes: { type: FileType; icon: string; label: string }[] = [
   { type: "image", icon: "🖼", label: "Фото" },
@@ -32,7 +49,12 @@ function copyResult() {
 <template>
   <div class="container">
     <!-- Empty State -->
-    <div v-if="!activeFileType" class="empty-state">
+    <div
+      v-if="!activeFileType"
+      class="empty-state"
+      @drop="handleFileDrop"
+      @dragover.prevent
+    >
       <div class="empty-title">Любой вход. Любой выход.</div>
       <div class="empty-subtitle">
         Бросьте файл, вставьте из буфера или начните печатать
@@ -42,11 +64,17 @@ function copyResult() {
           v-for="qt in quickTypes"
           :key="qt.type"
           class="quick-type"
-          @click="selectFileType(qt.type)"
+          @click="qt.type === 'none' ? selectFileType('none') : fileInputRef?.click()"
         >
           {{ qt.icon }} {{ qt.label }}
         </button>
       </div>
+      <input
+        ref="fileInputRef"
+        type="file"
+        style="display: none"
+        @change="handleFileInput"
+      >
     </div>
 
     <!-- Active File -->
@@ -103,27 +131,29 @@ function copyResult() {
     >
       <div v-if="selectedAction.optType === 'textarea'" class="options-col">
         <textarea
+          v-model="optionValue"
           class="option-textarea"
           :placeholder="selectedAction.optPlaceholder"
         />
-        <button class="run-btn" @click="runAction(selectedAction!)">
-          ▶ {{ selectedAction.name }}
+        <button class="run-btn" :disabled="isProcessing" @click="runAction(selectedAction!)">
+          {{ isProcessing ? '⏳' : '▶' }} {{ selectedAction.name }}
         </button>
       </div>
       <div v-else-if="selectedAction.optType === 'select'" class="options-row">
         <div class="option-group">
           <div class="option-label">{{ selectedAction.optLabel }}</div>
-          <select class="option-select">
+          <select v-model="optionValue" class="option-select">
             <option
               v-for="choice in selectedAction.optChoices"
               :key="choice"
+              :value="choice"
             >
               {{ choice }}
             </option>
           </select>
         </div>
-        <button class="run-btn" @click="runAction(selectedAction!)">
-          ▶ {{ selectedAction.name }}
+        <button class="run-btn" :disabled="isProcessing" @click="runAction(selectedAction!)">
+          {{ isProcessing ? '⏳' : '▶' }} {{ selectedAction.name }}
         </button>
       </div>
     </div>
@@ -141,6 +171,9 @@ function copyResult() {
             <button class="result-action-btn" @click="copyResult">📋</button>
             <button class="result-action-btn">⬇</button>
           </div>
+        </div>
+        <div v-if="resultImage" class="result-image-wrap">
+          <img :src="resultImage" alt="Generated" class="result-image">
         </div>
         <div class="result-content">{{ resultText }}</div>
         <div
@@ -474,6 +507,18 @@ function copyResult() {
 .result-action-btn:hover {
   color: var(--text);
   border-color: var(--border);
+}
+
+.result-image-wrap {
+  padding: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.result-image {
+  max-width: 100%;
+  max-height: 512px;
+  border-radius: var(--radius-sm);
 }
 
 .result-content {

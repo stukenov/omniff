@@ -1,0 +1,196 @@
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]: ⚡
+        - generic [ref=e7]: OmniFF
+        - generic [ref=e8]: /
+        - generic [ref=e9]: FFmpeg для ИИ
+      - navigation [ref=e11]:
+        - link "Верстак" [ref=e12] [cursor=pointer]:
+          - /url: /
+        - link "Live" [ref=e13] [cursor=pointer]:
+          - /url: /live
+        - link "Пайплайны" [active] [ref=e14] [cursor=pointer]:
+          - /url: /pipelines
+        - link "История" [ref=e15] [cursor=pointer]:
+          - /url: /history
+    - generic [ref=e90]:
+      - generic [ref=e91]: Пайплайны
+      - generic [ref=e92]: Цепочки операций. Выход → вход следующей.
+      - generic [ref=e93]:
+        - button "Все" [ref=e94] [cursor=pointer]
+        - button "🎓 Образование" [ref=e95] [cursor=pointer]
+        - button "🏢 Бизнес" [ref=e96] [cursor=pointer]
+        - button "🎬 Контент" [ref=e97] [cursor=pointer]
+        - button "🔬 Исследования" [ref=e98] [cursor=pointer]
+        - button "👤 Личное" [ref=e99] [cursor=pointer]
+      - generic [ref=e101] [cursor=pointer]:
+        - generic [ref=e102]:
+          - generic [ref=e103]: 🎓
+          - generic [ref=e104]:
+            - generic [ref=e105]: Конспект лекции
+            - generic [ref=e106]: Запись лекции → полный конспект на нужном языке
+        - generic [ref=e107]:
+          - generic [ref=e108]: Транскрипция
+          - generic [ref=e109]: Детекция языка
+          - generic [ref=e110]: Перевод
+          - generic [ref=e111]: Конспект
+          - generic [ref=e112]: ~3 мин
+      - generic [ref=e114] [cursor=pointer]:
+        - generic [ref=e115]:
+          - generic [ref=e116]: 📖
+          - generic [ref=e117]:
+            - generic [ref=e118]: Перевод учебника
+            - generic [ref=e119]: PDF учебник → перевод с сохранением структуры
+        - generic [ref=e120]:
+          - generic [ref=e121]: OCR + парсинг
+          - generic [ref=e122]: Сегментация
+          - generic [ref=e123]: Перевод
+          - generic [ref=e124]: Сборка PDF
+          - generic [ref=e125]: ~10 мин
+      - generic [ref=e127] [cursor=pointer]:
+        - generic [ref=e128]:
+          - generic [ref=e129]: 📝
+          - generic [ref=e130]:
+            - generic [ref=e131]: Подготовка к экзамену
+            - generic [ref=e132]: Материалы → флеш-карточки + тест-вопросы
+        - generic [ref=e133]:
+          - generic [ref=e134]: Анализ
+          - generic [ref=e135]: Карточки
+          - generic [ref=e136]: Тест
+          - generic [ref=e137]: Экспорт
+          - generic [ref=e138]: ~5 мин
+      - generic [ref=e140] [cursor=pointer]:
+        - generic [ref=e141]:
+          - generic [ref=e142]: 🏢
+          - generic [ref=e143]:
+            - generic [ref=e144]: Протокол встречи
+            - generic [ref=e145]: Запись совещания → протокол + задачи
+        - generic [ref=e146]:
+          - generic [ref=e147]: Транскрипция
+          - generic [ref=e148]: Резюме
+          - generic [ref=e149]: Задачи
+          - generic [ref=e150]: Протокол
+          - generic [ref=e151]: ~4 мин
+      - generic [ref=e153] [cursor=pointer]:
+        - generic [ref=e154]:
+          - generic [ref=e155]: 📑
+          - generic [ref=e156]:
+            - generic [ref=e157]: Анализ договора
+            - generic [ref=e158]: Юридический документ → анализ рисков
+        - generic [ref=e159]:
+          - generic [ref=e160]: Парсинг
+          - generic [ref=e161]: Риски
+          - generic [ref=e162]: Сводка
+          - generic [ref=e163]: Рекомендации
+          - generic [ref=e164]: ~3 мин
+      - generic [ref=e166] [cursor=pointer]:
+        - generic [ref=e167]:
+          - generic [ref=e168]: 📊
+          - generic [ref=e169]:
+            - generic [ref=e170]: Дайджест отчётов
+            - generic [ref=e171]: Несколько PDF → единая сводка с цифрами
+        - generic [ref=e172]:
+          - generic [ref=e173]: Загрузка
+          - generic [ref=e174]: Извлечение
+          - generic [ref=e175]: Сравнение
+          - generic [ref=e176]: Дайджест
+          - generic [ref=e177]: ~5 мин
+      - generic [ref=e179] [cursor=pointer]:
+        - generic [ref=e180]:
+          - generic [ref=e181]: 🎬
+          - generic [ref=e182]:
+            - generic [ref=e183]: Субтитры для видео
+            - generic [ref=e184]: Видео → субтитры на нескольких языках
+        - generic [ref=e185]:
+          - generic [ref=e186]: Транскрипция
+          - generic [ref=e187]: Перевод ×3
+          - generic [ref=e188]: Форматирование
+          - generic [ref=e189]: Экспорт SRT
+          - generic [ref=e190]: ~5 мин
+      - generic [ref=e192] [cursor=pointer]:
+        - generic [ref=e193]:
+          - generic [ref=e194]: 🎙
+          - generic [ref=e195]:
+            - generic [ref=e196]: Подкаст → контент
+            - generic [ref=e197]: Эпизод → посты, цитаты, описание
+        - generic [ref=e198]:
+          - generic [ref=e199]: Транскрипция
+          - generic [ref=e200]: Цитаты
+          - generic [ref=e201]: Описание
+          - generic [ref=e202]: Посты
+          - generic [ref=e203]: ~4 мин
+      - generic [ref=e205] [cursor=pointer]:
+        - generic [ref=e206]:
+          - generic [ref=e207]: 📸
+          - generic [ref=e208]:
+            - generic [ref=e209]: Фото → контент
+            - generic [ref=e210]: Фотография → описание + посты для соцсетей
+        - generic [ref=e211]:
+          - generic [ref=e212]: Описание
+          - generic [ref=e213]: Хештеги
+          - generic [ref=e214]: Посты
+          - generic [ref=e215]: ~1 мин
+      - generic [ref=e217] [cursor=pointer]:
+        - generic [ref=e218]:
+          - generic [ref=e219]: 🔬
+          - generic [ref=e220]:
+            - generic [ref=e221]: Обзор статьи
+            - generic [ref=e222]: Научная статья → структурированный обзор
+        - generic [ref=e223]:
+          - generic [ref=e224]: Извлечение
+          - generic [ref=e225]: Критика
+          - generic [ref=e226]: Перевод
+          - generic [ref=e227]: BibTeX
+          - generic [ref=e228]: ~3 мин
+      - generic [ref=e230] [cursor=pointer]:
+        - generic [ref=e231]:
+          - generic [ref=e232]: 📈
+          - generic [ref=e233]:
+            - generic [ref=e234]: Извлечение данных
+            - generic [ref=e235]: Таблицы из PDF/фото → CSV/JSON
+        - generic [ref=e236]:
+          - generic [ref=e237]: OCR таблиц
+          - generic [ref=e238]: Структуризация
+          - generic [ref=e239]: Валидация
+          - generic [ref=e240]: Экспорт
+          - generic [ref=e241]: ~2 мин
+      - generic [ref=e243] [cursor=pointer]:
+        - generic [ref=e244]:
+          - generic [ref=e245]: 🎤
+          - generic [ref=e246]:
+            - generic [ref=e247]: Голосовой дневник
+            - generic [ref=e248]: Голосовые заметки → организованный дневник
+        - generic [ref=e249]:
+          - generic [ref=e250]: Транскрипция
+          - generic [ref=e251]: Очистка
+          - generic [ref=e252]: Теги
+          - generic [ref=e253]: Запись
+          - generic [ref=e254]: ~2 мин
+      - generic [ref=e256] [cursor=pointer]:
+        - generic [ref=e257]:
+          - generic [ref=e258]: 🧳
+          - generic [ref=e259]:
+            - generic [ref=e260]: Переводчик путешественника
+            - generic [ref=e261]: Фото меню/вывески → перевод + контекст
+        - generic [ref=e262]:
+          - generic [ref=e263]: OCR
+          - generic [ref=e264]: Перевод
+          - generic [ref=e265]: Контекст
+          - generic [ref=e266]: ~30 сек
+    - generic [ref=e27]:
+      - button "📎" [ref=e28] [cursor=pointer]
+      - textbox "Сообщение, файл, ссылка..." [ref=e29]
+      - button "🎤" [ref=e30] [cursor=pointer]
+      - button "▶" [ref=e31] [cursor=pointer]
+  - generic:
+    - img
+  - generic [ref=e32]:
+    - button "Toggle Nuxt DevTools" [ref=e33] [cursor=pointer]:
+      - img [ref=e34]
+    - generic "Page load time" [ref=e37]:
+      - generic [ref=e38]: "118"
+      - generic [ref=e39]: ms
+    - button "Toggle Component Inspector" [ref=e41] [cursor=pointer]:
+      - img [ref=e42]

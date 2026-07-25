@@ -1,0 +1,64 @@
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]: ⚡
+        - generic [ref=e7]: OmniFF
+        - generic [ref=e8]: /
+        - generic [ref=e9]: FFmpeg для ИИ
+      - navigation [ref=e11]:
+        - link "Верстак" [ref=e12] [cursor=pointer]:
+          - /url: /
+        - link "Live" [active] [ref=e13] [cursor=pointer]:
+          - /url: /live
+        - link "Пайплайны" [ref=e14] [cursor=pointer]:
+          - /url: /pipelines
+        - link "История" [ref=e15] [cursor=pointer]:
+          - /url: /history
+    - generic [ref=e267]:
+      - generic [ref=e268]:
+        - generic [ref=e269]: Live
+        - generic [ref=e270]: Обработка в реальном времени
+      - generic [ref=e271]:
+        - button "📝 Транскрипция" [ref=e272] [cursor=pointer]:
+          - generic [ref=e273]: 📝
+          - generic [ref=e274]: Транскрипция
+        - button "🌐 Перевод" [ref=e275] [cursor=pointer]:
+          - generic [ref=e276]: 🌐
+          - generic [ref=e277]: Перевод
+        - button "🏢 Встреча" [ref=e278] [cursor=pointer]:
+          - generic [ref=e279]: 🏢
+          - generic [ref=e280]: Встреча
+        - button "👁 Описание" [ref=e281] [cursor=pointer]:
+          - generic [ref=e282]: 👁
+          - generic [ref=e283]: Описание
+        - button "✍️ Диктовка" [ref=e284] [cursor=pointer]:
+          - generic [ref=e285]: ✍️
+          - generic [ref=e286]: Диктовка
+      - generic [ref=e287]: Речь → текст в реальном времени
+      - generic [ref=e288]:
+        - generic [ref=e289]:
+          - generic [ref=e292]: LIVE
+          - generic [ref=e293]: Қазақша
+          - generic [ref=e294]: 00:00
+        - generic [ref=e296]: Нажмите «Запись» для начала
+        - generic [ref=e297]:
+          - button "● Запись" [ref=e298] [cursor=pointer]
+          - button "⏸ Пауза" [ref=e299] [cursor=pointer]
+          - button "■ Стоп" [ref=e300] [cursor=pointer]
+          - button "⬇ Экспорт" [ref=e301] [cursor=pointer]
+    - generic [ref=e27]:
+      - button "📎" [ref=e28] [cursor=pointer]
+      - textbox "Сообщение, файл, ссылка..." [ref=e29]
+      - button "🎤" [ref=e30] [cursor=pointer]
+      - button "▶" [ref=e31] [cursor=pointer]
+  - generic:
+    - img
+  - generic [ref=e32]:
+    - button "Toggle Nuxt DevTools" [ref=e33] [cursor=pointer]:
+      - img [ref=e34]
+    - generic "Page load time" [ref=e37]:
+      - generic [ref=e38]: "69"
+      - generic [ref=e39]: ms
+    - button "Toggle Component Inspector" [ref=e41] [cursor=pointer]:
+      - img [ref=e42]

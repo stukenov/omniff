@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OmniFF — Strategy A: 5 Intent Tabs</title>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #1a1a1a;
+    --surface-2: #242424;
+    --surface-3: #2e2e2e;
+    --border: #333;
+    --text: #f5f5f7;
+    --text-secondary: #86868b;
+    --accent: #0a84ff;
+    --accent-soft: rgba(10, 132, 255, 0.12);
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+  }
+
+  .mockup-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  .mockup-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    letter-spacing: -0.02em;
+  }
+
+  .mockup-subtitle {
+    font-size: 15px;
+    color: var(--text-secondary);
+    margin-bottom: 40px;
+    max-width: 500px;
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  .app-frame {
+    width: 100%;
+    max-width: 900px;
+    background: var(--surface);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    margin-bottom: 60px;
+  }
+
+  /* ---- Header ---- */
+  .app-header {
+    padding: 20px 24px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .app-logo {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #0a84ff, #5e5ce6);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .app-name {
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .app-badge {
+    font-size: 11px;
+    color: var(--text-secondary);
+    background: var(--surface-3);
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-left: auto;
+  }
+
+  /* ---- Primary Tabs (5 tabs) ---- */
+  .primary-tabs {
+    display: flex;
+    gap: 2px;
+    padding: 16px 24px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .primary-tab {
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    position: relative;
+    user-select: none;
+  }
+
+  .primary-tab:hover {
+    color: var(--text);
+  }
+
+  .primary-tab.active {
+    color: var(--text);
+    border-bottom-color: var(--accent);
+  }
+
+  .primary-tab .tab-count {
+    font-size: 10px;
+    color: var(--text-secondary);
+    margin-left: 4px;
+    opacity: 0.5;
+  }
+
+  /* ---- Secondary Tabs (sub-tabs) ---- */
+  .secondary-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 12px 24px;
+    background: var(--surface-2);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .secondary-tab {
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: transparent;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+  }
+
+  .secondary-tab:hover {
+    color: var(--text);
+    background: rgba(255,255,255,0.06);
+  }
+
+  .secondary-tab.active {
+    color: var(--text);
+    background: var(--accent-soft);
+  }
+
+  /* ---- Content Area ---- */
+  .content-area {
+    padding: 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    min-height: 300px;
+  }
+
+  .content-panel {
+    background: var(--surface-2);
+    border-radius: var(--radius);
+    border: 1px solid rgba(255,255,255,0.06);
+    padding: 20px;
+  }
+
+  .panel-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 12px;
+  }
+
+  .input-mock {
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .input-mock.tall {
+    min-height: 120px;
+  }
+
+  .input-mock.output {
+    min-height: 160px;
+    border-style: dashed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn-mock {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    background: var(--accent);
+    color: white;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .controls-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+
+  .control-chip {
+    padding: 5px 12px;
+    font-size: 12px;
+    background: var(--surface-3);
+    color: var(--text-secondary);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+
+  /* ---- Annotations ---- */
+  .annotation {
+    position: relative;
+    margin: 20px 0;
+    padding: 16px 20px;
+    background: rgba(10, 132, 255, 0.06);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+  }
+
+  .annotation strong {
+    color: var(--text);
+  }
+
+  /* ---- Comparison ---- */
+  .comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    width: 100%;
+    max-width: 900px;
+    margin-bottom: 60px;
+  }
+
+  .compare-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+
+  .compare-box h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .compare-box h3 .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .compare-box h3 .dot.red { background: #ff453a; }
+  .compare-box h3 .dot.green { background: #30d158; }
+
+  .tab-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .tab-list .t {
+    padding: 4px 10px;
+    font-size: 11px;
+    background: var(--surface-2);
+    border-radius: 4px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+
+  .tab-list .t.primary {
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* ---- Section dividers ---- */
+  .section-gap {
+    width: 100%;
+    max-width: 900px;
+    text-align: center;
+    padding: 20px 0;
+  }
+
+  .section-gap h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+  }
+
+  .section-gap p {
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+
+  /* ---- Chat hero ---- */
+  .chat-content {
+    grid-column: 1 / -1;
+  }
+
+  .chat-messages {
+    background: var(--surface-2);
+    border-radius: var(--radius);
+    border: 1px solid rgba(255,255,255,0.06);
+    padding: 20px;
+    min-height: 200px;
+  }
+
+  .chat-bubble {
+    max-width: 70%;
+    padding: 10px 14px;
+    border-radius: 16px;
+    font-size: 14px;
+    margin-bottom: 10px;
+    line-height: 1.5;
+  }
+
+  .chat-bubble.user {
+    background: var(--accent);
+    color: white;
+    margin-left: auto;
+    border-bottom-right-radius: 4px;
+  }
+
+  .chat-bubble.assistant {
+    background: var(--surface-3);
+    color: var(--text);
+    border-bottom-left-radius: 4px;
+  }
+
+  .chat-input-area {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    align-items: center;
+  }
+
+  .chat-input {
+    flex: 1;
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 10px 16px;
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+
+  .chat-attach {
+    display: flex;
+    gap: 4px;
+  }
+
+  .attach-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    cursor: pointer;
+    color: var(--text-secondary);
+  }
+
+  .capability-pills {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+
+  .capability-pill {
+    padding: 4px 10px;
+    font-size: 11px;
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text-secondary);
+  }
+
+  .footer-note {
+    text-align: center;
+    padding: 16px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ BEFORE / AFTER ============ -->
+<div class="mockup-label">Apple HIG Strategy</div>
+<div class="mockup-title">13 табов → 5 табов</div>
+<div class="mockup-subtitle">Progressive Disclosure: вся мощь на месте, но пользователь видит 5 слов вместо 13. Глубина раскрывается через sub-tabs.</div>
+
+<div class="comparison">
+  <div class="compare-box">
+    <h3><span class="dot red"></span> Сейчас — 13 табов</h3>
+    <div class="tab-list">
+      <span class="t">Чат</span>
+      <span class="t">Изображение</span>
+      <span class="t">Видео</span>
+      <span class="t">Генерация</span>
+      <span class="t">Трансформация</span>
+      <span class="t">Транскрипция</span>
+      <span class="t">Текст</span>
+      <span class="t">Документы</span>
+      <span class="t">Код</span>
+      <span class="t">Перевод</span>
+      <span class="t">Дубляж</span>
+      <span class="t">Перевод фото</span>
+      <span class="t">Агент</span>
+    </div>
+  </div>
+  <div class="compare-box">
+    <h3><span class="dot green"></span> Предложение — 5 табов</h3>
+    <div class="tab-list">
+      <span class="t primary">Чат</span>
+      <span class="t primary">Анализ</span>
+      <span class="t primary">Создание</span>
+      <span class="t primary">Перевод</span>
+      <span class="t primary">Агент</span>
+    </div>
+    <div style="margin-top:8px; font-size:11px; color:var(--text-secondary)">
+      Внутри каждого — sub-tabs по 3-4 инструмента
+    </div>
+  </div>
+</div>
+
+<!-- ============ MOCKUP 1: Chat Tab ============ -->
+<div class="section-gap">
+  <h2>Таб «Чат»</h2>
+  <p>Универсальный вход. Как Siri — принимает всё, маршрутизирует сам.</p>
+</div>
+
+<div class="app-frame">
+  <div class="app-header">
+    <div class="app-logo">⚡</div>
+    <span class="app-name">OmniFF</span>
+    <span class="app-badge">FFmpeg для ИИ</span>
+  </div>
+
+  <div class="primary-tabs">
+    <div class="primary-tab active">Чат</div>
+    <div class="primary-tab">Анализ</div>
+    <div class="primary-tab">Создание</div>
+    <div class="primary-tab">Перевод</div>
+    <div class="primary-tab">Агент</div>
+  </div>
+
+  <div style="padding: 24px;">
+    <div class="chat-content">
+      <div class="chat-messages">
+        <div class="chat-bubble user">Опиши что на этом фото</div>
+        <div class="chat-bubble assistant">На изображении — горный пейзаж с озером на переднем плане. Вода отражает заснеженные вершины...</div>
+        <div class="chat-bubble user">Переведи это на казахский</div>
+        <div class="chat-bubble assistant">Суретте — алдыңғы планда көлі бар тау пейзажі. Су қар басқан шыңдарды бейнелейді...</div>
+      </div>
+
+      <div class="chat-input-area">
+        <div class="chat-attach">
+          <div class="attach-btn" title="Фото/Видео">📎</div>
+          <div class="attach-btn" title="Микрофон">🎤</div>
+          <div class="attach-btn" title="Документ">📄</div>
+        </div>
+        <div class="chat-input">Спросите что угодно — текст, фото, аудио, видео, документы...</div>
+      </div>
+
+      <div class="capability-pills">
+        <span class="capability-pill">текст</span>
+        <span class="capability-pill">изображения</span>
+        <span class="capability-pill">видео</span>
+        <span class="capability-pill">аудио</span>
+        <span class="capability-pill">документы</span>
+        <span class="capability-pill">код</span>
+        <span class="capability-pill">перевод</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    Чат автоматически определяет тип задачи и использует нужную модель
+  </div>
+</div>
+
+<div class="annotation" style="max-width: 900px;">
+  <strong>Apple-паттерн:</strong> capability pills под полем ввода — ненавязчивая подсказка о возможностях. Пользователь видит: «а, тут не только текст». Кнопки прикрепления (📎🎤📄) показывают мультимодальность без слов.
+</div>
+
+<!-- ============ MOCKUP 2: Анализ Tab ============ -->
+<div class="section-gap">
+  <h2>Таб «Анализ»</h2>
+  <p>4 инструмента под одной крышей. Sub-tabs — как сегменты в Apple Photos.</p>
+</div>
+
+<div class="app-frame">
+  <div class="app-header">
+    <div class="app-logo">⚡</div>
+    <span class="app-name">OmniFF</span>
+    <span class="app-badge">FFmpeg для ИИ</span>
+  </div>
+
+  <div class="primary-tabs">
+    <div class="primary-tab">Чат</div>
+    <div class="primary-tab active">Анализ</div>
+    <div class="primary-tab">Создание</div>
+    <div class="primary-tab">Перевод</div>
+    <div class="primary-tab">Агент</div>
+  </div>
+
+  <div class="secondary-tabs">
+    <div class="secondary-tab active">Изображение</div>
+    <div class="secondary-tab">Видео</div>
+    <div class="secondary-tab">Транскрипция</div>
+    <div class="secondary-tab">Документы</div>
+  </div>
+
+  <div class="content-area">
+    <div class="content-panel">
+      <div class="panel-label">Вход</div>
+      <div class="input-mock">📷 Загрузите изображение</div>
+      <div class="input-mock">Ваш вопрос к изображению...</div>
+      <div class="btn-mock">▶ Анализировать</div>
+    </div>
+    <div class="content-panel">
+      <div class="panel-label">Результат</div>
+      <div class="input-mock output">Описание появится здесь...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MOCKUP 3: Создание Tab ============ -->
+<div class="section-gap">
+  <h2>Таб «Создание»</h2>
+  <p>Текст, изображения, трансформация, код — всё что генерирует.</p>
+</div>
+
+<div class="app-frame">
+  <div class="app-header">
+    <div class="app-logo">⚡</div>
+    <span class="app-name">OmniFF</span>
+    <span class="app-badge">FFmpeg для ИИ</span>
+  </div>
+
+  <div class="primary-tabs">
+    <div class="primary-tab">Чат</div>
+    <div class="primary-tab">Анализ</div>
+    <div class="primary-tab active">Создание</div>
+    <div class="primary-tab">Перевод</div>
+    <div class="primary-tab">Агент</div>
+  </div>
+
+  <div class="secondary-tabs">
+    <div class="secondary-tab">Текст</div>
+    <div class="secondary-tab active">Изображение</div>
+    <div class="secondary-tab">Трансформация</div>
+    <div class="secondary-tab">Код</div>
+  </div>
+
+  <div class="content-area">
+    <div class="content-panel">
+      <div class="panel-label">Промпт</div>
+      <div class="input-mock tall">Опишите изображение, которое хотите создать...</div>
+      <div class="controls-row">
+        <span class="control-chip">Seed: 42</span>
+      </div>
+      <div class="btn-mock">🎨 Генерировать</div>
+    </div>
+    <div class="content-panel">
+      <div class="panel-label">Результат</div>
+      <div class="input-mock output" style="min-height:220px;">
+        🖼 Изображение
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MOCKUP 4: Перевод Tab ============ -->
+<div class="section-gap">
+  <h2>Таб «Перевод»</h2>
+  <p>Текст, аудио, фото, дубляж — всё про языковой мост.</p>
+</div>
+
+<div class="app-frame">
+  <div class="app-header">
+    <div class="app-logo">⚡</div>
+    <span class="app-name">OmniFF</span>
+    <span class="app-badge">FFmpeg для ИИ</span>
+  </div>
+
+  <div class="primary-tabs">
+    <div class="primary-tab">Чат</div>
+    <div class="primary-tab">Анализ</div>
+    <div class="primary-tab">Создание</div>
+    <div class="primary-tab active">Перевод</div>
+    <div class="primary-tab">Агент</div>
+  </div>
+
+  <div class="secondary-tabs">
+    <div class="secondary-tab active">Текст</div>
+    <div class="secondary-tab">Аудио</div>
+    <div class="secondary-tab">Фото</div>
+    <div class="secondary-tab">Дубляж</div>
+  </div>
+
+  <div class="content-area">
+    <div class="content-panel">
+      <div class="panel-label">Исходный текст</div>
+      <div class="input-mock tall">Введите текст для перевода...</div>
+      <div class="controls-row">
+        <span class="control-chip">Авто → Русский</span>
+        <span class="control-chip">Казахский</span>
+        <span class="control-chip">English</span>
+        <span class="control-chip">中文</span>
+        <span class="control-chip">Deutsch</span>
+      </div>
+      <div class="btn-mock">🌐 Перевести</div>
+    </div>
+    <div class="content-panel">
+      <div class="panel-label">Перевод</div>
+      <div class="input-mock output">Перевод появится здесь...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MOCKUP 5: Агент Tab ============ -->
+<div class="section-gap">
+  <h2>Таб «Агент»</h2>
+  <p>Отдельный таб — как Apple дал Shortcuts отдельное приложение.</p>
+</div>
+
+<div class="app-frame">
+  <div class="app-header">
+    <div class="app-logo">⚡</div>
+    <span class="app-name">OmniFF</span>
+    <span class="app-badge">FFmpeg для ИИ</span>
+  </div>
+
+  <div class="primary-tabs">
+    <div class="primary-tab">Чат</div>
+    <div class="primary-tab">Анализ</div>
+    <div class="primary-tab">Создание</div>
+    <div class="primary-tab">Перевод</div>
+    <div class="primary-tab active">Агент</div>
+  </div>
+
+  <div style="padding: 24px;">
+    <div class="content-area" style="padding:0;">
+      <div class="content-panel">
+        <div class="panel-label">Задача</div>
+        <div class="input-mock tall">Опишите задачу, которую агент должен выполнить пошагово...</div>
+        <div class="controls-row">
+          <span class="control-chip">Макс. шагов: 5</span>
+        </div>
+        <div class="btn-mock">🤖 Запустить</div>
+      </div>
+      <div class="content-panel">
+        <div class="panel-label">Ход выполнения</div>
+        <div style="font-size:13px; color: var(--text-secondary); line-height:1.8;">
+          <div style="padding: 8px 0; border-bottom: 1px solid var(--border);">
+            <span style="color: #30d158;">●</span> Шаг 1: Анализ задачи
+          </div>
+          <div style="padding: 8px 0; border-bottom: 1px solid var(--border);">
+            <span style="color: #30d158;">●</span> Шаг 2: Поиск информации
+          </div>
+          <div style="padding: 8px 0; border-bottom: 1px solid var(--border);">
+            <span style="color: #ffd60a;">●</span> Шаг 3: Формирование ответа...
+          </div>
+          <div style="padding: 8px 0; opacity:0.4;">
+            <span style="color: var(--text-secondary);">○</span> Шаг 4: —
+          </div>
+          <div style="padding: 8px 0; opacity:0.4;">
+            <span style="color: var(--text-secondary);">○</span> Шаг 5: —
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MAPPING TABLE ============ -->
+<div class="section-gap">
+  <h2>Маппинг</h2>
+  <p>Куда попал каждый из 13 оригинальных табов</p>
+</div>
+
+<div style="max-width:900px; width:100%;">
+  <table style="width:100%; border-collapse:collapse; font-size:14px;">
+    <thead>
+      <tr style="border-bottom: 2px solid var(--border);">
+        <th style="text-align:left; padding:10px; color:var(--text-secondary); font-weight:600;">Было</th>
+        <th style="text-align:left; padding:10px; color:var(--text-secondary); font-weight:600;">Стало</th>
+        <th style="text-align:left; padding:10px; color:var(--text-secondary); font-weight:600;">Sub-tab</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:10px;">Чат</td>
+        <td style="padding:10px; color:var(--accent);">Чат</td>
+        <td style="padding:10px; color:var(--text-secondary);">—</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:10px;">Изображение</td>
+        <td style="padding:10px; color:var(--accent);">Анализ</td>
+        <td style="padding:10px; color:var(--text-secondary);">Изображение</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:10px;">Видео</td>
+        <td style="padding:10px; color:var(--accent);">Анализ</td>
+        <td style="padding:10px; color:var(--text-secondary);">Видео</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:10px;">Транскрипция</td>
+        <td style="padding:10px; color:var(--accent);">Анализ</td>
+        <td style="padding:10px; color:var(--text-secondary);">Транскрипция</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:10px;">Документы</td>
+        <td style="padding:10px; color:var(--accent);">Анализ</td>
+        <td style="padding:10px; color:var(--text-secondary);">Документы</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:10px;">Текст</td>
+        <td style="padding:10px; color:var(--accent);">Создание</td>
+        <td style="padding:10px; color:var(--text-secondary);">Текст</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:10px;">Генерация</td>
+        <td style="padding:10px; color:var(--accent);">Создание</td>
+        <td style="padding:10px; color:var(--text-secondary);">Изображение</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:10px;">Трансформация</td>
+        <td style="padding:10px; color:var(--accent);">Создание</td>
+        <td style="padding:10px; color:var(--text-secondary);">Трансформация</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:10px;">Код</td>
+        <td style="padding:10px; color:var(--accent);">Создание</td>
+        <td style="padding:10px; color:var(--text-secondary);">Код</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:10px;">Перевод</td>
+        <td style="padding:10px; color:var(--accent);">Перевод</td>
+        <td style="padding:10px; color:var(--text-secondary);">Текст</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:10px;">Дубляж</td>
+        <td style="padding:10px; color:var(--accent);">Перевод</td>
+        <td style="padding:10px; color:var(--text-secondary);">Дубляж</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:10px;">Перевод фото</td>
+        <td style="padding:10px; color:var(--accent);">Перевод</td>
+        <td style="padding:10px; color:var(--text-secondary);">Фото</td>
+      </tr>
+      <tr>
+        <td style="padding:10px;">Агент</td>
+        <td style="padding:10px; color:var(--accent);">Агент</td>
+        <td style="padding:10px; color:var(--text-secondary);">—</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="annotation" style="max-width: 900px; margin: 40px 0;">
+  <strong>Ключевые Apple-принципы в этом дизайне:</strong><br><br>
+  <strong>1. Progressive Disclosure</strong> — sub-tabs видны только когда пользователь выбрал направление<br>
+  <strong>2. Intent-based grouping</strong> — табы называют по действию (Анализ, Создание, Перевод), не по технологии<br>
+  <strong>3. Miller's Law</strong> — 5 элементов = комфортный выбор (iOS tab bar rule)<br>
+  <strong>4. Chat as universal entry</strong> — как Siri/Spotlight, принимает всё и маршрутизирует сам<br>
+  <strong>5. Capability hints</strong> — pills под полем ввода ненавязчиво показывают возможности
+</div>
+
+</body>
+</html>

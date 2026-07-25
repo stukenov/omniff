@@ -28,3 +28,12 @@ thiserror = "2"
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
 uuid = { version = "1", features = ["v4"] }
+
+# Keep target/ small (disk). Added 2026-06-21.
+[profile.dev]
+debug = false        # no debug symbols — smallest target/ (default was debug=2)
+incremental = false  # no incremental cache dir
+
+[profile.release]
+debug = false
+strip = true         # strip symbols from release binaries

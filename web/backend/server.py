@@ -1,7 +1,7 @@
 """
 OmniFF FastAPI Backend — KazNU Server (2x A10 22GB)
 
-GPU0: Qwen3.6-35B-A3B (4-bit), Qwen2.5-VL-3B (4-bit)
+GPU0: Qwen3-8B (4-bit), Qwen2.5-VL-3B (4-bit)
 GPU1: whisper-large-v3-turbo (fp16), Z-Image-Turbo (fp16)
 """
 
@@ -43,7 +43,7 @@ def _load_llm():
         return
     from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
-    model_id = "Qwen/Qwen3.6-35B-A3B"
+    model_id = "Qwen/Qwen3-8B"
     quant_config = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_compute_dtype=torch.float16)
     _llm["tokenizer"] = AutoTokenizer.from_pretrained(model_id)
     _llm["model"] = AutoModelForCausalLM.from_pretrained(

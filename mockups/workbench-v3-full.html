@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OmniFF v3 — Full Prototype</title>
+<style>
+  :root {
+    --bg: #f5f5f7; --surface: #ffffff; --surface-2: #f0f0f2; --surface-3: #e8e8ed;
+    --border: #d2d2d7; --border-light: #e5e5ea;
+    --text: #1d1d1f; --text-secondary: #6e6e73; --text-tertiary: #aeaeb2;
+    --accent: #0071e3; --accent-soft: rgba(0,113,227,0.08);
+    --green: #34c759; --green-soft: rgba(52,199,89,0.10);
+    --orange: #ff9500; --orange-soft: rgba(255,149,0,0.10);
+    --purple: #af52de; --purple-soft: rgba(175,82,222,0.10);
+    --red: #ff3b30; --red-soft: rgba(255,59,48,0.08);
+    --radius: 14px; --radius-sm: 10px; --radius-xs: 8px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+    --transition: 0.25s cubic-bezier(0.2,0.8,0.2,1);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;}
+  .topbar{display:flex;align-items:center;padding:12px 24px;background:rgba(255,255,255,0.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border-light);position:sticky;top:0;z-index:100;}
+  .logo{display:flex;align-items:center;gap:10px;}
+  .logo-icon{width:30px;height:30px;background:linear-gradient(135deg,#0071e3,#5856d6);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;color:white;}
+  .logo-text{font-size:17px;font-weight:600;letter-spacing:-0.02em;}
+  .logo-sep{color:var(--border);margin:0 2px;} .logo-sub{font-size:13px;color:var(--text-secondary);font-weight:400;}
+  .status-dot{width:8px;height:8px;border-radius:50%;margin-left:8px;background:var(--green);}
+  .nav-tabs{display:flex;gap:2px;margin-left:auto;background:var(--surface-2);padding:3px;border-radius:9px;}
+  .nav-tab{padding:6px 16px;font-size:13px;font-weight:500;color:var(--text-secondary);border-radius:7px;cursor:pointer;transition:var(--transition);user-select:none;}
+  .nav-tab:hover{color:var(--text);} .nav-tab.active{color:var(--text);background:var(--surface);box-shadow:var(--shadow-sm);}
+  .page{display:none;} .page.active{display:block;}
+  .container{max-width:860px;margin:0 auto;padding:28px 24px 100px;}
+  .empty-state{text-align:center;padding:50px 20px 30px;} .empty-state.hidden{display:none;}
+  .empty-title{font-size:26px;font-weight:700;letter-spacing:-0.03em;margin-bottom:6px;}
+  .empty-subtitle{font-size:14px;color:var(--text-secondary);margin-bottom:28px;}
+  .quick-types{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+  .quick-type{padding:8px 18px;font-size:13px;font-weight:500;background:var(--surface);border:1px solid var(--border-light);border-radius:20px;cursor:pointer;transition:var(--transition);color:var(--text-secondary);display:flex;align-items:center;gap:6px;box-shadow:var(--shadow-sm);user-select:none;}
+  .quick-type:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);}
+  .active-file{display:none;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:14px 18px;box-shadow:var(--shadow-sm);align-items:center;gap:12px;margin-bottom:14px;}
+  .active-file.visible{display:flex;}
+  .af-icon{width:40px;height:40px;border-radius:var(--radius-xs);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+  .af-info{flex:1;} .af-name{font-size:14px;font-weight:600;} .af-meta{font-size:12px;color:var(--text-secondary);}
+  .af-remove{width:26px;height:26px;border-radius:50%;background:var(--red-soft);color:var(--red);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;font-weight:700;}
+  .actions-section{margin-bottom:14px;opacity:0;transform:translateY(8px);transition:var(--transition);pointer-events:none;}
+  .actions-section.visible{opacity:1;transform:translateY(0);pointer-events:all;}
+  .actions-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-tertiary);margin-bottom:8px;}
+  .actions-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px;}
+  .action-btn{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);cursor:pointer;transition:var(--transition);user-select:none;box-shadow:var(--shadow-sm);}
+  .action-btn:hover{border-color:var(--accent);background:var(--accent-soft);}
+  .action-btn.selected{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 1.5px var(--accent);}
+  .action-icon{width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+  .action-name{font-size:13px;font-weight:600;} .action-desc{font-size:11px;color:var(--text-secondary);}
+  .options-panel{margin-bottom:14px;padding:16px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-sm);display:none;}
+  .options-panel.visible{display:block;}
+  .options-row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;}
+  .option-group{display:flex;flex-direction:column;gap:4px;flex:1;min-width:130px;}
+  .option-label{font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-secondary);font-weight:600;}
+  .option-select,.option-textarea{padding:9px 12px;background:var(--surface-2);border:1px solid var(--border-light);border-radius:var(--radius-xs);color:var(--text);font-size:13px;font-family:inherit;outline:none;transition:var(--transition);}
+  .option-select:focus,.option-textarea:focus{border-color:var(--accent);}
+  .option-textarea{min-height:70px;resize:vertical;width:100%;}
+  .run-btn{padding:9px 22px;background:var(--accent);color:white;border:none;border-radius:var(--radius-xs);font-size:13px;font-weight:600;cursor:pointer;transition:var(--transition);font-family:inherit;white-space:nowrap;}
+  .run-btn:hover{filter:brightness(1.1);} .run-btn:active{transform:scale(0.97);}
+  .result-area{display:none;margin-bottom:16px;} .result-area.visible{display:block;}
+  .result-box{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-md);overflow:hidden;}
+  .result-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border-light);background:var(--surface-2);}
+  .result-title{font-size:12px;font-weight:600;color:var(--text-secondary);display:flex;align-items:center;gap:6px;}
+  .result-title .dot{width:7px;height:7px;border-radius:50%;background:var(--green);}
+  .result-route{font-size:10px;color:var(--text-tertiary);padding:2px 6px;background:var(--surface);border-radius:4px;margin-left:6px;}
+  .result-actions{display:flex;gap:4px;}
+  .result-action-btn{padding:4px 10px;font-size:11px;background:var(--surface);border:1px solid var(--border-light);border-radius:6px;color:var(--text-secondary);cursor:pointer;transition:var(--transition);font-family:inherit;}
+  .result-action-btn:hover{color:var(--text);border-color:var(--border);}
+  .result-content{padding:16px;font-size:14px;line-height:1.75;white-space:pre-wrap;min-height:50px;}
+  .breadcrumbs{display:none;align-items:center;gap:6px;margin-bottom:12px;font-size:12px;flex-wrap:wrap;}
+  .breadcrumbs.visible{display:flex;}
+  .bc-item{padding:3px 10px;background:var(--accent-soft);color:var(--accent);border-radius:4px;font-weight:500;}
+  .bc-arrow{color:var(--border);}
+  .next-actions{display:none;padding:12px 16px;border-top:1px solid var(--border-light);background:var(--surface-2);}
+  .next-actions.visible{display:block;}
+  .next-label{font-size:11px;color:var(--text-tertiary);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;}
+  .next-pills{display:flex;gap:6px;flex-wrap:wrap;}
+  .next-pill{padding:5px 12px;font-size:12px;font-weight:500;background:var(--surface);border:1px solid var(--border-light);border-radius:16px;cursor:pointer;transition:var(--transition);color:var(--text-secondary);}
+  .next-pill:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);}
+  .input-bar{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(255,255,255,0.80);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border-light);padding:10px 24px;}
+  .input-bar-inner{max-width:860px;margin:0 auto;display:flex;align-items:center;gap:8px;}
+  .input-attach,.input-mic,.input-send{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:var(--transition);flex-shrink:0;font-size:16px;}
+  .input-attach,.input-mic{background:var(--surface-2);border:1px solid var(--border-light);}
+  .input-attach:hover,.input-mic:hover{background:var(--surface-3);}
+  .input-send{background:var(--accent);border:none;color:white;font-size:14px;}
+  .input-send:hover{filter:brightness(1.1);}
+  .input-field{flex:1;padding:9px 16px;background:var(--surface-2);border:1px solid var(--border-light);border-radius:20px;font-size:14px;font-family:inherit;color:var(--text);outline:none;transition:var(--transition);}
+  .input-field:focus{border-color:var(--accent);} .input-field::placeholder{color:var(--text-tertiary);}
+  .page-title{font-size:22px;font-weight:700;letter-spacing:-0.03em;margin-bottom:4px;}
+  .page-subtitle{font-size:14px;color:var(--text-secondary);margin-bottom:20px;}
+  .cat-filter{display:flex;gap:4px;margin-bottom:20px;flex-wrap:wrap;}
+  .cat-pill{padding:6px 14px;font-size:12px;font-weight:500;background:var(--surface);border:1px solid var(--border-light);border-radius:16px;cursor:pointer;transition:var(--transition);color:var(--text-secondary);user-select:none;}
+  .cat-pill:hover{border-color:var(--accent);color:var(--accent);}
+  .cat-pill.active{background:var(--accent);color:white;border-color:var(--accent);}
+  .pipe-section{margin-bottom:24px;} .pipe-section.hidden{display:none;}
+  .section-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-tertiary);margin-bottom:10px;}
+  .template-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px;}
+  .template-card{padding:14px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-sm);cursor:pointer;transition:var(--transition);}
+  .template-card:hover{border-color:var(--accent);box-shadow:var(--shadow-md);transform:translateY(-1px);}
+  .template-card.expanded{border-color:var(--accent);box-shadow:0 0 0 1.5px var(--accent);}
+  .tc-top{display:flex;align-items:flex-start;gap:10px;}
+  .tc-emoji{font-size:24px;flex-shrink:0;line-height:1;}
+  .tc-info{flex:1;} .tc-name{font-size:14px;font-weight:600;margin-bottom:2px;}
+  .tc-desc{font-size:12px;color:var(--text-secondary);line-height:1.4;}
+  .tc-meta{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap;}
+  .tc-pill{padding:2px 7px;font-size:10px;background:var(--surface-2);border-radius:4px;color:var(--text-secondary);}
+  .tc-time{padding:2px 7px;font-size:10px;background:var(--green-soft);border-radius:4px;color:var(--green);font-weight:600;margin-left:auto;}
+  .pipe-preview{display:none;margin:12px 0 20px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-md);overflow:hidden;animation:slideDown 0.3s var(--transition);}
+  .pipe-preview.visible{display:block;}
+  @keyframes slideDown{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
+  .pp-header{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border-light);}
+  .pp-emoji{font-size:28px;} .pp-info{flex:1;} .pp-title{font-size:16px;font-weight:700;} .pp-desc{font-size:12px;color:var(--text-secondary);}
+  .pp-close{width:28px;height:28px;border-radius:50%;background:var(--surface-2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--text-secondary);transition:var(--transition);}
+  .pp-close:hover{background:var(--surface-3);color:var(--text);}
+  .pp-meta{display:flex;gap:16px;padding:10px 18px;background:var(--surface-2);border-bottom:1px solid var(--border-light);font-size:12px;color:var(--text-secondary);}
+  .pp-steps{padding:18px;}
+  .pp-step{display:flex;gap:14px;position:relative;padding-bottom:16px;} .pp-step:last-child{padding-bottom:0;}
+  .pp-step-rail{display:flex;flex-direction:column;align-items:center;width:24px;flex-shrink:0;}
+  .pp-step-dot{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0;z-index:1;}
+  .pp-step-line{width:2px;flex:1;background:var(--border-light);margin-top:4px;} .pp-step:last-child .pp-step-line{display:none;}
+  .pp-step-content{flex:1;padding-top:2px;}
+  .pp-step-name{font-size:14px;font-weight:600;margin-bottom:2px;}
+  .pp-step-desc{font-size:12px;color:var(--text-secondary);line-height:1.4;}
+  .pp-step-model{display:inline-block;margin-top:4px;padding:2px 8px;font-size:10px;background:var(--surface-2);border-radius:4px;color:var(--text-tertiary);}
+  .pp-footer{padding:14px 18px;border-top:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-between;}
+  .pp-audience{font-size:12px;color:var(--text-tertiary);}
+  .live-modes{display:flex;gap:4px;justify-content:center;margin-bottom:20px;background:var(--surface-2);padding:4px;border-radius:var(--radius-sm);max-width:560px;margin-left:auto;margin-right:auto;}
+  .live-mode-btn{flex:1;padding:10px 6px;text-align:center;border-radius:var(--radius-xs);cursor:pointer;transition:var(--transition);user-select:none;}
+  .live-mode-btn:hover{background:rgba(255,255,255,0.5);}
+  .live-mode-btn.active{background:var(--surface);box-shadow:var(--shadow-sm);}
+  .lm-icon{font-size:20px;margin-bottom:2px;} .lm-label{font-size:10px;font-weight:600;color:var(--text-secondary);}
+  .live-mode-btn.active .lm-label{color:var(--text);}
+  .live-mode-desc{text-align:center;font-size:13px;color:var(--text-tertiary);margin-bottom:16px;}
+  .live-surface{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow-md);overflow:hidden;}
+  .live-status{display:flex;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid var(--border-light);}
+  .live-rec{display:flex;align-items:center;gap:6px;}
+  .live-rec-dot{width:10px;height:10px;border-radius:50%;background:var(--red);opacity:0.3;}
+  .live-rec-dot.active{opacity:1;animation:blink-dot 1s infinite;}
+  @keyframes blink-dot{0%,100%{opacity:1;}50%{opacity:0.3;}}
+  .live-rec-label{font-size:12px;font-weight:700;color:var(--red);opacity:0.4;}
+  .live-rec-dot.active~.live-rec-label{opacity:1;}
+  .live-timer{font-size:13px;font-weight:600;color:var(--text-secondary);font-variant-numeric:tabular-nums;margin-left:auto;}
+  .live-lang-pill{padding:4px 10px;font-size:11px;background:var(--surface-2);border:1px solid var(--border-light);border-radius:12px;color:var(--text-secondary);font-weight:500;}
+  .live-content{padding:20px;min-height:220px;}
+  .live-track{margin-bottom:14px;} .live-track:last-child{margin-bottom:0;}
+  .live-track-label{font-size:11px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;}
+  .live-track-text{font-size:15px;line-height:1.6;min-height:24px;}
+  .live-controls{display:flex;gap:8px;padding:12px 18px;border-top:1px solid var(--border-light);background:var(--surface-2);align-items:center;}
+  .live-btn{padding:7px 16px;font-size:12px;font-weight:600;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-xs);cursor:pointer;transition:var(--transition);font-family:inherit;color:var(--text-secondary);}
+  .live-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .live-btn.rec{background:var(--red);color:white;border-color:var(--red);} .live-btn.rec:hover{filter:brightness(1.1);}
+  .live-btn.stop{color:var(--red);border-color:var(--red);background:var(--red-soft);}
+  .live-export{margin-left:auto;}
+  .live-agenda{list-style:none;padding:0;}
+  .live-agenda-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-light);font-size:14px;line-height:1.5;}
+  .live-agenda-item:last-child{border-bottom:none;}
+  .lai-time{font-size:11px;color:var(--text-tertiary);font-variant-numeric:tabular-nums;min-width:40px;padding-top:2px;}
+  .lai-dot{width:8px;height:8px;border-radius:50%;margin-top:6px;flex-shrink:0;}
+  .lai-dot.key{background:var(--green);} .lai-dot.task{background:var(--accent);} .lai-dot.decision{background:var(--orange);}
+  .lai-text{flex:1;}
+  .history-list{display:flex;flex-direction:column;gap:6px;}
+  .history-item{display:flex;align-items:center;gap:12px;padding:14px 18px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-sm);box-shadow:var(--shadow-sm);cursor:pointer;transition:var(--transition);}
+  .history-item:hover{border-color:var(--border);box-shadow:var(--shadow-md);}
+  .history-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+  .history-info{flex:1;} .history-name{font-size:13px;font-weight:600;margin-bottom:1px;} .history-meta{font-size:11px;color:var(--text-secondary);}
+  .history-re{padding:5px 12px;font-size:11px;background:var(--surface-2);border:1px solid var(--border-light);border-radius:6px;color:var(--text-secondary);cursor:pointer;transition:var(--transition);font-family:inherit;}
+  .history-re:hover{color:var(--accent);border-color:var(--accent);}
+  .live-legend{display:flex;gap:16px;justify-content:center;margin-top:12px;font-size:11px;color:var(--text-tertiary);}
+  .live-legend-item{display:flex;align-items:center;gap:4px;}
+  .live-legend-dot{width:6px;height:6px;border-radius:50%;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-icon">⚡</div>
+    <span class="logo-text">OmniFF</span><span class="logo-sep">/</span><span class="logo-sub">FFmpeg для ИИ</span>
+    <div class="status-dot"></div>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-page="workbench">Верстак</div>
+    <div class="nav-tab" data-page="live">Live</div>
+    <div class="nav-tab" data-page="pipelines">Пайплайны</div>
+    <div class="nav-tab" data-page="history">История</div>
+  </div>
+</div>
+
+<!-- WORKBENCH -->
+<div id="page-workbench" class="page active"><div class="container">
+  <div class="empty-state" id="empty-state">
+    <div class="empty-title">Любой вход. Любой выход.</div>
+    <div class="empty-subtitle">Бросьте файл, вставьте из буфера или начните печатать</div>
+    <div class="quick-types" id="quick-types">
+      <div class="quick-type" data-type="image">🖼 Фото</div>
+      <div class="quick-type" data-type="video">🎬 Видео</div>
+      <div class="quick-type" data-type="audio">🎵 Аудио</div>
+      <div class="quick-type" data-type="document">📄 Документ</div>
+      <div class="quick-type" data-type="none">✏️ Текст</div>
+    </div>
+  </div>
+  <div class="active-file" id="active-file">
+    <div class="af-icon" id="af-icon"></div>
+    <div class="af-info"><div class="af-name" id="af-name"></div><div class="af-meta" id="af-meta"></div></div>
+    <div class="af-remove" id="af-remove">✕</div>
+  </div>
+  <div class="breadcrumbs" id="breadcrumbs"></div>
+  <div class="actions-section" id="actions-section">
+    <div class="actions-label" id="actions-label"></div>
+    <div class="actions-grid" id="actions-grid"></div>
+  </div>
+  <div class="options-panel" id="options-panel"></div>
+  <div class="result-area" id="result-area"><div class="result-box">
+    <div class="result-header">
+      <div class="result-title"><span class="dot"></span><span id="result-label"></span><span class="result-route" id="result-route"></span></div>
+      <div class="result-actions"><button class="result-action-btn" id="btn-copy">📋</button><button class="result-action-btn">⬇</button></div>
+    </div>
+    <div class="result-content" id="result-content"></div>
+    <div class="next-actions" id="next-actions"><div class="next-label">Что дальше?</div><div class="next-pills" id="next-pills"></div></div>
+  </div></div>
+</div></div>
+
+<!-- LIVE -->
+<div id="page-live" class="page"><div class="container">
+  <div style="text-align:center;padding:16px 0 8px;">
+    <div class="empty-title">Live</div>
+    <div class="empty-subtitle">Обработка в реальном времени</div>
+  </div>
+  <div class="live-modes" id="live-modes">
+    <div class="live-mode-btn active" data-mode="transcribe"><div class="lm-icon">📝</div><div class="lm-label">Транскрипция</div></div>
+    <div class="live-mode-btn" data-mode="translate"><div class="lm-icon">🌐</div><div class="lm-label">Перевод</div></div>
+    <div class="live-mode-btn" data-mode="meeting"><div class="lm-icon">🏢</div><div class="lm-label">Встреча</div></div>
+    <div class="live-mode-btn" data-mode="describe"><div class="lm-icon">👁</div><div class="lm-label">Описание</div></div>
+    <div class="live-mode-btn" data-mode="dictation"><div class="lm-icon">✍️</div><div class="lm-label">Диктовка</div></div>
+  </div>
+  <div class="live-mode-desc" id="live-mode-desc"></div>
+  <div class="live-surface">
+    <div class="live-status">
+      <div class="live-rec"><div class="live-rec-dot" id="live-rec-dot"></div><span class="live-rec-label" id="live-rec-label">LIVE</span></div>
+      <div class="live-lang-pill" id="live-lang"></div>
+      <div class="live-timer" id="live-timer">00:00</div>
+    </div>
+    <div class="live-content" id="live-content"></div>
+    <div class="live-controls">
+      <button class="live-btn rec" id="live-rec-btn">● Запись</button>
+      <button class="live-btn" id="live-pause-btn">⏸ Пауза</button>
+      <button class="live-btn stop" id="live-stop-btn">■ Стоп</button>
+      <button class="live-btn live-export" id="live-export-btn">⬇ Экспорт</button>
+    </div>
+  </div>
+  <div class="live-legend" id="live-legend" style="display:none;">
+    <div class="live-legend-item"><div class="live-legend-dot" style="background:var(--green);"></div> Тезис</div>
+    <div class="live-legend-item"><div class="live-legend-dot" style="background:var(--orange);"></div> Решение</div>
+    <div class="live-legend-item"><div class="live-legend-dot" style="background:var(--accent);"></div> Задача</div>
+  </div>
+</div></div>
+
+<!-- PIPELINES -->
+<div id="page-pipelines" class="page"><div class="container">
+  <div class="page-title">Пайплайны</div>
+  <div class="page-subtitle">Цепочки операций. Выход → вход следующей.</div>
+  <div class="cat-filter" id="cat-filter">
+    <div class="cat-pill active" data-cat="all">Все</div>
+    <div class="cat-pill" data-cat="edu">🎓 Образование</div>
+    <div class="cat-pill" data-cat="biz">🏢 Бизнес</div>
+    <div class="cat-pill" data-cat="content">🎬 Контент</div>
+    <div class="cat-pill" data-cat="research">🔬 Исследования</div>
+    <div class="cat-pill" data-cat="personal">👤 Личное</div>
+  </div>
+  <div id="pipe-sections"></div>
+</div></div>
+
+<!-- HISTORY -->
+<div id="page-history" class="page"><div class="container">
+  <div class="page-title">История</div>
+  <div class="page-subtitle">Каждая операция сохранена. Переделать — один клик.</div>
+  <div class="history-list">
+    <div class="history-item"><div class="history-icon" style="background:var(--green-soft);">🌐</div><div class="history-info"><div class="history-name">Перевод: договор_2024.pdf</div><div class="history-meta">KZ → RU · 3 мин назад</div></div><button class="history-re">↻</button></div>
+    <div class="history-item"><div class="history-icon" style="background:var(--red-soft);">🔴</div><div class="history-info"><div class="history-name">Live: Лекция по физике (45 мин)</div><div class="history-meta">Транскрипция + Перевод · 12 мин назад</div></div><button class="history-re">↻</button></div>
+    <div class="history-item"><div class="history-icon" style="background:var(--orange-soft);">🏢</div><div class="history-info"><div class="history-name">Live: Q4 планирование</div><div class="history-meta">6 тезисов · 4 задачи · 1 час назад</div></div><button class="history-re">↻</button></div>
+    <div class="history-item"><div class="history-icon" style="background:var(--purple-soft);">🎨</div><div class="history-info"><div class="history-name">Генерация: «горы Алатау»</div><div class="history-meta">Seed 42 · 2 часа назад</div></div><button class="history-re">↻</button></div>
+    <div class="history-item"><div class="history-icon" style="background:var(--accent-soft);">📋</div><div class="history-info"><div class="history-name">Пайплайн: Конспект лекции</div><div class="history-meta">4 шага · 3 часа назад</div></div><button class="history-re">↻</button></div>
+  </div>
+</div></div>
+
+<div class="input-bar"><div class="input-bar-inner">
+  <div class="input-attach">📎</div>
+  <input type="text" class="input-field" placeholder="Сообщение, файл, ссылка...">
+  <div class="input-mic">🎤</div>
+  <div class="input-send">▶</div>
+</div></div>
+
+<script>
+(function(){
+"use strict";
+
+var PIPES=[
+  {cat:"edu",emoji:"🎓",name:"Конспект лекции",desc:"Запись лекции → полный конспект на нужном языке",time:"~3 мин",audience:"Студенты, преподаватели",steps:[
+    {name:"Транскрипция",desc:"Аудиозапись → текст с таймкодами",model:"Whisper-turbo",color:"var(--green)"},
+    {name:"Детекция языка",desc:"Авто-определение языка речи",model:"Whisper",color:"var(--accent)"},
+    {name:"Перевод",desc:"KZ↔RU↔EN — на целевой язык",model:"Qwen3-32B",color:"var(--orange)"},
+    {name:"Конспект",desc:"Структурированное резюме с тезисами",model:"Qwen3-32B",color:"var(--purple)"}]},
+  {cat:"edu",emoji:"📖",name:"Перевод учебника",desc:"PDF учебник → перевод с сохранением структуры",time:"~10 мин",audience:"Студенты, переводчики",steps:[
+    {name:"OCR + парсинг",desc:"Извлечение текста и структуры документа",model:"Qwen2.5-VL",color:"var(--accent)"},
+    {name:"Сегментация",desc:"Разбивка на главы, параграфы, подписи",model:"Qwen3-32B",color:"var(--orange)"},
+    {name:"Перевод",desc:"Перевод сегментов с учётом контекста",model:"Qwen3-32B",color:"var(--green)"},
+    {name:"Сборка PDF",desc:"Формирование переведённого документа",model:"Системный",color:"var(--purple)"}]},
+  {cat:"edu",emoji:"📝",name:"Подготовка к экзамену",desc:"Материалы → флеш-карточки + тест-вопросы",time:"~5 мин",audience:"Студенты",steps:[
+    {name:"Анализ",desc:"Извлечение ключевых понятий и определений",model:"Qwen3-32B",color:"var(--accent)"},
+    {name:"Карточки",desc:"Флеш-карточки: вопрос + ответ",model:"Qwen3-32B",color:"var(--green)"},
+    {name:"Тест",desc:"Множественный выбор + открытые вопросы",model:"Qwen3-32B",color:"var(--purple)"},
+    {name:"Экспорт",desc:"CSV для Anki или PDF для печати",model:"Системный",color:"var(--orange)"}]},
+  {cat:"biz",emoji:"🏢",name:"Протокол встречи",desc:"Запись совещания → протокол + задачи",time:"~4 мин",audience:"Менеджеры, HR",steps:[
+    {name:"Транскрипция",desc:"Речь с определением спикеров",model:"Whisper-turbo",color:"var(--green)"},
+    {name:"Резюме",desc:"Ключевые решения и вопросы",model:"Qwen3-32B",color:"var(--accent)"},
+    {name:"Задачи",desc:"Кто, что, когда — автоматически",model:"Qwen3-32B",color:"var(--orange)"},
+    {name:"Протокол",desc:"Оформление в готовый документ",model:"Qwen3-32B",color:"var(--purple)"}]},
+  {cat:"biz",emoji:"📑",name:"Анализ договора",desc:"Юридический документ → анализ рисков",time:"~3 мин",audience:"Юристы, предприниматели",steps:[
+    {name:"Парсинг",desc:"Структура договора, ключевые пункты",model:"Qwen3-32B",color:"var(--accent)"},
+    {name:"Риски",desc:"Потенциально невыгодные условия",model:"Qwen3-32B",color:"var(--red)"},
+    {name:"Сводка",desc:"Стороны, сроки, обязательства",model:"Qwen3-32B",color:"var(--orange)"},
+    {name:"Рекомендации",desc:"Вопросы для обсуждения с юристом",model:"Qwen3-32B",color:"var(--green)"}]},
+  {cat:"biz",emoji:"📊",name:"Дайджест отчётов",desc:"Несколько PDF → единая сводка с цифрами",time:"~5 мин",audience:"Руководители, аналитики",steps:[
+    {name:"Загрузка",desc:"Пакетная обработка документов",model:"Системный",color:"var(--accent)"},
+    {name:"Извлечение",desc:"Ключевые цифры и выводы",model:"Qwen3-32B",color:"var(--green)"},
+    {name:"Сравнение",desc:"Сопоставление между отчётами",model:"Qwen3-32B",color:"var(--orange)"},
+    {name:"Дайджест",desc:"Единая сводка с таблицей",model:"Qwen3-32B",color:"var(--purple)"}]},
+  {cat:"content",emoji:"🎬",name:"Субтитры для видео",desc:"Видео → субтитры на нескольких языках",time:"~5 мин",audience:"Блогеры, продюсеры",steps:[
+    {name:"Транскрипция",desc:"Точные таймкоды речи",model:"Whisper-turbo",color:"var(--green)"},
+    {name:"Перевод ×3",desc:"Параллельный перевод на 3 языка",model:"Qwen3-32B",color:"var(--accent)"},
+    {name:"Форматирование",desc:"Разбивка по 42 символа на строку",model:"Системный",color:"var(--orange)"},
+    {name:"Экспорт SRT",desc:"Отдельный .srt для каждого языка",model:"Системный",color:"var(--purple)"}]},
+  {cat:"content",emoji:"🎙",name:"Подкаст → контент",desc:"Эпизод → посты, цитаты, описание",time:"~4 мин",audience:"Подкастеры, SMM",steps:[
+    {name:"Транскрипция",desc:"Текст с разделением спикеров",model:"Whisper-turbo",color:"var(--green)"},
+    {name:"Цитаты",desc:"5 ярких цитат для соцсетей",model:"Qwen3-32B",color:"var(--purple)"},
+    {name:"Описание",desc:"SEO-оптимизированное + теги",model:"Qwen3-32B",color:"var(--accent)"},
+    {name:"Посты",desc:"3 поста из материала эпизода",model:"Qwen3-32B",color:"var(--orange)"}]},
+  {cat:"content",emoji:"📸",name:"Фото → контент",desc:"Фотография → описание + посты для соцсетей",time:"~1 мин",audience:"Фотографы, SMM",steps:[
+    {name:"Описание",desc:"Детальный анализ содержания фото",model:"Qwen2.5-VL",color:"var(--accent)"},
+    {name:"Хештеги",desc:"Релевантные теги для Instagram/TikTok",model:"Qwen3-32B",color:"var(--green)"},
+    {name:"Посты",desc:"Текст для 3 соцсетей разного формата",model:"Qwen3-32B",color:"var(--purple)"}]},
+  {cat:"research",emoji:"🔬",name:"Обзор статьи",desc:"Научная статья → структурированный обзор",time:"~3 мин",audience:"Исследователи, аспиранты",steps:[
+    {name:"Извлечение",desc:"Abstract, методология, результаты",model:"Qwen3-32B",color:"var(--accent)"},
+    {name:"Критика",desc:"Сильные/слабые стороны, ограничения",model:"Qwen3-32B",color:"var(--orange)"},
+    {name:"Перевод",desc:"Обзор на нужном языке",model:"Qwen3-32B",color:"var(--green)"},
+    {name:"BibTeX",desc:"Ссылка в нужном формате",model:"Системный",color:"var(--purple)"}]},
+  {cat:"research",emoji:"📈",name:"Извлечение данных",desc:"Таблицы из PDF/фото → CSV/JSON",time:"~2 мин",audience:"Аналитики, датасаентисты",steps:[
+    {name:"OCR таблиц",desc:"Распознавание таблиц и графиков",model:"Qwen2.5-VL",color:"var(--accent)"},
+    {name:"Структуризация",desc:"Табличный формат с типами",model:"Qwen3-32B",color:"var(--green)"},
+    {name:"Валидация",desc:"Проверка целостности данных",model:"Qwen3-32B",color:"var(--orange)"},
+    {name:"Экспорт",desc:"CSV / JSON / Excel",model:"Системный",color:"var(--purple)"}]},
+  {cat:"personal",emoji:"🎤",name:"Голосовой дневник",desc:"Голосовые заметки → организованный дневник",time:"~2 мин",audience:"Все",steps:[
+    {name:"Транскрипция",desc:"Голос → текст",model:"Whisper-turbo",color:"var(--green)"},
+    {name:"Очистка",desc:"Убрать паразиты, структуризация",model:"Qwen3-32B",color:"var(--accent)"},
+    {name:"Теги",desc:"Настроение, тема, ключевые слова",model:"Qwen3-32B",color:"var(--purple)"},
+    {name:"Запись",desc:"Добавление в хронологию",model:"Системный",color:"var(--orange)"}]},
+  {cat:"personal",emoji:"🧳",name:"Переводчик путешественника",desc:"Фото меню/вывески → перевод + контекст",time:"~30 сек",audience:"Туристы",steps:[
+    {name:"OCR",desc:"Распознавание текста на фото",model:"Qwen2.5-VL",color:"var(--accent)"},
+    {name:"Перевод",desc:"Перевод на ваш язык",model:"Qwen3-32B",color:"var(--green)"},
+    {name:"Контекст",desc:"Объяснение блюд, знаков, нюансов",model:"Qwen3-32B",color:"var(--purple)"}]}
+];
+
+var LIVE_MODES={
+  transcribe:{desc:"Речь → текст в реальном времени",lang:"Қазақша",showLegend:false,
+    tracks:[{label:"Транскрипция"}],
+    demo:["Сәлеметсіздер, бүгінгі дәріске қош келдіңіздер.","Біз бүгін кванттық механиканың негіздерін қарастырамыз.","Алдымен, Шрёдингер теңдеуін еске түсірейік.","Толқындық функция бөлшектің кванттық күйін сипаттайды.","Бұл функция кеңістік пен уақытқа тәуелді.","Гамильтониан операторы жүйенің толық энергиясын береді."]},
+  translate:{desc:"Речь на одном языке → текст + перевод на другой",lang:"KZ → RU",showLegend:false,
+    tracks:[{label:"Қазақша"},{label:"Русский"}],
+    demo:[["Бүгін біз жасанды интеллектті талқылаймыз.","Сегодня мы обсуждаем искусственный интеллект."],["Бұл технология білім беруді өзгертуде.","Эта технология меняет образование."],["Қазақстан университеттері белсенді қолдануда.","Университеты Казахстана активно используют."],["Нәтижелер өте жақсы.","Результаты очень хорошие."],["Келесі қадам — локализация.","Следующий шаг — локализация."]]},
+  meeting:{desc:"Авто-заметки: тезисы, решения, задачи",lang:"Русский",showLegend:true,
+    tracks:[],
+    demo:[
+      {type:"key",time:"00:15",text:"Q4: выручка +12% к плану, EBITDA в рамках прогноза"},
+      {type:"decision",time:"01:02",text:"Запуск нового продукта перенесён на март"},
+      {type:"task",time:"01:30",text:"Алия → маркетинговый план до 15 января"},
+      {type:"key",time:"02:15",text:"Бюджет Q1: сохраняется на уровне Q4"},
+      {type:"task",time:"02:45",text:"Болат → согласовать бюджет с финансами до пятницы"},
+      {type:"decision",time:"03:10",text:"Еженедельные синки: вторник 10:00"},
+      {type:"key",time:"03:40",text:"Клиентская база выросла на 18% за квартал"},
+      {type:"task",time:"04:05",text:"Динара → подготовить отчёт по retention"}]},
+  describe:{desc:"Камера/экран → непрерывное описание происходящего",lang:"Русский",showLegend:false,
+    tracks:[{label:"Описание"}],
+    demo:["На экране — слайд с графиком роста выручки.","Лектор указывает на ось Y — миллионы тенге.","Переход к следующему слайду: таблица моделей.","Четыре строки: mBERT, XLM-R, KazBERT, новая модель.","Лектор маркером выделяет KazBERT — лучший результат.","Вопрос из зала: «Какой корпус использовался?»"]},
+  dictation:{desc:"Голос → форматированный текст с пунктуацией и абзацами",lang:"Русский",showLegend:false,
+    tracks:[{label:"Текст"}],
+    demo:["Уважаемый Болат Серікұлы!","","Благодарю за приглашение на конференцию «Цифровое будущее Казахстана», которая состоится 15 марта 2026 года в Алматы.","","С удовольствием подтверждаю участие.","Тема доклада: «Трансформерные модели для казахского языка».","","С уважением,","Гүлнар Әлиева"]}
+};
+
+var FILE_CONFIGS={
+  image:{icon:"🖼",name:"landscape.jpg",meta:"Изображение · 2.4 MB",iconBg:"var(--accent-soft)",actions:[
+    {id:"describe",icon:"👁",name:"Описать",desc:"Что изображено?",color:"var(--accent-soft)",optType:"textarea",optPlaceholder:"Вопрос...",route:"Qwen2.5-VL",result:"Горный пейзаж. Альпийское озеро с бирюзовой водой. Заснеженные вершины в закатном свете. Хвойные деревья по берегу.",next:["🌐 Перевести","🎨 Стилизовать"]},
+    {id:"ocr",icon:"🌐",name:"Перевести текст",desc:"OCR → перевод",color:"var(--green-soft)",optType:"select",optLabel:"На язык",optChoices:["Русский","Казахский","English"],route:"VL + Qwen3",result:"Текст: \"Mountain Lake Resort\"\n→ «Горный Озёрный Курорт»",next:["📋 Копировать","🔄 Другой язык"]},
+    {id:"upscale",icon:"✨",name:"Улучшить",desc:"×2 разрешение",color:"var(--orange-soft)",optType:null,route:"Real-ESRGAN",result:"2400×1600 → 4800×3200 · PNG · 8.7 MB",next:["⬇ Скачать","🎨 Стилизовать"]}]},
+  video:{icon:"🎬",name:"lecture.mp4",meta:"Видео · 45:12",iconBg:"var(--purple-soft)",actions:[
+    {id:"transcribe",icon:"📝",name:"Транскрибировать",desc:"Речь → текст",color:"var(--green-soft)",optType:"select",optLabel:"Язык",optChoices:["Авто","Қазақша","Русский"],route:"Whisper-turbo",result:"[00:00] Сәлеметсіздер, дәріске қош келдіңіздер.\n[00:05] Кванттық механика негіздері.\n[00:12] Шрёдингер теңдеуін еске түсірейік.\n\n⏱ 45:12 · Қазақша",next:["🌐 Перевести","📋 Резюме","💬 SRT"]},
+    {id:"subtitles",icon:"💬",name:"Субтитры",desc:".srt файл",color:"var(--orange-soft)",optType:"select",optLabel:"Язык",optChoices:["Оригинал","Русский","English"],route:"Whisper+Qwen3",result:"1\n00:00:00 --> 00:00:05\nСәлеметсіздер, дәріске\nқош келдіңіздер.\n\n📄 lecture.srt · 127 строк",next:["⬇ Скачать","🌐 Перевести"]}]},
+  audio:{icon:"🎵",name:"interview.m4a",meta:"Аудио · 18:34",iconBg:"var(--green-soft)",actions:[
+    {id:"transcribe",icon:"📝",name:"Транскрибировать",desc:"Речь → текст",color:"var(--green-soft)",optType:"select",optLabel:"Язык",optChoices:["Авто","Русский","Қазақша"],route:"Whisper-turbo",result:"[Спикер 1] Как вы пришли в науку?\n[Спикер 2] Увлёкся физикой после олимпиады.\n\n⏱ 18:34 · 2 спикера",next:["🌐 Перевести","📋 Резюме"]},
+    {id:"summarize",icon:"📋",name:"Резюме",desc:"Ключевые тезисы",color:"var(--orange-soft)",optType:null,route:"Whisper+Qwen3",result:"Путь в науку · Журналист + Физик\n• Олимпиада в 9 классе\n• «Физика — язык вселенной»",next:["🌐 Перевести","⬇ Скачать"]}]},
+  document:{icon:"📄",name:"paper.pdf",meta:"PDF · 14 стр",iconBg:"var(--orange-soft)",actions:[
+    {id:"summarize",icon:"📋",name:"Резюме",desc:"Главные тезисы",color:"var(--orange-soft)",optType:null,route:"Qwen3-32B",result:"KazBERT: 94.2% NER\n+7% vs мульти · Морфемный токенизатор\n14 стр · 47 ссылок",next:["🌐 Перевести","💬 Спросить"]},
+    {id:"translate",icon:"🌐",name:"Перевести",desc:"Весь документ",color:"var(--green-soft)",optType:"select",optLabel:"На язык",optChoices:["Русский","English"],route:"Qwen3-32B",result:"KZ → RU · 14 стр\n📥 paper_RU.pdf",next:["⬇ Скачать","📋 Резюме"]},
+    {id:"ask",icon:"💬",name:"Спросить",desc:"Вопрос по документу",color:"var(--purple-soft)",optType:"textarea",optPlaceholder:"Вопрос...",route:"Qwen3-32B",result:"KazBERT лучше благодаря морфемному токенизатору и предобучению на 12 ГБ казахского текста.",next:["💬 Ещё вопрос","📋 Резюме"]}]},
+  none:{icon:"✏️",name:null,meta:null,actions:[
+    {id:"write",icon:"📝",name:"Написать",desc:"Текст, эссе",color:"var(--accent-soft)",optType:"textarea",optPlaceholder:"Тема...",route:"Qwen3-32B",result:"ИИ в образовании Центральной Азии\n\nУниверситеты внедряют AI-инструменты...\n[1200 слов]",next:["🌐 Перевести","📋 Сократить"]},
+    {id:"generate",icon:"🎨",name:"Картинка",desc:"Текст → изображение",color:"var(--purple-soft)",optType:"textarea",optPlaceholder:"Описание...",route:"SDXL",result:"🖼 «Горы Алатау» · 1024×1024 · Seed 42",next:["✨ Улучшить","🔄 Seed"]},
+    {id:"code",icon:"💻",name:"Код",desc:"По описанию",color:"var(--green-soft)",optType:"textarea",optPlaceholder:"Задача...",route:"Qwen3-32B",result:"def analyze(text):\n    words = text.split()\n    return {\"count\": len(words)}\n\nPython · 3 строки",next:["💬 Объяснить","🔧 Улучшить"]},
+    {id:"translate",icon:"🌐",name:"Перевести",desc:"На другой язык",color:"var(--orange-soft)",optType:"textarea",optPlaceholder:"Текст...",route:"Qwen3-32B",result:"EN → KZ\n«AI transforms education»\n→ «ЖИ білім беруді өзгертеді»",next:["🔄 Обратный","📋 Копировать"]}]}
+};
+
+// NAV
+document.querySelectorAll(".nav-tab").forEach(function(t){t.addEventListener("click",function(){
+  document.querySelectorAll(".page").forEach(function(p){p.classList.remove("active");});
+  document.querySelectorAll(".nav-tab").forEach(function(n){n.classList.remove("active");});
+  document.getElementById("page-"+this.getAttribute("data-page")).classList.add("active");
+  this.classList.add("active");
+});});
+
+// WORKBENCH
+var chain=[];
+document.getElementById("quick-types").addEventListener("click",function(e){var b=e.target.closest(".quick-type");if(b)simFile(b.getAttribute("data-type"));});
+document.getElementById("af-remove").addEventListener("click",function(e){e.stopPropagation();rmFile();});
+document.getElementById("btn-copy").addEventListener("click",function(){navigator.clipboard.writeText(document.getElementById("result-content").textContent);this.textContent="✓";var s=this;setTimeout(function(){s.textContent="📋";},1200);});
+
+function simFile(type){
+  chain=[];var c=FILE_CONFIGS[type];
+  document.getElementById("empty-state").classList.add("hidden");
+  hid("result-area");hid("options-panel");
+  var bc=document.getElementById("breadcrumbs");bc.classList.remove("visible");while(bc.firstChild)bc.removeChild(bc.firstChild);
+  var af=document.getElementById("active-file");
+  if(type==="none"){af.classList.remove("visible");}else{
+    af.classList.add("visible");document.getElementById("af-icon").textContent=c.icon;
+    document.getElementById("af-icon").style.background=c.iconBg;
+    document.getElementById("af-name").textContent=c.name;document.getElementById("af-meta").textContent=c.meta;}
+  var g=document.getElementById("actions-grid");while(g.firstChild)g.removeChild(g.firstChild);
+  document.getElementById("actions-label").textContent=type==="none"?"Что создать?":"Что сделать?";
+  c.actions.forEach(function(a){
+    var b=document.createElement("div");b.className="action-btn";b.setAttribute("data-action",a.id);
+    var ic=document.createElement("div");ic.className="action-icon";ic.style.background=a.color;ic.textContent=a.icon;
+    var td=document.createElement("div"),n=document.createElement("div"),d=document.createElement("div");
+    n.className="action-name";n.textContent=a.name;d.className="action-desc";d.textContent=a.desc;
+    td.appendChild(n);td.appendChild(d);b.appendChild(ic);b.appendChild(td);
+    b.addEventListener("click",function(){selAction(a);});g.appendChild(b);
+  });
+  document.getElementById("actions-section").classList.add("visible");
+}
+
+function selAction(a){
+  document.querySelectorAll(".action-btn").forEach(function(b){b.classList.remove("selected");});
+  var s=document.querySelector('[data-action="'+a.id+'"]');if(s)s.classList.add("selected");
+  hid("result-area");
+  var p=document.getElementById("options-panel");while(p.firstChild)p.removeChild(p.firstChild);
+  if(!a.optType){p.classList.remove("visible");p.style.display="none";setTimeout(function(){runA(a);},100);return;}
+  if(a.optType==="textarea"){
+    var ta=document.createElement("textarea");ta.className="option-textarea";ta.placeholder=a.optPlaceholder||"";p.appendChild(ta);
+    var rb=mkRun(a);rb.style.marginTop="10px";p.appendChild(rb);
+  }else if(a.optType==="select"){
+    var row=document.createElement("div");row.className="options-row";
+    var grp=document.createElement("div");grp.className="option-group";
+    var lbl=document.createElement("div");lbl.className="option-label";lbl.textContent=a.optLabel||"";
+    var sel=document.createElement("select");sel.className="option-select";
+    (a.optChoices||[]).forEach(function(c){var o=document.createElement("option");o.textContent=c;sel.appendChild(o);});
+    grp.appendChild(lbl);grp.appendChild(sel);row.appendChild(grp);row.appendChild(mkRun(a));p.appendChild(row);
+  }
+  p.classList.add("visible");p.style.display="block";
+}
+
+function mkRun(a){var b=document.createElement("button");b.className="run-btn";b.textContent="▶ "+a.name;b.addEventListener("click",function(){runA(a);});return b;}
+
+function runA(a){
+  var ar=document.getElementById("result-area"),ct=document.getElementById("result-content");
+  document.getElementById("result-label").textContent=a.name;document.getElementById("result-route").textContent=a.route||"";
+  ct.textContent="";chain.push(a.name);updBC();
+  document.getElementById("next-actions").classList.remove("visible");
+  ar.classList.add("visible");ar.style.display="block";
+  var lines=a.result.split("\n"),li=0;
+  function add(){if(li<lines.length){if(li>0)ct.textContent+="\n";ct.textContent+=lines[li];li++;setTimeout(add,60+Math.random()*80);}else{showNxt(a);}}
+  setTimeout(add,300);setTimeout(function(){ar.scrollIntoView({behavior:"smooth",block:"center"});},200);
+}
+
+function showNxt(a){
+  if(!a.next||!a.next.length)return;
+  var c=document.getElementById("next-actions"),pills=document.getElementById("next-pills");
+  while(pills.firstChild)pills.removeChild(pills.firstChild);
+  a.next.forEach(function(l){
+    var p=document.createElement("div");p.className="next-pill";p.textContent=l;
+    p.addEventListener("click",function(){
+      chain.push(l.replace(/^[^\s]+\s/,""));updBC();
+      var ct=document.getElementById("result-content");ct.textContent="⏳ "+l+"...";c.classList.remove("visible");
+      setTimeout(function(){ct.textContent="✓ "+l+" — готово";c.classList.add("visible");},800);
+    });pills.appendChild(p);
+  });c.classList.add("visible");
+}
+
+function updBC(){
+  var bc=document.getElementById("breadcrumbs");while(bc.firstChild)bc.removeChild(bc.firstChild);
+  if(chain.length<=1){bc.classList.remove("visible");return;}bc.classList.add("visible");
+  chain.forEach(function(s,i){
+    if(i>0){var ar=document.createElement("span");ar.className="bc-arrow";ar.textContent="→";bc.appendChild(ar);}
+    var it=document.createElement("span");it.className="bc-item";it.textContent=s;bc.appendChild(it);
+  });
+}
+
+function rmFile(){
+  document.getElementById("active-file").classList.remove("visible");
+  document.getElementById("empty-state").classList.remove("hidden");
+  document.getElementById("actions-section").classList.remove("visible");
+  hid("result-area");hid("options-panel");
+  var bc=document.getElementById("breadcrumbs");bc.classList.remove("visible");while(bc.firstChild)bc.removeChild(bc.firstChild);chain=[];
+}
+
+function hid(id){var el=document.getElementById(id);el.classList.remove("visible");if(id==="options-panel")el.style.display="none";}
+
+// PIPELINES
+var openIdx=-1;
+function buildPipes(){
+  var con=document.getElementById("pipe-sections");
+  var cats={edu:"🎓 Образование",biz:"🏢 Бизнес",content:"🎬 Контент",research:"🔬 Исследования",personal:"👤 Личное"};
+  Object.keys(cats).forEach(function(key){
+    var items=PIPES.filter(function(p){return p.cat===key;});
+    var sec=document.createElement("div");sec.className="pipe-section";sec.setAttribute("data-cat",key);
+    var lbl=document.createElement("div");lbl.className="section-label";lbl.textContent=cats[key];sec.appendChild(lbl);
+    var grid=document.createElement("div");grid.className="template-grid";
+    items.forEach(function(p){
+      var card=document.createElement("div");card.className="template-card";
+      var idx=PIPES.indexOf(p);card.setAttribute("data-idx",idx);
+      var top=document.createElement("div");top.className="tc-top";
+      var em=document.createElement("div");em.className="tc-emoji";em.textContent=p.emoji;
+      var info=document.createElement("div");info.className="tc-info";
+      var nm=document.createElement("div");nm.className="tc-name";nm.textContent=p.name;
+      var ds=document.createElement("div");ds.className="tc-desc";ds.textContent=p.desc;
+      info.appendChild(nm);info.appendChild(ds);top.appendChild(em);top.appendChild(info);
+      var meta=document.createElement("div");meta.className="tc-meta";
+      p.steps.forEach(function(s){var pl=document.createElement("span");pl.className="tc-pill";pl.textContent=s.name;meta.appendChild(pl);});
+      var tm=document.createElement("span");tm.className="tc-time";tm.textContent=p.time;meta.appendChild(tm);
+      card.appendChild(top);card.appendChild(meta);
+      card.addEventListener("click",function(){togglePrev(idx,card,sec);});
+      grid.appendChild(card);
+    });
+    sec.appendChild(grid);con.appendChild(sec);
+  });
+}
+
+function togglePrev(idx,card,section){
+  var old=document.querySelector(".pipe-preview.visible");if(old)old.parentNode.removeChild(old);
+  document.querySelectorAll(".template-card").forEach(function(c){c.classList.remove("expanded");});
+  if(openIdx===idx){openIdx=-1;return;}
+  openIdx=idx;card.classList.add("expanded");
+  var p=PIPES[idx];
+  var pv=document.createElement("div");pv.className="pipe-preview visible";
+  // Header
+  var hd=document.createElement("div");hd.className="pp-header";
+  var pe=document.createElement("div");pe.className="pp-emoji";pe.textContent=p.emoji;
+  var pi=document.createElement("div");pi.className="pp-info";
+  var pt=document.createElement("div");pt.className="pp-title";pt.textContent=p.name;
+  var pd=document.createElement("div");pd.className="pp-desc";pd.textContent=p.desc;
+  pi.appendChild(pt);pi.appendChild(pd);
+  var cl=document.createElement("div");cl.className="pp-close";cl.textContent="✕";
+  cl.addEventListener("click",function(){openIdx=-1;pv.parentNode.removeChild(pv);card.classList.remove("expanded");});
+  hd.appendChild(pe);hd.appendChild(pi);hd.appendChild(cl);
+  // Meta
+  var mt=document.createElement("div");mt.className="pp-meta";
+  [{t:"⏱ "+p.time},{t:"📊 "+p.steps.length+" шагов"},{t:"👥 "+p.audience}].forEach(function(m){
+    var mi=document.createElement("div");mi.textContent=m.t;mt.appendChild(mi);
+  });
+  // Steps
+  var sd=document.createElement("div");sd.className="pp-steps";
+  p.steps.forEach(function(s,i){
+    var step=document.createElement("div");step.className="pp-step";
+    var rail=document.createElement("div");rail.className="pp-step-rail";
+    var dot=document.createElement("div");dot.className="pp-step-dot";dot.style.background=s.color;dot.textContent=String(i+1);
+    var line=document.createElement("div");line.className="pp-step-line";
+    rail.appendChild(dot);rail.appendChild(line);
+    var ct=document.createElement("div");ct.className="pp-step-content";
+    var sn=document.createElement("div");sn.className="pp-step-name";sn.textContent=s.name;
+    var sds=document.createElement("div");sds.className="pp-step-desc";sds.textContent=s.desc;
+    var sm=document.createElement("div");sm.className="pp-step-model";sm.textContent=s.model;
+    ct.appendChild(sn);ct.appendChild(sds);ct.appendChild(sm);
+    step.appendChild(rail);step.appendChild(ct);sd.appendChild(step);
+  });
+  // Footer
+  var ft=document.createElement("div");ft.className="pp-footer";
+  var au=document.createElement("div");au.className="pp-audience";au.textContent="👥 "+p.audience;
+  var ub=document.createElement("button");ub.className="run-btn";ub.textContent="▶ Использовать";
+  ub.addEventListener("click",function(){
+    document.querySelectorAll(".page").forEach(function(pg){pg.classList.remove("active");});
+    document.querySelectorAll(".nav-tab").forEach(function(t){t.classList.remove("active");});
+    document.getElementById("page-workbench").classList.add("active");
+    document.querySelectorAll(".nav-tab")[0].classList.add("active");
+  });
+  ft.appendChild(au);ft.appendChild(ub);
+  pv.appendChild(hd);pv.appendChild(mt);pv.appendChild(sd);pv.appendChild(ft);
+  section.insertBefore(pv,section.querySelector(".template-grid").nextSibling);
+  setTimeout(function(){pv.scrollIntoView({behavior:"smooth",block:"center"});},100);
+}
+
+document.getElementById("cat-filter").addEventListener("click",function(e){
+  var pill=e.target.closest(".cat-pill");if(!pill)return;
+  document.querySelectorAll(".cat-pill").forEach(function(p){p.classList.remove("active");});
+  pill.classList.add("active");var cat=pill.getAttribute("data-cat");
+  document.querySelectorAll(".pipe-section").forEach(function(s){
+    s.classList.toggle("hidden",cat!=="all"&&s.getAttribute("data-cat")!==cat);
+  });
+  openIdx=-1;var old=document.querySelector(".pipe-preview.visible");if(old)old.parentNode.removeChild(old);
+  document.querySelectorAll(".template-card").forEach(function(c){c.classList.remove("expanded");});
+});
+buildPipes();
+
+// LIVE
+var curMode="transcribe",liveInt=null,liveStep=0,livePaused=false,liveRec=false,liveSec=0,timerInt=null;
+
+function renderLive(mode){
+  var cfg=LIVE_MODES[mode],ct=document.getElementById("live-content");
+  while(ct.firstChild)ct.removeChild(ct.firstChild);
+  document.getElementById("live-mode-desc").textContent=cfg.desc;
+  document.getElementById("live-lang").textContent=cfg.lang;
+  document.getElementById("live-legend").style.display=cfg.showLegend?"flex":"none";
+  if(mode==="meeting"){
+    var ag=document.createElement("ul");ag.className="live-agenda";ag.id="live-agenda";ct.appendChild(ag);
+  }else{
+    cfg.tracks.forEach(function(t,i){
+      var tr=document.createElement("div");tr.className="live-track";
+      var lb=document.createElement("div");lb.className="live-track-label";lb.textContent=t.label;
+      var tx=document.createElement("div");tx.className="live-track-text";tx.id="live-track-"+i;
+      tr.appendChild(lb);tr.appendChild(tx);ct.appendChild(tr);
+    });
+  }
+}
+
+document.getElementById("live-modes").addEventListener("click",function(e){
+  var b=e.target.closest(".live-mode-btn");if(!b)return;stopLive();
+  document.querySelectorAll(".live-mode-btn").forEach(function(m){m.classList.remove("active");});
+  b.classList.add("active");curMode=b.getAttribute("data-mode");renderLive(curMode);
+});
+
+document.getElementById("live-rec-btn").addEventListener("click",function(){if(!liveRec)startLive();});
+document.getElementById("live-pause-btn").addEventListener("click",function(){livePaused=!livePaused;this.textContent=livePaused?"▶ Далее":"⏸ Пауза";});
+document.getElementById("live-stop-btn").addEventListener("click",stopLive);
+
+function startLive(){
+  liveRec=true;livePaused=false;liveStep=0;liveSec=0;
+  document.getElementById("live-rec-dot").classList.add("active");
+  document.getElementById("live-rec-btn").textContent="● Идёт...";
+  renderLive(curMode);
+  timerInt=setInterval(function(){if(!livePaused)liveSec++;
+    document.getElementById("live-timer").textContent=String(Math.floor(liveSec/60)).padStart(2,"0")+":"+String(liveSec%60).padStart(2,"0");
+  },1000);
+  var cfg=LIVE_MODES[curMode];
+  if(curMode==="meeting"){
+    liveInt=setInterval(function(){if(livePaused)return;if(liveStep>=cfg.demo.length){clearInterval(liveInt);return;}
+      var d=cfg.demo[liveStep],ag=document.getElementById("live-agenda");
+      var li=document.createElement("li");li.className="live-agenda-item";
+      var tm=document.createElement("div");tm.className="lai-time";tm.textContent=d.time;
+      var dt=document.createElement("div");dt.className="lai-dot "+d.type;
+      var tx=document.createElement("div");tx.className="lai-text";tx.textContent=d.text;
+      li.appendChild(tm);li.appendChild(dt);li.appendChild(tx);
+      li.style.opacity="0";li.style.transform="translateY(6px)";ag.appendChild(li);
+      setTimeout(function(){li.style.transition="var(--transition)";li.style.opacity="1";li.style.transform="translateY(0)";},30);
+      liveStep++;
+    },1800);
+  }else if(curMode==="translate"){
+    liveInt=setInterval(function(){if(livePaused)return;if(liveStep>=cfg.demo.length){clearInterval(liveInt);return;}
+      var d=cfg.demo[liveStep];
+      var t0=document.getElementById("live-track-0"),t1=document.getElementById("live-track-1");
+      if(t0)t0.textContent=d[0];if(t1)t1.textContent=d[1];liveStep++;
+    },1800);
+  }else{
+    liveInt=setInterval(function(){if(livePaused)return;if(liveStep>=cfg.demo.length){clearInterval(liveInt);return;}
+      var t=document.getElementById("live-track-0");
+      if(t){if(liveStep>0&&cfg.demo[liveStep]!=="")t.textContent+="\n";t.textContent+=cfg.demo[liveStep];}
+      liveStep++;
+    },1500);
+  }
+}
+
+function stopLive(){
+  liveRec=false;livePaused=false;clearInterval(liveInt);clearInterval(timerInt);
+  document.getElementById("live-rec-dot").classList.remove("active");
+  document.getElementById("live-rec-btn").textContent="● Запись";
+  document.getElementById("live-pause-btn").textContent="⏸ Пауза";
+  document.getElementById("live-timer").textContent="00:00";liveStep=0;liveSec=0;
+}
+
+renderLive("transcribe");
+})();
+</script>
+</body>
+</html>

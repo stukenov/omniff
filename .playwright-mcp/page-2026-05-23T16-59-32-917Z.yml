@@ -1,0 +1,115 @@
+- generic [ref=e2]:
+  - banner [ref=e4]:
+    - generic [ref=e6]:
+      - heading "Spaces Hugging Face's logo stukenov / omniff-runtime like 0 Agents Building" [level=1] [ref=e7]:
+        - generic [ref=e8]:
+          - link "Spaces" [ref=e9] [cursor=pointer]:
+            - /url: /spaces
+          - link "Hugging Face's logo" [ref=e10] [cursor=pointer]:
+            - /url: /
+            - img "Hugging Face's logo" [ref=e11]
+        - separator [ref=e12]
+        - generic [ref=e13]:
+          - link [ref=e17] [cursor=pointer]:
+            - /url: /stukenov
+          - link "stukenov" [ref=e21] [cursor=pointer]:
+            - /url: /stukenov
+          - generic [ref=e22]: /
+        - generic [ref=e23]:
+          - link "omniff-runtime" [ref=e24] [cursor=pointer]:
+            - /url: /spaces/stukenov/omniff-runtime
+          - button "Copy space name to clipboard" [ref=e25] [cursor=pointer]:
+            - img [ref=e26]
+        - generic [ref=e30]:
+          - button "like" [ref=e33] [cursor=pointer]:
+            - img [ref=e34]
+            - generic [ref=e36]: like
+          - button "0" [ref=e37] [cursor=pointer]
+        - generic [ref=e40] [cursor=pointer]:
+          - img [ref=e41]
+          - text: Agents
+        - generic [ref=e49] [cursor=pointer]: Building
+        - button [ref=e53] [cursor=pointer]:
+          - img [ref=e54]
+          - img [ref=e58]
+      - button [ref=e61] [cursor=pointer]:
+        - img [ref=e62]
+  - main [ref=e64]:
+    - iframe [active] [ref=e66]:
+      - main [ref=f20e4]:
+        - generic [ref=f20e5]:
+          - generic [ref=f20e7]:
+            - generic [ref=f20e11]:
+              - heading "OmniFF" [level=1] [ref=f20e12]
+              - generic [ref=f20e13]: FFmpeg для ИИ
+              - generic [ref=f20e14]: ZeroGPU
+            - generic [ref=f20e15]:
+              - generic [ref=f20e16]:
+                - generic [ref=f20e17]:
+                  - button [ref=f20e18] [cursor=pointer]: Чат
+                  - button [ref=f20e19] [cursor=pointer]: Изображение
+                  - button [ref=f20e20] [cursor=pointer]: Видео
+                  - button [ref=f20e21] [cursor=pointer]: Генерация
+                  - button [ref=f20e22] [cursor=pointer]: Трансформация
+                  - button [ref=f20e23] [cursor=pointer]: Транскрипция
+                  - button [ref=f20e24] [cursor=pointer]: Текст
+                  - button [ref=f20e25] [cursor=pointer]: Документы
+                  - button [ref=f20e26] [cursor=pointer]: Код
+                  - button [ref=f20e27] [cursor=pointer]: Перевод
+                  - button [ref=f20e28] [cursor=pointer]: Дубляж
+                  - button [ref=f20e29] [cursor=pointer]: Агент
+                - tablist [ref=f20e30]:
+                  - tab "Чат" [selected] [ref=f20e31] [cursor=pointer]
+                  - tab "Изображение" [ref=f20e32] [cursor=pointer]
+                  - tab "Видео" [ref=f20e33] [cursor=pointer]
+                  - tab "Генерация" [ref=f20e34] [cursor=pointer]
+                  - tab "Трансформация" [ref=f20e35] [cursor=pointer]
+                  - tab "Транскрипция" [ref=f20e36] [cursor=pointer]
+                  - tab "Текст" [ref=f20e37] [cursor=pointer]
+                  - tab "Документы" [ref=f20e38] [cursor=pointer]
+                  - tab "Код" [ref=f20e39] [cursor=pointer]
+                - button [ref=f20e41] [cursor=pointer]:
+                  - img [ref=f20e42]
+              - tabpanel [ref=f20e46]:
+                - generic [ref=f20e47]:
+                  - paragraph [ref=f20e51]: Текст, изображения, аудио, видео, документы — авто-маршрутизация.
+                  - log "chatbot conversation" [ref=f20e54]:
+                    - complementary [ref=f20e55]:
+                      - generic [ref=f20e58]:
+                        - paragraph [ref=f20e59]: Чем могу помочь?
+                        - paragraph [ref=f20e60]: Загрузите файл или напишите сообщение.
+                  - group "Multimedia input field" [ref=f20e63]:
+                    - generic: MultimodalTextbox
+                    - generic [ref=f20e64]:
+                      - button [ref=f20e65] [cursor=pointer]:
+                        - img [ref=f20e66]
+                      - button [ref=f20e69] [cursor=pointer]:
+                        - img [ref=f20e70]
+                      - textbox "Сообщение OmniFF..." [ref=f20e73]
+                      - button [ref=f20e74] [cursor=pointer]:
+                        - img [ref=f20e75]
+                      - button [ref=f20e78] [cursor=pointer]:
+                        - img [ref=f20e79]
+            - paragraph [ref=f20e85]:
+              - link "GitHub" [ref=f20e86] [cursor=pointer]:
+                - /url: https://github.com/stukenov/omniff
+              - text: ·
+              - link "HuggingFace" [ref=f20e87] [cursor=pointer]:
+                - /url: https://huggingface.co/stukenov/omniff
+              - text: ·
+              - link "Saken Tukenov" [ref=f20e88] [cursor=pointer]:
+                - /url: https://github.com/stukenov
+              - text: · Qwen3 · Qwen2.5-VL · Whisper · SDXL Turbo · Перевод · Дубляж · Агент
+          - generic [ref=f20e89]:
+            - button "Use via API logo" [ref=f20e90] [cursor=pointer]:
+              - text: Use via API
+              - img "logo" [ref=f20e91]
+            - generic [ref=f20e92]: ·
+            - link "Built with Gradio logo" [ref=f20e93] [cursor=pointer]:
+              - /url: https://gradio.app
+              - text: Built with Gradio
+              - img "logo" [ref=f20e94]
+            - generic [ref=f20e95]: ·
+            - button "Settings Settings" [ref=f20e96] [cursor=pointer]:
+              - text: Settings
+              - img "Settings" [ref=f20e97]

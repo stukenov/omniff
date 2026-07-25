@@ -1,0 +1,42 @@
+- generic [ref=e2]:
+  - banner [ref=e4]:
+    - generic [ref=e6]:
+      - heading "Spaces Hugging Face's logo stukenov / omniff-runtime like 0 Agents Building" [level=1] [ref=e7]:
+        - generic [ref=e8]:
+          - link "Spaces" [ref=e9] [cursor=pointer]:
+            - /url: /spaces
+          - link "Hugging Face's logo" [ref=e10] [cursor=pointer]:
+            - /url: /
+            - img "Hugging Face's logo" [ref=e11]
+        - separator [ref=e12]
+        - generic [ref=e13]:
+          - link [ref=e17] [cursor=pointer]:
+            - /url: /stukenov
+          - link "stukenov" [ref=e21] [cursor=pointer]:
+            - /url: /stukenov
+          - generic [ref=e22]: /
+        - generic [ref=e23]:
+          - link "omniff-runtime" [ref=e24] [cursor=pointer]:
+            - /url: /spaces/stukenov/omniff-runtime
+          - button "Copy space name to clipboard" [ref=e25] [cursor=pointer]:
+            - img [ref=e26]
+        - generic [ref=e30]:
+          - button "like" [ref=e33] [cursor=pointer]:
+            - img [ref=e34]
+            - generic [ref=e36]: like
+          - button "0" [ref=e37] [cursor=pointer]
+        - generic [ref=e40] [cursor=pointer]:
+          - img [ref=e41]
+          - text: Agents
+        - generic [ref=e49] [cursor=pointer]:
+          - img [ref=e50]
+          - text: Building
+        - button [ref=e55] [cursor=pointer]:
+          - img [ref=e56]
+          - img [ref=e60]
+      - button [ref=e63] [cursor=pointer]:
+        - img [ref=e64]
+  - main [ref=e66]:
+    - generic [ref=e69]:
+      - img [ref=e70]
+      - text: Building...

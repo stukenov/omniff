@@ -1,0 +1,74 @@
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]: ⚡
+        - generic [ref=e7]: OmniFF
+        - generic [ref=e8]: /
+        - generic [ref=e9]: FFmpeg для ИИ
+      - navigation [ref=e11]:
+        - link "Верстак" [ref=e12] [cursor=pointer]:
+          - /url: /
+        - link "Live" [ref=e13] [cursor=pointer]:
+          - /url: /live
+        - link "Пайплайны" [ref=e14] [cursor=pointer]:
+          - /url: /pipelines
+        - link "История" [ref=e15] [cursor=pointer]:
+          - /url: /history
+    - generic [ref=e16]:
+      - generic [ref=e46]:
+        - generic [ref=e47]: 🖼
+        - generic [ref=e48]:
+          - generic [ref=e49]: landscape.jpg
+          - generic [ref=e50]: Изображение · 2.4 MB
+        - button "✕" [ref=e51] [cursor=pointer]
+      - generic [ref=e52]:
+        - generic [ref=e53]: Что сделать?
+        - generic [ref=e54]:
+          - button "👁 Описать Что изображено?" [ref=e55] [cursor=pointer]:
+            - generic [ref=e56]: 👁
+            - generic [ref=e57]:
+              - generic [ref=e58]: Описать
+              - generic [ref=e59]: Что изображено?
+          - button "🌐 Перевести текст OCR → перевод" [ref=e60] [cursor=pointer]:
+            - generic [ref=e61]: 🌐
+            - generic [ref=e62]:
+              - generic [ref=e63]: Перевести текст
+              - generic [ref=e64]: OCR → перевод
+          - button "✨ Улучшить ×2 разрешение" [ref=e65] [cursor=pointer]:
+            - generic [ref=e66]: ✨
+            - generic [ref=e67]:
+              - generic [ref=e68]: Улучшить
+              - generic [ref=e69]: ×2 разрешение
+      - generic [ref=e71]:
+        - textbox "Вопрос..." [ref=e72]
+        - button "▶ Описать" [active] [ref=e73] [cursor=pointer]
+      - generic [ref=e75]:
+        - generic [ref=e76]:
+          - generic [ref=e77]:
+            - generic [ref=e79]: Описать
+            - generic [ref=e80]: Qwen2.5-VL
+          - generic [ref=e81]:
+            - button "📋" [ref=e82] [cursor=pointer]
+            - button "⬇" [ref=e83] [cursor=pointer]
+        - generic [ref=e84]: Горный пейзаж. Альпийское озеро с бирюзовой водой. Заснеженные вершины в закатном свете. Хвойные деревья по берегу.
+        - generic [ref=e85]:
+          - generic [ref=e86]: Что дальше?
+          - generic [ref=e87]:
+            - button "🌐 Перевести" [ref=e88] [cursor=pointer]
+            - button "🎨 Стилизовать" [ref=e89] [cursor=pointer]
+    - generic [ref=e27]:
+      - button "📎" [ref=e28] [cursor=pointer]
+      - textbox "Сообщение, файл, ссылка..." [ref=e29]
+      - button "🎤" [ref=e30] [cursor=pointer]
+      - button "▶" [ref=e31] [cursor=pointer]
+  - generic:
+    - img
+  - generic [ref=e32]:
+    - button "Toggle Nuxt DevTools" [ref=e33] [cursor=pointer]:
+      - img [ref=e34]
+    - generic "Page load time" [ref=e37]:
+      - generic [ref=e38]: "165"
+      - generic [ref=e39]: ms
+    - button "Toggle Component Inspector" [ref=e41] [cursor=pointer]:
+      - img [ref=e42]

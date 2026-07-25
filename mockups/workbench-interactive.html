@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OmniFF Workbench — Interactive Prototype</title>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #161616;
+    --surface-2: #1e1e1e;
+    --surface-3: #2a2a2a;
+    --border: #333;
+    --text: #f5f5f7;
+    --text-secondary: #86868b;
+    --text-tertiary: #555;
+    --accent: #0a84ff;
+    --accent-soft: rgba(10, 132, 255, 0.12);
+    --green: #30d158;
+    --green-soft: rgba(48, 209, 88, 0.12);
+    --orange: #ff9f0a;
+    --orange-soft: rgba(255, 159, 10, 0.12);
+    --purple: #bf5af2;
+    --purple-soft: rgba(191, 90, 242, 0.12);
+    --red: #ff453a;
+    --radius: 14px;
+    --radius-sm: 10px;
+    --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  .topbar {
+    display: flex; align-items: center; padding: 14px 24px;
+    border-bottom: 1px solid var(--border); background: var(--surface);
+    position: sticky; top: 0; z-index: 100; backdrop-filter: blur(20px);
+  }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon {
+    width: 30px; height: 30px;
+    background: linear-gradient(135deg, #0a84ff, #5e5ce6);
+    border-radius: 7px; display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 800;
+  }
+  .logo-text { font-size: 16px; font-weight: 600; letter-spacing: -0.02em; }
+  .logo-badge {
+    font-size: 10px; color: var(--text-secondary);
+    background: var(--surface-3); padding: 2px 8px; border-radius: 4px; margin-left: 4px;
+  }
+  .nav-tabs {
+    display: flex; gap: 4px; margin-left: auto;
+    background: var(--surface-2); padding: 3px; border-radius: 10px;
+  }
+  .nav-tab {
+    padding: 7px 18px; font-size: 13px; font-weight: 500;
+    color: var(--text-secondary); border-radius: 8px; cursor: pointer;
+    transition: var(--transition); user-select: none;
+  }
+  .nav-tab:hover { color: var(--text); }
+  .nav-tab.active { color: var(--text); background: var(--surface-3); }
+  .page { display: none; }
+  .page.active { display: block; }
+  .workbench { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+  .dropzone {
+    border: 2px dashed var(--border); border-radius: var(--radius);
+    padding: 48px 32px; text-align: center; transition: var(--transition);
+    cursor: pointer; position: relative; background: var(--surface);
+  }
+  .dropzone:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .dropzone.has-file {
+    border-style: solid; border-color: var(--green);
+    background: var(--green-soft); padding: 20px 32px;
+  }
+  .dropzone-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.6; }
+  .dropzone-title { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
+  .dropzone-hint { font-size: 13px; color: var(--text-secondary); }
+  .dropzone-file { display: none; align-items: center; gap: 12px; }
+  .dropzone.has-file .dropzone-empty { display: none; }
+  .dropzone.has-file .dropzone-file { display: flex; }
+  .file-icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+  }
+  .file-info { text-align: left; flex: 1; }
+  .file-name { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+  .file-meta { font-size: 12px; color: var(--text-secondary); }
+  .file-remove {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(255,69,58,0.15); color: var(--red);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 14px; transition: var(--transition);
+  }
+  .file-remove:hover { background: rgba(255,69,58,0.3); }
+  .sim-section { margin-top: 20px; }
+  .sim-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-tertiary); margin-bottom: 8px; font-weight: 600;
+  }
+  .sim-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
+  .sim-btn {
+    padding: 8px 16px; font-size: 13px; background: var(--surface-2);
+    border: 1px solid var(--border); border-radius: 8px; color: var(--text-secondary);
+    cursor: pointer; transition: var(--transition); display: flex;
+    align-items: center; gap: 6px; user-select: none;
+  }
+  .sim-btn:hover { background: var(--surface-3); color: var(--text); border-color: var(--text-tertiary); }
+  .sim-emoji { font-size: 16px; }
+  .actions-section {
+    margin-top: 24px; opacity: 0; transform: translateY(12px);
+    transition: var(--transition); pointer-events: none;
+  }
+  .actions-section.visible { opacity: 1; transform: translateY(0); pointer-events: all; }
+  .actions-header { font-size: 13px; color: var(--text-secondary); margin-bottom: 10px; font-weight: 500; }
+  .actions-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px;
+  }
+  .action-btn {
+    display: flex; align-items: center; gap: 10px; padding: 14px 16px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition); user-select: none;
+  }
+  .action-btn:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .action-btn.selected { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 1px var(--accent); }
+  .action-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .action-text { text-align: left; }
+  .action-name { font-size: 14px; font-weight: 600; margin-bottom: 1px; }
+  .action-desc { font-size: 11px; color: var(--text-secondary); }
+  .options-panel {
+    margin-top: 16px; padding: 20px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    opacity: 0; transform: translateY(8px); transition: var(--transition);
+    pointer-events: none; display: none;
+  }
+  .options-panel.visible { opacity: 1; transform: translateY(0); pointer-events: all; display: block; }
+  .options-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+  .option-group { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 140px; }
+  .option-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-secondary); font-weight: 600;
+  }
+  .option-select, .option-input, .option-textarea {
+    padding: 10px 14px; background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); font-size: 14px; font-family: inherit;
+    outline: none; transition: var(--transition);
+  }
+  .option-select:focus, .option-input:focus, .option-textarea:focus { border-color: var(--accent); }
+  .option-textarea { min-height: 80px; resize: vertical; width: 100%; }
+  .option-select { cursor: pointer; }
+  .run-btn {
+    padding: 11px 28px; background: var(--accent); color: white; border: none;
+    border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: var(--transition); display: flex; align-items: center;
+    gap: 8px; white-space: nowrap; font-family: inherit;
+  }
+  .run-btn:hover { filter: brightness(1.15); }
+  .run-btn:active { transform: scale(0.97); }
+  .result-area {
+    margin-top: 20px; opacity: 0; transform: translateY(12px);
+    transition: var(--transition); display: none;
+  }
+  .result-area.visible { opacity: 1; transform: translateY(0); display: block; }
+  .result-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+  }
+  .result-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+  }
+  .result-title {
+    font-size: 13px; font-weight: 600; color: var(--text-secondary);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .result-title .dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--green);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .result-actions { display: flex; gap: 6px; }
+  .result-action-btn {
+    padding: 5px 12px; font-size: 12px; background: var(--surface-2);
+    border: 1px solid var(--border); border-radius: 6px; color: var(--text-secondary);
+    cursor: pointer; transition: var(--transition); font-family: inherit;
+  }
+  .result-action-btn:hover { color: var(--text); background: var(--surface-3); }
+  .result-action-btn.chain { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+  .result-content {
+    padding: 20px; font-size: 14px; line-height: 1.7; color: var(--text); white-space: pre-wrap;
+  }
+  @keyframes blink { 0%, 100% { border-color: var(--accent); } 50% { border-color: transparent; } }
+  .pipeline-page { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+  .pipeline-header { margin-bottom: 24px; }
+  .pipeline-header h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 6px; }
+  .pipeline-header p { font-size: 14px; color: var(--text-secondary); }
+  .pipeline-flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+  .pipeline-step {
+    display: flex; align-items: center; gap: 10px; padding: 14px 18px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition);
+  }
+  .pipeline-step:hover { border-color: var(--accent); }
+  .step-num {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--accent-soft); color: var(--accent);
+    font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+  }
+  .step-name { font-size: 14px; font-weight: 500; }
+  .pipeline-arrow { font-size: 18px; color: var(--text-tertiary); }
+  .pipeline-add {
+    width: 40px; height: 40px; border-radius: 10px; border: 2px dashed var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; color: var(--text-tertiary); cursor: pointer; transition: var(--transition);
+  }
+  .pipeline-add:hover { border-color: var(--accent); color: var(--accent); }
+  .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+  .template-card {
+    padding: 18px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); cursor: pointer; transition: var(--transition);
+  }
+  .template-card:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .template-emoji { font-size: 24px; margin-bottom: 8px; }
+  .template-name { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .template-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+  .template-steps { display: flex; gap: 4px; margin-top: 10px; }
+  .template-step-pill {
+    padding: 3px 8px; font-size: 10px; background: var(--surface-2);
+    border-radius: 4px; color: var(--text-secondary);
+  }
+  .history-page { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+  .history-list { display: flex; flex-direction: column; gap: 8px; }
+  .history-item {
+    display: flex; align-items: center; gap: 14px; padding: 16px 20px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition);
+  }
+  .history-item:hover { border-color: var(--text-tertiary); background: var(--surface-2); }
+  .history-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .history-info { flex: 1; }
+  .history-name { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+  .history-meta { font-size: 12px; color: var(--text-secondary); }
+  .history-re {
+    padding: 6px 14px; font-size: 12px; background: var(--surface-3);
+    border: 1px solid var(--border); border-radius: 6px; color: var(--text-secondary);
+    cursor: pointer; transition: var(--transition); font-family: inherit;
+  }
+  .history-re:hover { color: var(--accent); border-color: var(--accent); }
+  .hint-bar {
+    position: fixed; bottom: 0; left: 0; right: 0; padding: 10px 24px;
+    background: var(--surface); border-top: 1px solid var(--border);
+    font-size: 12px; color: var(--text-tertiary); text-align: center; z-index: 100;
+  }
+  .hint-bar span { color: var(--text-secondary); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-icon">⚡</div>
+    <span class="logo-text">OmniFF</span>
+    <span class="logo-badge">FFmpeg для ИИ</span>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-page="workbench">Верстак</div>
+    <div class="nav-tab" data-page="pipelines">Пайплайны</div>
+    <div class="nav-tab" data-page="history">История</div>
+  </div>
+</div>
+
+<div id="page-workbench" class="page active">
+  <div class="workbench">
+    <div class="dropzone" id="dropzone">
+      <div class="dropzone-empty">
+        <div class="dropzone-icon">📂</div>
+        <div class="dropzone-title">Бросьте файл или выберите тип ниже</div>
+        <div class="dropzone-hint">Изображение, видео, аудио, документ — что угодно</div>
+      </div>
+      <div class="dropzone-file">
+        <div class="file-icon" id="file-icon">🖼</div>
+        <div class="file-info">
+          <div class="file-name" id="file-name">photo.jpg</div>
+          <div class="file-meta" id="file-meta">Изображение · 2.4 MB</div>
+        </div>
+        <div class="file-remove" id="file-remove">✕</div>
+      </div>
+    </div>
+    <div class="sim-section">
+      <div class="sim-label">Попробуйте — нажмите на тип файла:</div>
+      <div class="sim-buttons" id="sim-buttons">
+        <div class="sim-btn" data-type="image"><span class="sim-emoji">🖼</span> Фото</div>
+        <div class="sim-btn" data-type="video"><span class="sim-emoji">🎬</span> Видео</div>
+        <div class="sim-btn" data-type="audio"><span class="sim-emoji">🎵</span> Аудио</div>
+        <div class="sim-btn" data-type="document"><span class="sim-emoji">📄</span> Документ</div>
+        <div class="sim-btn" data-type="none"><span class="sim-emoji">✏️</span> Без файла</div>
+      </div>
+    </div>
+    <div class="actions-section" id="actions-section">
+      <div class="actions-header" id="actions-header">Что хотите сделать?</div>
+      <div class="actions-grid" id="actions-grid"></div>
+    </div>
+    <div class="options-panel" id="options-panel"></div>
+    <div class="result-area" id="result-area">
+      <div class="result-box">
+        <div class="result-header">
+          <div class="result-title">
+            <span class="dot"></span>
+            <span id="result-label">Результат</span>
+          </div>
+          <div class="result-actions">
+            <button class="result-action-btn" id="btn-copy">📋 Копировать</button>
+            <button class="result-action-btn" id="btn-download">⬇ Скачать</button>
+            <button class="result-action-btn chain" id="btn-chain">⛓ В пайплайн</button>
+          </div>
+        </div>
+        <div class="result-content" id="result-content"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="page-pipelines" class="page">
+  <div class="pipeline-page">
+    <div class="pipeline-header">
+      <h2>Пайплайны</h2>
+      <p>Соединяйте операции в цепочки. Выход одной → вход следующей.</p>
+    </div>
+    <div class="sim-label" style="margin-bottom:12px;">Пример пайплайна:</div>
+    <div class="pipeline-flow">
+      <div class="pipeline-step"><div class="step-num">1</div><div class="step-name">🎤 Транскрипция</div></div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step"><div class="step-num">2</div><div class="step-name">🌐 Перевод KZ→RU</div></div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step"><div class="step-num">3</div><div class="step-name">📝 Конспект</div></div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step"><div class="step-num">4</div><div class="step-name">🔊 Озвучка</div></div>
+      <div class="pipeline-add" title="Добавить шаг">+</div>
+    </div>
+    <div class="sim-label" style="margin-top:32px; margin-bottom:12px;">Готовые шаблоны:</div>
+    <div class="template-grid">
+      <div class="template-card">
+        <div class="template-emoji">🎓</div>
+        <div class="template-name">Конспект лекции</div>
+        <div class="template-desc">Запись лекции → транскрипция → перевод → конспект с ключевыми тезисами</div>
+        <div class="template-steps">
+          <span class="template-step-pill">Транскрипция</span>
+          <span class="template-step-pill">Перевод</span>
+          <span class="template-step-pill">Резюме</span>
+        </div>
+      </div>
+      <div class="template-card">
+        <div class="template-emoji">🎬</div>
+        <div class="template-name">Субтитры для видео</div>
+        <div class="template-desc">Видео → транскрипция → перевод на 3 языка → файлы субтитров .srt</div>
+        <div class="template-steps">
+          <span class="template-step-pill">Транскрипция</span>
+          <span class="template-step-pill">Перевод ×3</span>
+          <span class="template-step-pill">Экспорт SRT</span>
+        </div>
+      </div>
+      <div class="template-card">
+        <div class="template-emoji">📚</div>
+        <div class="template-name">Перевод статьи</div>
+        <div class="template-desc">PDF статья → извлечение текста → перевод → форматирование</div>
+        <div class="template-steps">
+          <span class="template-step-pill">OCR</span>
+          <span class="template-step-pill">Перевод</span>
+          <span class="template-step-pill">Формат</span>
+        </div>
+      </div>
+      <div class="template-card">
+        <div class="template-emoji">🎨</div>
+        <div class="template-name">Серия изображений</div>
+        <div class="template-desc">Один промпт → генерация 4 вариаций → улучшение лучшего</div>
+        <div class="template-steps">
+          <span class="template-step-pill">Генерация ×4</span>
+          <span class="template-step-pill">Выбор</span>
+          <span class="template-step-pill">Upscale</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="page-history" class="page">
+  <div class="history-page">
+    <div class="pipeline-header">
+      <h2>История</h2>
+      <p>Все операции. Можно переделать с другими параметрами.</p>
+    </div>
+    <div class="history-list">
+      <div class="history-item">
+        <div class="history-icon" style="background:var(--accent-soft);">🌐</div>
+        <div class="history-info">
+          <div class="history-name">Перевод: договор_2024.pdf</div>
+          <div class="history-meta">Казахский → Русский · 3 мин назад</div>
+        </div>
+        <button class="history-re">↻ Повторить</button>
+      </div>
+      <div class="history-item">
+        <div class="history-icon" style="background:var(--green-soft);">🎤</div>
+        <div class="history-info">
+          <div class="history-name">Транскрипция: лекция_физика.mp3</div>
+          <div class="history-meta">Казахский · 12 мин назад</div>
+        </div>
+        <button class="history-re">↻ Повторить</button>
+      </div>
+      <div class="history-item">
+        <div class="history-icon" style="background:var(--purple-soft);">🎨</div>
+        <div class="history-info">
+          <div class="history-name">Генерация: «горы Алатау на закате»</div>
+          <div class="history-meta">Seed: 42 · 25 мин назад</div>
+        </div>
+        <button class="history-re">↻ Повторить</button>
+      </div>
+      <div class="history-item">
+        <div class="history-icon" style="background:var(--orange-soft);">📄</div>
+        <div class="history-info">
+          <div class="history-name">Резюме: отчёт_Q4_2024.pdf</div>
+          <div class="history-meta">14 страниц → 5 тезисов · 1 час назад</div>
+        </div>
+        <button class="history-re">↻ Повторить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="hint-bar">
+  <span>Интерактивный прототип</span> — нажмите на тип файла, выберите действие, запустите
+</div>
+
+<script>
+(function() {
+  "use strict";
+
+  var FILE_CONFIGS = {
+    image: {
+      icon: "🖼", name: "landscape.jpg", meta: "Изображение \xB7 2.4 MB",
+      iconBg: "var(--accent-soft)",
+      actions: [
+        { id: "describe", icon: "👁", name: "Описать", desc: "Что на изображении?", color: "var(--accent-soft)",
+          optType: "textarea", optPlaceholder: "Вопрос к изображению (необязательно)...",
+          result: "На фотографии изображён горный пейзаж. На переднем плане — альпийское озеро с кристально чистой водой бирюзового оттенка. За озером поднимаются заснеженные вершины гор, освещённые мягким закатным светом. По берегу озера растут хвойные деревья — ели и пихты. Небо окрашено в градиент от золотисто-оранжевого у горизонта до глубокого синего в зените."
+        },
+        { id: "translate-ocr", icon: "🌐", name: "Перевести текст", desc: "OCR → перевод", color: "var(--green-soft)",
+          optType: "select", optLabel: "Язык перевода", optChoices: ["Русский", "Казахский", "English", "中文"],
+          result: "Обнаруженный текст:\n\"Mountain Lake Resort — Open Daily 9am-6pm\"\n\nПеревод (Русский):\n«Горный Озёрный Курорт — Открыто ежедневно 9:00-18:00»"
+        },
+        { id: "style", icon: "🎨", name: "Стилизовать", desc: "Перенос стиля", color: "var(--purple-soft)",
+          optType: "slider", optLabel: "Сила эффекта", optMin: 10, optMax: 100, optVal: 50,
+          result: "🖼 [Стилизованное изображение]\n\nПрименён стиль с силой 0.5. Сохранена структура оригинала с добавлением художественной стилизации."
+        },
+        { id: "upscale", icon: "✨", name: "Улучшить", desc: "Увеличить разрешение", color: "var(--orange-soft)",
+          optType: null,
+          result: "✨ Изображение улучшено\n\n2400\xD71600 → 4800\xD73200 (\xD72)\nФормат: PNG\nРазмер: 8.7 MB"
+        }
+      ]
+    },
+    video: {
+      icon: "🎬", name: "lecture_01.mp4", meta: "Видео \xB7 45:12 \xB7 320 MB",
+      iconBg: "var(--purple-soft)",
+      actions: [
+        { id: "transcribe", icon: "📝", name: "Транскрибировать", desc: "Речь → текст", color: "var(--green-soft)",
+          optType: "select", optLabel: "Язык речи", optChoices: ["Авто", "Қазақша", "Русский", "English", "中文"],
+          result: "[00:00] Сәлеметсіздер, бүгінгі дәріске қош келдіңіздер.\n[00:05] Біз бүгін кванттық механиканың негіздерін қарастырамыз.\n[00:12] Алдымен, Шрёдингер теңдеуін еске түсірейік...\n\n⏱ Транскрибировано: 45:12 / Язык: Казахский"
+        },
+        { id: "describe", icon: "👁", name: "Описать", desc: "Что на видео?", color: "var(--accent-soft)",
+          optType: "textarea", optPlaceholder: "Вопрос к видео...",
+          result: "Видеозапись лекции в университетской аудитории. Лектор — мужчина средних лет у доски. На доске написаны формулы квантовой механики. В аудитории около 30 студентов с ноутбуками. Длительность: 45 минут."
+        },
+        { id: "subtitles", icon: "💬", name: "Субтитры", desc: "Сгенерировать .srt", color: "var(--orange-soft)",
+          optType: "select", optLabel: "Язык субтитров", optChoices: ["Оригинал", "Русский", "English"],
+          result: "1\n00:00:00,000 --> 00:00:05,200\nСәлеметсіздер, бүгінгі дәріске\nқош келдіңіздер.\n\n2\n00:00:05,200 --> 00:00:12,400\nБіз бүгін кванттық механиканың\nнегіздерін қарастырамыз.\n\n📄 Файл: lecture_01.srt (127 строк)"
+        },
+        { id: "dub", icon: "🔊", name: "Дублировать", desc: "Озвучить на другом языке", color: "var(--accent-soft)",
+          optType: "select", optLabel: "Целевой язык", optChoices: ["Русский", "English", "中文"],
+          result: "🔊 Дубляж завершён\n\nИсходный язык: Казахский (авто)\nЦелевой язык: Русский\nДлительность: 45:12\n\n▶ [Аудиодорожка на русском языке]"
+        }
+      ]
+    },
+    audio: {
+      icon: "🎵", name: "interview.m4a", meta: "Аудио \xB7 18:34 \xB7 22 MB",
+      iconBg: "var(--green-soft)",
+      actions: [
+        { id: "transcribe", icon: "📝", name: "Транскрибировать", desc: "Речь → текст", color: "var(--green-soft)",
+          optType: "select", optLabel: "Язык речи", optChoices: ["Авто", "Қазақша", "Русский", "English", "中文"],
+          result: "[Спикер 1, 00:00]: Расскажите, как вы пришли в науку?\n[Спикер 2, 00:04]: Всё началось ещё в школе. Я увлёкся физикой после олимпиады в девятом классе.\n[Спикер 1, 00:12]: А что именно вас привлекло?\n[Спикер 2, 00:15]: Возможность объяснять мир через формулы.\n\n⏱ 18:34 / 2 спикера / Русский"
+        },
+        { id: "translate", icon: "🌐", name: "Перевести", desc: "Транскрипция + перевод", color: "var(--accent-soft)",
+          optType: "select", optLabel: "Перевести на", optChoices: ["Казахский", "English", "中文", "Deutsch"],
+          result: "Исходный язык: Русский (авто)\nЦелевой: Казахский\n\n[Спикер 1, 00:00]: Ғылымға қалай келдіңіз?\n[Спикер 2, 00:04]: Бәрі мектепте басталды. Тоғызыншы сыныптағы олимпиададан кейін физикаға қызықтым."
+        },
+        { id: "summarize", icon: "📋", name: "Резюме", desc: "Ключевые тезисы", color: "var(--orange-soft)",
+          optType: null,
+          result: "Резюме интервью (18:34)\n\nТема: Путь в науку\nСпикеры: Журналист + Учёный-физик\n\nКлючевые тезисы:\n• Увлечение наукой началось с олимпиады в 9 классе\n• Физика привлекает как «язык вселенной»\n• Формулы — способ объяснения мира\n\nНастроение: Вдохновляющее, позитивное"
+        }
+      ]
+    },
+    document: {
+      icon: "📄", name: "research_paper.pdf", meta: "PDF \xB7 14 страниц \xB7 1.8 MB",
+      iconBg: "var(--orange-soft)",
+      actions: [
+        { id: "summarize", icon: "📋", name: "Резюме", desc: "Главные тезисы", color: "var(--orange-soft)",
+          optType: null,
+          result: "Резюме: research_paper.pdf\n\nТема: Применение трансформеров в обработке казахского языка\nАвторы: Әлиева Г.Қ., Сейітов Б.А.\nГод: 2024\n\nКлючевые выводы:\n1. Модели на базе BERT показывают 94.2% точности на задаче NER для казахского\n2. Предобучение на казахском корпусе даёт +7% к качеству vs мультиязычные модели\n3. Агглютинативная морфология казахского требует специального токенизатора\n4. Предложена архитектура KazBERT с морфемным токенизатором\n\n📊 14 страниц \xB7 47 ссылок \xB7 3 таблицы \xB7 5 графиков"
+        },
+        { id: "translate", icon: "🌐", name: "Перевести", desc: "Полный перевод документа", color: "var(--accent-soft)",
+          optType: "select", optLabel: "Перевести на", optChoices: ["Русский", "English", "Казахский", "中文"],
+          result: "🌐 Перевод документа: research_paper.pdf\n\nКазахский → Русский\n14 страниц → 14 страниц\n\n[Полный переведённый документ]\n\n📥 Скачать: research_paper_RU.pdf"
+        },
+        { id: "extract", icon: "📊", name: "Извлечь данные", desc: "Таблицы, цифры, факты", color: "var(--green-soft)",
+          optType: "select", optLabel: "Формат", optChoices: ["JSON", "CSV", "Таблица"],
+          result: "📊 Извлечённые данные\n\nМодель    | Точность NER | F1-score | Корпус\nmBERT     | 87.1%        | 0.856    | Мульти\nXLM-R     | 89.4%        | 0.881    | Мульти\nKazBERT   | 94.2%        | 0.933    | Казахский\n\n📥 Скачать: extracted_data.csv"
+        },
+        { id: "ask", icon: "💬", name: "Задать вопрос", desc: "Спросить по документу", color: "var(--purple-soft)",
+          optType: "textarea", optPlaceholder: "Ваш вопрос к документу...",
+          result: "На основе документа:\n\nKazBERT превосходит мультиязычные модели благодаря двум ключевым отличиям:\n\n1. Морфемный токенизатор — разбивает казахские слова на морфемы вместо подслов\n\n2. Предобучение на казахском корпусе (12 ГБ текста из казахских СМИ, Википедии и учебников)"
+        }
+      ]
+    },
+    none: {
+      icon: "✏️", name: null, meta: null,
+      actions: [
+        { id: "write", icon: "📝", name: "Написать текст", desc: "Эссе, статья, письмо", color: "var(--accent-soft)",
+          optType: "textarea", optPlaceholder: "Что написать? Тема, стиль, длина...",
+          result: "Влияние искусственного интеллекта на образование в Центральной Азии\n\nЦентральная Азия переживает технологическую революцию. Университеты Казахстана, Узбекистана и Кыргызстана всё активнее внедряют инструменты на базе ИИ в образовательный процесс...\n\n[Полный текст: 1200 слов]"
+        },
+        { id: "generate", icon: "🎨", name: "Сгенерировать картинку", desc: "Текст → изображение", color: "var(--purple-soft)",
+          optType: "textarea", optPlaceholder: "Опишите изображение...",
+          result: "🖼 [Сгенерированное изображение]\n\nПромпт: «горы Алатау на закате, масляная живопись»\nSeed: 42\nРазрешение: 1024\xD71024\n\n📥 Скачать PNG"
+        },
+        { id: "code", icon: "💻", name: "Написать код", desc: "По описанию на естественном языке", color: "var(--green-soft)",
+          optType: "textarea", optPlaceholder: "Что должен делать код?",
+          result: "def analyze_text(text, language=\"auto\"):\n    import re\n    from collections import Counter\n    words = re.findall(r'\\w+', text.lower())\n    sentences = re.split(r'[.!?]+', text)\n    return {\n        \"word_count\": len(words),\n        \"sentence_count\": len(sentences),\n        \"unique_words\": len(set(words)),\n        \"top_words\": Counter(words).most_common(10)\n    }\n\n📋 Python \xB7 12 строк"
+        },
+        { id: "translate", icon: "🌐", name: "Перевести текст", desc: "Ввод → перевод", color: "var(--orange-soft)",
+          optType: "textarea", optPlaceholder: "Текст для перевода...",
+          result: "Исходный язык: English (авто)\nЦелевой: Казахский\n\n«Artificial intelligence is transforming education»\n\n→ «Жасанды интеллект білім беруді өзгертуде»"
+        }
+      ]
+    }
+  };
+
+  var currentAction = null;
+
+  // Nav tabs
+  document.querySelectorAll(".nav-tab").forEach(function(tab) {
+    tab.addEventListener("click", function() {
+      var page = this.getAttribute("data-page");
+      document.querySelectorAll(".page").forEach(function(p) { p.classList.remove("active"); });
+      document.querySelectorAll(".nav-tab").forEach(function(t) { t.classList.remove("active"); });
+      document.getElementById("page-" + page).classList.add("active");
+      this.classList.add("active");
+    });
+  });
+
+  // Sim buttons
+  document.getElementById("sim-buttons").addEventListener("click", function(e) {
+    var btn = e.target.closest(".sim-btn");
+    if (!btn) return;
+    var type = btn.getAttribute("data-type");
+    simulateFile(type);
+  });
+
+  // Remove file
+  document.getElementById("file-remove").addEventListener("click", function(e) {
+    e.stopPropagation();
+    removeFile();
+  });
+
+  // Result buttons
+  document.getElementById("btn-copy").addEventListener("click", function() {
+    var text = document.getElementById("result-content").textContent;
+    navigator.clipboard.writeText(text);
+    var btn = this;
+    btn.textContent = "✓ Скопировано";
+    setTimeout(function() { btn.textContent = "📋 Копировать"; }, 1500);
+  });
+
+  document.getElementById("btn-download").addEventListener("click", function() {
+    var btn = this;
+    btn.textContent = "✓ Скачано";
+    setTimeout(function() { btn.textContent = "⬇ Скачать"; }, 1500);
+  });
+
+  document.getElementById("btn-chain").addEventListener("click", function() {
+    document.querySelectorAll(".page").forEach(function(p) { p.classList.remove("active"); });
+    document.querySelectorAll(".nav-tab").forEach(function(t) { t.classList.remove("active"); });
+    document.getElementById("page-pipelines").classList.add("active");
+    document.querySelectorAll(".nav-tab")[1].classList.add("active");
+  });
+
+  function simulateFile(type) {
+    currentAction = null;
+    var dz = document.getElementById("dropzone");
+    var config = FILE_CONFIGS[type];
+
+    document.getElementById("result-area").classList.remove("visible");
+    var optPanel = document.getElementById("options-panel");
+    optPanel.classList.remove("visible");
+
+    if (type === "none") {
+      dz.classList.remove("has-file");
+    } else {
+      dz.classList.add("has-file");
+      document.getElementById("file-icon").textContent = config.icon;
+      document.getElementById("file-icon").style.background = config.iconBg;
+      document.getElementById("file-name").textContent = config.name;
+      document.getElementById("file-meta").textContent = config.meta;
+    }
+
+    var section = document.getElementById("actions-section");
+    var grid = document.getElementById("actions-grid");
+    var header = document.getElementById("actions-header");
+
+    header.textContent = type === "none" ? "Что хотите создать?" : "Что хотите сделать с этим файлом?";
+
+    // Clear grid safely
+    while (grid.firstChild) { grid.removeChild(grid.firstChild); }
+
+    config.actions.forEach(function(action) {
+      var btn = document.createElement("div");
+      btn.className = "action-btn";
+      btn.setAttribute("data-action", action.id);
+
+      var iconDiv = document.createElement("div");
+      iconDiv.className = "action-icon";
+      iconDiv.style.background = action.color;
+      iconDiv.textContent = action.icon;
+
+      var textDiv = document.createElement("div");
+      textDiv.className = "action-text";
+
+      var nameDiv = document.createElement("div");
+      nameDiv.className = "action-name";
+      nameDiv.textContent = action.name;
+
+      var descDiv = document.createElement("div");
+      descDiv.className = "action-desc";
+      descDiv.textContent = action.desc;
+
+      textDiv.appendChild(nameDiv);
+      textDiv.appendChild(descDiv);
+      btn.appendChild(iconDiv);
+      btn.appendChild(textDiv);
+
+      btn.addEventListener("click", function() { selectAction(action); });
+      grid.appendChild(btn);
+    });
+
+    section.classList.add("visible");
+  }
+
+  function selectAction(action) {
+    currentAction = action;
+
+    document.querySelectorAll(".action-btn").forEach(function(b) { b.classList.remove("selected"); });
+    var sel = document.querySelector('[data-action="' + action.id + '"]');
+    if (sel) sel.classList.add("selected");
+
+    document.getElementById("result-area").classList.remove("visible");
+
+    var panel = document.getElementById("options-panel");
+    while (panel.firstChild) { panel.removeChild(panel.firstChild); }
+
+    if (!action.optType) {
+      panel.classList.remove("visible");
+      setTimeout(function() { runAction(action); }, 100);
+      return;
+    }
+
+    if (action.optType === "textarea") {
+      var ta = document.createElement("textarea");
+      ta.className = "option-textarea";
+      ta.placeholder = action.optPlaceholder || "";
+      panel.appendChild(ta);
+
+      var runBtn = document.createElement("button");
+      runBtn.className = "run-btn";
+      runBtn.textContent = "▶ " + action.name;
+      runBtn.style.marginTop = "12px";
+      runBtn.addEventListener("click", function() { runAction(action); });
+      panel.appendChild(runBtn);
+    } else if (action.optType === "select") {
+      var row = document.createElement("div");
+      row.className = "options-row";
+
+      var group = document.createElement("div");
+      group.className = "option-group";
+
+      var label = document.createElement("div");
+      label.className = "option-label";
+      label.textContent = action.optLabel || "Параметр";
+
+      var select = document.createElement("select");
+      select.className = "option-select";
+      (action.optChoices || []).forEach(function(c) {
+        var opt = document.createElement("option");
+        opt.textContent = c;
+        select.appendChild(opt);
+      });
+
+      group.appendChild(label);
+      group.appendChild(select);
+      row.appendChild(group);
+
+      var runBtn2 = document.createElement("button");
+      runBtn2.className = "run-btn";
+      runBtn2.textContent = "▶ " + action.name;
+      runBtn2.addEventListener("click", function() { runAction(action); });
+      row.appendChild(runBtn2);
+
+      panel.appendChild(row);
+    } else if (action.optType === "slider") {
+      var row2 = document.createElement("div");
+      row2.className = "options-row";
+
+      var group2 = document.createElement("div");
+      group2.className = "option-group";
+
+      var valSpan = document.createElement("span");
+      valSpan.textContent = (action.optVal / 100).toFixed(1);
+
+      var label2 = document.createElement("div");
+      label2.className = "option-label";
+      label2.textContent = (action.optLabel || "Значение") + ": ";
+      label2.appendChild(valSpan);
+
+      var slider = document.createElement("input");
+      slider.type = "range";
+      slider.min = String(action.optMin);
+      slider.max = String(action.optMax);
+      slider.value = String(action.optVal);
+      slider.style.width = "100%";
+      slider.style.accentColor = "var(--accent)";
+      slider.addEventListener("input", function() {
+        valSpan.textContent = (parseInt(this.value) / 100).toFixed(1);
+      });
+
+      group2.appendChild(label2);
+      group2.appendChild(slider);
+      row2.appendChild(group2);
+
+      var runBtn3 = document.createElement("button");
+      runBtn3.className = "run-btn";
+      runBtn3.textContent = "▶ " + action.name;
+      runBtn3.addEventListener("click", function() { runAction(action); });
+      row2.appendChild(runBtn3);
+
+      panel.appendChild(row2);
+    }
+
+    panel.classList.add("visible");
+  }
+
+  function runAction(action) {
+    var area = document.getElementById("result-area");
+    var content = document.getElementById("result-content");
+    var label = document.getElementById("result-label");
+
+    label.textContent = action.name;
+    content.textContent = "";
+    area.classList.add("visible");
+    area.style.display = "block";
+
+    var text = action.result;
+    var i = 0;
+
+    function typeChar() {
+      if (i < text.length) {
+        content.textContent += text[i];
+        i++;
+        setTimeout(typeChar, 8 + Math.random() * 12);
+      }
+    }
+
+    setTimeout(typeChar, 300);
+    setTimeout(function() {
+      area.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 200);
+  }
+
+  function removeFile() {
+    var dz = document.getElementById("dropzone");
+    dz.classList.remove("has-file");
+    document.getElementById("actions-section").classList.remove("visible");
+    document.getElementById("options-panel").classList.remove("visible");
+    document.getElementById("result-area").classList.remove("visible");
+    currentAction = null;
+  }
+})();
+</script>
+
+</body>
+</html>
