@@ -306,7 +306,6 @@ Tested on **KazNU server** (2× NVIDIA A10 22GB).
 | Python package | `saken-omniff` |
 | Rust crates | `omniff-core`, `omniff-graph`, `omniff-runtime`, `omniff-cli` |
 | GitHub | [`stukenov/omniff`](https://github.com/stukenov/omniff) |
-| Hugging Face | [`stukenov/omniff-runtime`](https://huggingface.co/stukenov/omniff-runtime) |
 
 ## Related projects
 
